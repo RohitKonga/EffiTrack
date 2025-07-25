@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.29.105:5000/api';
+  static const String baseUrl = 'https://effitrack.onrender.com/api';
   String? _token;
 
   void setToken(String? token) {
