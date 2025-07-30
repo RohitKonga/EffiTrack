@@ -48,6 +48,10 @@ class ApiService {
     );
   }
 
+  Future<http.Response> delete(String endpoint, {bool auth = false}) {
+    return http.delete(Uri.parse('$baseUrl$endpoint'), headers: _headers);
+  }
+
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('jwt_token', token);

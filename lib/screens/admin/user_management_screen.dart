@@ -26,21 +26,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       _error = null;
     });
     try {
-      final res = await apiService.get(
-        '/profile/all',
-      ); // Adjust endpoint as needed
+      final res = await apiService.get('/profile/all');
       if (res.statusCode == 200) {
         setState(() {
           users = jsonDecode(res.body);
         });
       } else {
         setState(() {
-          _error = 'Failed to load users';
+          _error = 'Failed to load users: ${res.statusCode}';
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error';
+        _error = 'Network error: $e';
       });
     } finally {
       setState(() {
@@ -50,21 +48,66 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Future<void> _deleteUser(String userId) async {
-    try {
-      final res = await apiService.post('/profile/delete', {
-        'id': userId,
-      }); // Adjust endpoint as needed
-      if (res.statusCode == 200) {
-        _fetchUsers();
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete user')));
-      }
-    } catch (e) {
+    print('Attempting to delete user with ID: $userId'); // Debug log
+
+    if (userId.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Network error')));
+      ).showSnackBar(const SnackBar(content: Text('Invalid user ID')));
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure you want to delete this user?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      print('Making DELETE request to: /profile/$userId'); // Debug log
+      final res = await apiService.delete('/profile/$userId');
+      print('Response status: ${res.statusCode}'); // Debug log
+      print('Response body: ${res.body}'); // Debug log
+
+      if (res.statusCode == 200) {
+        _fetchUsers();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final data = jsonDecode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['msg'] ?? 'Failed to delete user'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error deleting user: $e'); // Debug log
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -80,7 +123,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add User'),
+              title: Row(
+                children: [
+                  Icon(Icons.person_add, color: Colors.indigo.shade600),
+                  const SizedBox(width: 8),
+                  const Text('Add User'),
+                ],
+              ),
               content: SingleChildScrollView(
                 child: Form(
                   key: _formKey,
@@ -88,34 +137,75 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (error != null) ...[
-                        Text(error!, style: const TextStyle(color: Colors.red)),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error,
+                                color: Colors.red.shade600,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  error!,
+                                  style: TextStyle(
+                                    color: Colors.red.shade700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 8),
                       ],
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'Name'),
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
                         onSaved: (v) => name = v,
                         validator: (v) =>
-                            v == null || v.isEmpty ? 'Enter name' : null,
+                            v == null || v.trim().isEmpty ? 'Enter name' : null,
                       ),
+                      const SizedBox(height: 8),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'Email'),
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                        ),
                         keyboardType: TextInputType.emailAddress,
                         onSaved: (v) => email = v,
-                        validator: (v) => v == null || !v.contains('@')
+                        validator: (v) =>
+                            v == null || !v.contains('@') || !v.contains('.')
                             ? 'Enter valid email'
                             : null,
                       ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         decoration: const InputDecoration(
                           labelText: 'Password',
+                          border: OutlineInputBorder(),
                         ),
                         obscureText: true,
                         onSaved: (v) => password = v,
                         validator: (v) =>
                             v == null || v.length < 6 ? 'Min 6 chars' : null,
                       ),
+                      const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Role'),
+                        decoration: const InputDecoration(
+                          labelText: 'Role',
+                          border: OutlineInputBorder(),
+                        ),
                         value: role,
                         items: roles
                             .map(
@@ -125,13 +215,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         onChanged: (v) => setState(() => role = v),
                         validator: (v) => v == null ? 'Select role' : null,
                       ),
+                      const SizedBox(height: 8),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'Phone'),
+                        decoration: const InputDecoration(
+                          labelText: 'Phone',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
                         onSaved: (v) => phone = v,
                       ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         decoration: const InputDecoration(
                           labelText: 'Department',
+                          border: OutlineInputBorder(),
                         ),
                         onSaved: (v) => department = v,
                       ),
@@ -167,7 +264,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               Navigator.pop(context);
                               _fetchUsers();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('User added!')),
+                                const SnackBar(
+                                  content: Text('User added successfully!'),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
                             } else {
                               setState(
@@ -176,14 +276,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               );
                             }
                           } catch (e) {
-                            setState(() => error = 'Network error');
+                            setState(() => error = 'Network error: $e');
                           } finally {
                             setState(() => loading = false);
                           }
                         },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                  ),
                   child: loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Add'),
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text('Add User'),
                 ),
               ],
             );
@@ -196,32 +309,114 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('User Management')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            )
-          : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user['name'] ?? ''),
-                  subtitle: Text('Role: ${user['role'] ?? ''}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () =>
-                        _deleteUser(user['_id'] ?? user['id'] ?? ''),
+      appBar: AppBar(
+        title: const Text('User Management'),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.indigo.shade50, Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: _loading
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading users...'),
+                    ],
                   ),
-                );
-              },
-            ),
+                )
+              : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red.shade400,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: TextStyle(color: Colors.red.shade700),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchUsers,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchUsers,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      final userId = user['_id'] ?? user['id'] ?? '';
+                      print('User data: $user'); // Debug log
+                      print('Extracted user ID: $userId'); // Debug log
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.indigo.shade100,
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.indigo.shade600,
+                            ),
+                          ),
+                          title: Text(
+                            user['name'] ?? 'Unknown',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Role: ${user['role'] ?? 'Unknown'}'),
+                              if (user['email'] != null)
+                                Text('Email: ${user['email']}'),
+                              if (user['department'] != null)
+                                Text('Department: ${user['department']}'),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteUser(userId),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addUserDialog,
-        child: const Icon(Icons.add),
         backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }
