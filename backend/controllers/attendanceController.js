@@ -60,6 +60,11 @@ exports.getAttendanceReports = async (req, res) => {
   try {
     // Get all users with their departments (excluding admins)
     const users = await User.find({ role: { $ne: 'Admin' } }).select('name department role');
+    console.log('Users found (excluding admins):', users.map(u => ({ name: u.name, role: u.role, department: u.department })));
+    
+    // Double-check: filter out any admin users that might have slipped through
+    const nonAdminUsers = users.filter(user => user.role !== 'Admin');
+    console.log('Users after double-check (excluding admins):', nonAdminUsers.map(u => ({ name: u.name, role: u.role, department: u.department })));
     
     // Get today's date
     const today = new Date();
@@ -72,12 +77,18 @@ exports.getAttendanceReports = async (req, res) => {
       checkIn: { $gte: today, $lt: tomorrow }
     }).populate('user', 'name department role');
     
+    console.log('Today\'s attendance records:', todayAttendance.map(a => ({ 
+      userName: a.user?.name, 
+      userRole: a.user?.role, 
+      department: a.user?.department 
+    })));
+    
     // Group by department
     const departmentStats = {};
-    const totalStats = { present: 0, absent: 0, total: users.length };
+    const totalStats = { present: 0, absent: 0, total: nonAdminUsers.length };
     
-    // Initialize department stats
-    users.forEach(user => {
+    // Initialize department stats (only for non-admin users)
+    nonAdminUsers.forEach(user => {
       if (user.department) {
         if (!departmentStats[user.department]) {
           departmentStats[user.department] = { present: 0, absent: 0, total: 0 };
@@ -86,14 +97,24 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
+    console.log('Department stats after initialization:', departmentStats);
+    
     // Count present users (employees and managers, excluding admins)
     todayAttendance.forEach(attendance => {
-      if (attendance.user && attendance.user.department && attendance.user.role !== 'Admin') {
+      // Extra safety check: ensure user exists and is not admin
+      if (attendance.user && 
+          attendance.user.department && 
+          attendance.user.role !== 'Admin' && 
+          attendance.user.role !== 'admin') { // Check both cases
+        
         if (!departmentStats[attendance.user.department]) {
           departmentStats[attendance.user.department] = { present: 0, absent: 0, total: 0 };
         }
         departmentStats[attendance.user.department].present++;
         totalStats.present++;
+        console.log(`Marking ${attendance.user.name} (${attendance.user.role}) as present in ${attendance.user.department}`);
+      } else {
+        console.log(`Skipping ${attendance.user?.name} (${attendance.user?.role}) - not eligible for attendance`);
       }
     });
     
@@ -102,6 +123,9 @@ exports.getAttendanceReports = async (req, res) => {
       departmentStats[dept].absent = departmentStats[dept].total - departmentStats[dept].present;
     });
     totalStats.absent = totalStats.total - totalStats.present;
+    
+    console.log('Final department stats:', departmentStats);
+    console.log('Final total stats:', totalStats);
     
     // Convert to array format
     const reports = Object.keys(departmentStats).map(dept => ({
