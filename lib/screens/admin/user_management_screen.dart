@@ -115,6 +115,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final _formKey = GlobalKey<FormState>();
     String? name, email, password, role, phone, department;
     final roles = ['Employee', 'Manager', 'Admin'];
+    final departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
     bool loading = false;
     String? error;
     await showDialog(
@@ -225,12 +226,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         onSaved: (v) => phone = v,
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
+                      DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
                           labelText: 'Department',
                           border: OutlineInputBorder(),
                         ),
-                        onSaved: (v) => department = v,
+                        value: department,
+                        items: departments
+                            .map(
+                              (dept) => DropdownMenuItem(
+                                value: dept,
+                                child: Text(dept),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => setState(() => department = v),
+                        validator: (v) =>
+                            v == null ? 'Please select a department' : null,
                       ),
                     ],
                   ),

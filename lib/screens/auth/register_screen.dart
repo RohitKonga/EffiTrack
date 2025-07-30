@@ -18,8 +18,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _confirmPassword,
       _selectedRole,
       _phone,
-      _department;
+      _selectedDepartment;
   final _roles = ['Employee', 'Manager', 'Admin'];
+  final _departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
   bool _loading = false;
   String? _error;
 
@@ -55,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'password': _password,
         'role': _selectedRole,
         'phone': _phone,
-        'department': _department,
+        'department': _selectedDepartment,
       });
       final data = jsonDecode(res.body);
       if (res.statusCode == 200 && data['token'] != null) {
@@ -253,26 +254,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Phone',
-                              prefixIcon: const Icon(Icons.phone),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.phone,
-                            onSaved: (value) => _phone = value,
+                            onSaved: (v) => _phone = v,
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            decoration: InputDecoration(
+                          DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
                               labelText: 'Department',
-                              prefixIcon: const Icon(Icons.business),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              border: OutlineInputBorder(),
                             ),
-                            onSaved: (value) => _department = value,
+                            value: _selectedDepartment,
+                            items: _departments
+                                .map(
+                                  (dept) => DropdownMenuItem(
+                                    value: dept,
+                                    child: Text(dept),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _selectedDepartment = v),
+                            validator: (v) =>
+                                v == null ? 'Please select a department' : null,
                           ),
                         ],
                       ),

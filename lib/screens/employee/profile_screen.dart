@@ -15,6 +15,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _email = '';
   String _phone = '';
   String _department = '';
+  final _departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -132,14 +133,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ? 'Enter valid phone'
                           : null,
                     ),
-                    TextFormField(
-                      initialValue: _department,
+                    DropdownButtonFormField<String>(
+                      value: _department.isNotEmpty ? _department : null,
                       decoration: const InputDecoration(
                         labelText: 'Department',
                       ),
-                      onSaved: (value) => _department = value ?? '',
+                      items: _departments
+                          .map(
+                            (dept) => DropdownMenuItem(
+                              value: dept,
+                              child: Text(dept),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _department = value ?? ''),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Enter department'
+                          ? 'Please select a department'
                           : null,
                     ),
                     const SizedBox(height: 24),
