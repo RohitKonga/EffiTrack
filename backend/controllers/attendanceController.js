@@ -3,6 +3,12 @@ const User = require('../models/User');
 
 exports.checkIn = async (req, res) => {
   try {
+    // Check if user is admin (admins don't need to check in)
+    const user = await User.findById(req.user.id);
+    if (user.role === 'Admin') {
+      return res.status(400).json({ msg: 'Admins do not need to check in/out.' });
+    }
+    
     // Prevent multiple check-ins without check-out
     const openAttendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (openAttendance) {
@@ -21,6 +27,12 @@ exports.checkIn = async (req, res) => {
 
 exports.checkOut = async (req, res) => {
   try {
+    // Check if user is admin (admins don't need to check out)
+    const user = await User.findById(req.user.id);
+    if (user.role === 'Admin') {
+      return res.status(400).json({ msg: 'Admins do not need to check in/out.' });
+    }
+    
     const attendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (!attendance) {
       return res.status(400).json({ msg: 'No active check-in found.' });
@@ -46,8 +58,8 @@ exports.getHistory = async (req, res) => {
 // Get attendance reports (admin only)
 exports.getAttendanceReports = async (req, res) => {
   try {
-    // Get all users with their departments
-    const users = await User.find().select('name department role');
+    // Get all users with their departments (excluding admins)
+    const users = await User.find({ role: { $ne: 'Admin' } }).select('name department role');
     
     // Get today's date
     const today = new Date();
@@ -74,9 +86,9 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
-    // Count present users
+    // Count present users (employees and managers, excluding admins)
     todayAttendance.forEach(attendance => {
-      if (attendance.user && attendance.user.department) {
+      if (attendance.user && attendance.user.department && attendance.user.role !== 'Admin') {
         if (!departmentStats[attendance.user.department]) {
           departmentStats[attendance.user.department] = { present: 0, absent: 0, total: 0 };
         }

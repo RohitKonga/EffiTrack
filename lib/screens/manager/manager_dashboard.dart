@@ -4,6 +4,7 @@ import 'assign_task_screen.dart';
 import 'task_status_screen.dart';
 import 'leave_approval_screen.dart';
 import 'announcements_management_screen.dart';
+import '../employee/attendance_screen.dart';
 import '../../services/api_service.dart';
 
 class ManagerDashboard extends StatelessWidget {
@@ -35,6 +36,18 @@ class ManagerDashboard extends StatelessWidget {
               );
             },
             child: const Text('Team Attendance'),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AttendanceScreen(),
+                ),
+              );
+            },
+            child: const Text('My Attendance'),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
