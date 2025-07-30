@@ -34,4 +34,22 @@ exports.getAllProfiles = async (req, res) => {
   } catch (err) {
     res.status(500).send('Server error');
   }
+};
+
+// Delete user (admin only)
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    
+    // Prevent admin from deleting themselves
+    if (user._id.toString() === req.user.id) {
+      return res.status(400).json({ msg: 'Cannot delete your own account' });
+    }
+    
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
 }; 
