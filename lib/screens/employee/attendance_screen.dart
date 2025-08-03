@@ -86,7 +86,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      final res = await apiService.post('/attendance/checkin', {});
+      // Capture device current time
+      final deviceTime = DateTime.now().toIso8601String();
+      final res = await apiService.post('/attendance/checkin', {
+        'deviceTime': deviceTime,
+      });
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {
@@ -112,7 +116,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      final res = await apiService.post('/attendance/checkout', {});
+      // Capture device current time
+      final deviceTime = DateTime.now().toIso8601String();
+      final res = await apiService.post('/attendance/checkout', {
+        'deviceTime': deviceTime,
+      });
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {

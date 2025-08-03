@@ -8,9 +8,13 @@ exports.checkIn = async (req, res) => {
     if (openAttendance) {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
+    
+    // Use device time if provided, otherwise use server time
+    const checkInTime = req.body.deviceTime ? new Date(req.body.deviceTime) : new Date();
+    
     const attendance = new Attendance({
       user: req.user.id,
-      checkIn: new Date(),
+      checkIn: checkInTime,
     });
     await attendance.save();
     res.json(attendance);
@@ -25,7 +29,11 @@ exports.checkOut = async (req, res) => {
     if (!attendance) {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
-    attendance.checkOut = new Date();
+    
+    // Use device time if provided, otherwise use server time
+    const checkOutTime = req.body.deviceTime ? new Date(req.body.deviceTime) : new Date();
+    
+    attendance.checkOut = checkOutTime;
     attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60); // hours
     await attendance.save();
     res.json(attendance);
