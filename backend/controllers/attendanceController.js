@@ -19,14 +19,16 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
     
-    // Use device time only - ensure it's treated as local time
-    const checkInTime = new Date(req.body.deviceTime);
-    console.log('PARSED CHECK-IN TIME:', checkInTime); // Debug log
-    console.log('CHECK-IN TIME TO ISO:', checkInTime.toISOString()); // Debug log
+    // Use device time only - store exactly as received
+    const deviceTimeString = req.body.deviceTime;
+    console.log('DEVICE TIME STRING:', deviceTimeString); // Debug log
+    
+    // Store device time as string to preserve exact time
+    console.log('STORING DEVICE TIME AS STRING:', deviceTimeString); // Debug log
     
     const attendance = new Attendance({
       user: req.user.id,
-      checkIn: checkInTime,
+      checkIn: deviceTimeString, // Store as string to preserve device time
     });
     await attendance.save();
     console.log('SAVED ATTENDANCE:', attendance); // Debug log
@@ -54,13 +56,19 @@ exports.checkOut = async (req, res) => {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
     
-    // Use device time only - ensure it's treated as local time
-    const checkOutTime = new Date(req.body.deviceTime);
-    console.log('PARSED CHECK-OUT TIME:', checkOutTime); // Debug log
-    console.log('CHECK-OUT TIME TO ISO:', checkOutTime.toISOString()); // Debug log
+    // Use device time only - store exactly as received
+    const deviceTimeString = req.body.deviceTime;
+    console.log('DEVICE TIME STRING (CHECKOUT):', deviceTimeString); // Debug log
     
-    attendance.checkOut = checkOutTime;
-    attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60); // hours
+    // Store device time as string to preserve exact time
+    console.log('STORING DEVICE TIME AS STRING (CHECKOUT):', deviceTimeString); // Debug log
+    
+    attendance.checkOut = deviceTimeString; // Store as string to preserve device time
+    
+    // Calculate working hours using the stored string times
+    const checkInDate = new Date(attendance.checkIn);
+    const checkOutDate = new Date(deviceTimeString);
+    attendance.workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
     await attendance.save();
     console.log('SAVED ATTENDANCE (CHECKOUT):', attendance); // Debug log
     res.json(attendance);
@@ -102,8 +110,12 @@ exports.getAttendanceReports = async (req, res) => {
     console.log('Total users found:', users.length);
     
     // Get attendance records for the selected date
+    // Since checkIn is now stored as string, we need to query differently
+    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const nextDateString = nextDay.toISOString().split('T')[0];
+    
     const attendanceRecords = await Attendance.find({
-      checkIn: { $gte: targetDate, $lt: nextDay }
+      checkIn: { $gte: dateString, $lt: nextDateString }
     }).populate('user', 'name department role');
     
     console.log('Attendance records for selected date:', attendanceRecords.length);
@@ -232,25 +244,7 @@ exports.getAttendanceReports = async (req, res) => {
   }
 }; 
 
-// Test endpoint to verify device time
-exports.testDeviceTime = async (req, res) => {
-  try {
-    console.log('TEST DEVICE TIME REQUEST BODY:', req.body);
-    console.log('DEVICE TIME RECEIVED:', req.body.deviceTime);
-    console.log('PARSED TIME:', new Date(req.body.deviceTime));
-    console.log('CURRENT SERVER TIME:', new Date());
-    
-    res.json({
-      deviceTimeReceived: req.body.deviceTime,
-      parsedTime: new Date(req.body.deviceTime),
-      serverTime: new Date(),
-      difference: new Date() - new Date(req.body.deviceTime)
-    });
-  } catch (err) {
-    console.error('TEST ERROR:', err);
-    res.status(500).send('Server error');
-  }
-};
+
 
 // Get team attendance for a specific department
 exports.getTeamAttendance = async (req, res) => {
@@ -282,8 +276,12 @@ exports.getTeamAttendance = async (req, res) => {
     console.log('Team members found:', teamMembers.length);
     
     // Get attendance records for the selected date
+    // Since checkIn is now stored as string, we need to query differently
+    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const nextDateString = nextDay.toISOString().split('T')[0];
+    
     const attendanceRecords = await Attendance.find({
-      checkIn: { $gte: targetDate, $lt: nextDay }
+      checkIn: { $gte: dateString, $lt: nextDateString }
     }).populate('user', 'name email department role');
     
     console.log('Attendance records found:', attendanceRecords.length);

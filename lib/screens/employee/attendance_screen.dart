@@ -89,14 +89,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       // Capture device current time (local timezone)
       final now = DateTime.now();
       final deviceTime = now.toIso8601String();
-      print('DEVICE TIME CAPTURED: $deviceTime'); // Debug log
 
       final requestBody = {'deviceTime': deviceTime};
-      print('REQUEST BODY: $requestBody'); // Debug log
 
       final res = await apiService.post('/attendance/checkin', requestBody);
-      print('RESPONSE STATUS: ${res.statusCode}'); // Debug log
-      print('RESPONSE BODY: ${res.body}'); // Debug log
 
       if (res.statusCode == 200) {
         await _fetchHistory();
@@ -107,7 +103,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         });
       }
     } catch (e) {
-      print('ERROR: $e'); // Debug log
       setState(() {
         _error = 'Network error';
       });
@@ -127,14 +122,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       // Capture device current time (local timezone)
       final now = DateTime.now();
       final deviceTime = now.toIso8601String();
-      print('DEVICE TIME CAPTURED (CHECKOUT): $deviceTime'); // Debug log
 
       final requestBody = {'deviceTime': deviceTime};
-      print('REQUEST BODY (CHECKOUT): $requestBody'); // Debug log
 
       final res = await apiService.post('/attendance/checkout', requestBody);
-      print('RESPONSE STATUS (CHECKOUT): ${res.statusCode}'); // Debug log
-      print('RESPONSE BODY (CHECKOUT): ${res.body}'); // Debug log
 
       if (res.statusCode == 200) {
         await _fetchHistory();
@@ -145,7 +136,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         });
       }
     } catch (e) {
-      print('ERROR (CHECKOUT): $e'); // Debug log
       setState(() {
         _error = 'Network error';
       });
@@ -247,9 +237,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   ? DateTime.parse(record['checkIn'])
                                   : null;
 
-                              // For current session, show real-time
-                              String checkInDisplay = checkInTime != null
-                                  ? checkInTime.toString().substring(11, 16)
+                              // For current session, show stored device time
+                              String checkInDisplay = record['checkIn'] != null
+                                  ? record['checkIn'].toString().substring(
+                                      11,
+                                      16,
+                                    )
                                   : '-';
 
                               String checkOutDisplay;
@@ -260,7 +253,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 checkOutDisplay = 'Active';
                                 hoursDisplay = 'Calculating...';
                               } else {
-                                // Show stored data for completed sessions
+                                // Show stored device time for completed sessions
                                 checkOutDisplay = record['checkOut'] != null
                                     ? record['checkOut'].toString().substring(
                                         11,
