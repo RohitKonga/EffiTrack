@@ -159,6 +159,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
+  Future<void> _testNewCode() async {
+    try {
+      final now = DateTime.now();
+      final deviceTime = now.toIso8601String();
+
+      print('🔍 TESTING NEW CODE: $deviceTime');
+
+      final requestBody = {'deviceTime': deviceTime};
+      final res = await apiService.post(
+        '/attendance/test-new-code',
+        requestBody,
+      );
+
+      print('🔍 NEW CODE TEST RESPONSE: ${res.body}');
+    } catch (e) {
+      print('🔍 NEW CODE TEST ERROR: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,6 +246,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ElevatedButton(
                         onPressed: checkedIn ? _checkOut : null,
                         child: const Text('Check Out'),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: _testNewCode,
+                        child: const Text('Test New Code'),
                       ),
                     ],
                   ),

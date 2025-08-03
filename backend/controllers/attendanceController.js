@@ -25,6 +25,7 @@ exports.checkIn = async (req, res) => {
     
     // Store device time as string to preserve exact time
     console.log('STORING DEVICE TIME AS STRING:', deviceTimeString); // Debug log
+    console.log('USING DIRECT MONGODB INSERTION'); // Debug log
     
     // Store the device time in a format that won't be auto-converted by MongoDB
     const attendance = new Attendance({
@@ -40,7 +41,9 @@ exports.checkIn = async (req, res) => {
       deviceCheckIn: deviceTimeString,
       workingHours: null,
       checkOut: null,
-      deviceCheckOut: null
+      deviceCheckOut: null,
+      createdAt: null,
+      updatedAt: null
     });
     
     // Fetch the saved document
@@ -105,6 +108,19 @@ exports.checkOut = async (req, res) => {
 };
 
 
+
+// Test endpoint to verify new code is running
+exports.testNewCode = async (req, res) => {
+  try {
+    res.json({
+      message: 'New code is running!',
+      timestamp: new Date().toISOString(),
+      deviceTimeTest: req.body.deviceTime || 'No device time provided'
+    });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+};
 
 exports.getHistory = async (req, res) => {
   try {
