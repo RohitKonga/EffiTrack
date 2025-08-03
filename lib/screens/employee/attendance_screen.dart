@@ -19,7 +19,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String? _error;
   Timer? _refreshTimer;
   Timer? _currentSessionTimer;
-  DateTime? _lastUpdated;
 
   @override
   void initState() {
@@ -59,7 +58,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         final List<dynamic> data = jsonDecode(res.body);
         setState(() {
           history = data.cast<Map<String, dynamic>>();
-          _lastUpdated = DateTime.now();
+
           // Determine if currently checked in
           final open = history.cast<Map<String, dynamic>>().firstWhere(
             (rec) => rec['checkOut'] == null,
