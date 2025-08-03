@@ -3,10 +3,15 @@ const User = require('../models/User');
 
 exports.checkIn = async (req, res) => {
   try {
+    console.log('CHECK-IN REQUEST BODY:', req.body); // Debug log
+    
     // Validate device time is provided
     if (!req.body.deviceTime) {
+      console.log('DEVICE TIME MISSING'); // Debug log
       return res.status(400).json({ msg: 'Device time is required' });
     }
+    
+    console.log('DEVICE TIME RECEIVED:', req.body.deviceTime); // Debug log
     
     // Prevent multiple check-ins without check-out
     const openAttendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
@@ -14,40 +19,53 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
     
-    // Use device time only
+    // Use device time only - ensure it's treated as local time
     const checkInTime = new Date(req.body.deviceTime);
+    console.log('PARSED CHECK-IN TIME:', checkInTime); // Debug log
+    console.log('CHECK-IN TIME TO ISO:', checkInTime.toISOString()); // Debug log
     
     const attendance = new Attendance({
       user: req.user.id,
       checkIn: checkInTime,
     });
     await attendance.save();
+    console.log('SAVED ATTENDANCE:', attendance); // Debug log
     res.json(attendance);
   } catch (err) {
+    console.log('CHECK-IN ERROR:', err); // Debug log
     res.status(500).send('Server error');
   }
 };
 
 exports.checkOut = async (req, res) => {
   try {
+    console.log('CHECK-OUT REQUEST BODY:', req.body); // Debug log
+    
     // Validate device time is provided
     if (!req.body.deviceTime) {
+      console.log('DEVICE TIME MISSING (CHECKOUT)'); // Debug log
       return res.status(400).json({ msg: 'Device time is required' });
     }
+    
+    console.log('DEVICE TIME RECEIVED (CHECKOUT):', req.body.deviceTime); // Debug log
     
     const attendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (!attendance) {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
     
-    // Use device time only
+    // Use device time only - ensure it's treated as local time
     const checkOutTime = new Date(req.body.deviceTime);
+    console.log('PARSED CHECK-OUT TIME:', checkOutTime); // Debug log
+    console.log('CHECK-OUT TIME TO ISO:', checkOutTime.toISOString()); // Debug log
     
     attendance.checkOut = checkOutTime;
     attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60); // hours
     await attendance.save();
+    console.log('SAVED ATTENDANCE (CHECKOUT):', attendance); // Debug log
     res.json(attendance);
   } catch (err) {
+    console.log('CHECK-OUT ERROR:', err); // Debug log
     res.status(500).send('Server error');
   }
 };
@@ -213,6 +231,26 @@ exports.getAttendanceReports = async (req, res) => {
     res.status(500).send('Server error');
   }
 }; 
+
+// Test endpoint to verify device time
+exports.testDeviceTime = async (req, res) => {
+  try {
+    console.log('TEST DEVICE TIME REQUEST BODY:', req.body);
+    console.log('DEVICE TIME RECEIVED:', req.body.deviceTime);
+    console.log('PARSED TIME:', new Date(req.body.deviceTime));
+    console.log('CURRENT SERVER TIME:', new Date());
+    
+    res.json({
+      deviceTimeReceived: req.body.deviceTime,
+      parsedTime: new Date(req.body.deviceTime),
+      serverTime: new Date(),
+      difference: new Date() - new Date(req.body.deviceTime)
+    });
+  } catch (err) {
+    console.error('TEST ERROR:', err);
+    res.status(500).send('Server error');
+  }
+};
 
 // Get team attendance for a specific department
 exports.getTeamAttendance = async (req, res) => {

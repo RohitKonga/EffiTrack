@@ -86,11 +86,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      // Capture device current time
-      final deviceTime = DateTime.now().toIso8601String();
-      final res = await apiService.post('/attendance/checkin', {
-        'deviceTime': deviceTime,
-      });
+      // Capture device current time (local timezone)
+      final now = DateTime.now();
+      final deviceTime = now.toIso8601String();
+      print('DEVICE TIME CAPTURED: $deviceTime'); // Debug log
+
+      final requestBody = {'deviceTime': deviceTime};
+      print('REQUEST BODY: $requestBody'); // Debug log
+
+      final res = await apiService.post('/attendance/checkin', requestBody);
+      print('RESPONSE STATUS: ${res.statusCode}'); // Debug log
+      print('RESPONSE BODY: ${res.body}'); // Debug log
+
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {
@@ -100,6 +107,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         });
       }
     } catch (e) {
+      print('ERROR: $e'); // Debug log
       setState(() {
         _error = 'Network error';
       });
@@ -116,11 +124,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      // Capture device current time
-      final deviceTime = DateTime.now().toIso8601String();
-      final res = await apiService.post('/attendance/checkout', {
-        'deviceTime': deviceTime,
-      });
+      // Capture device current time (local timezone)
+      final now = DateTime.now();
+      final deviceTime = now.toIso8601String();
+      print('DEVICE TIME CAPTURED (CHECKOUT): $deviceTime'); // Debug log
+
+      final requestBody = {'deviceTime': deviceTime};
+      print('REQUEST BODY (CHECKOUT): $requestBody'); // Debug log
+
+      final res = await apiService.post('/attendance/checkout', requestBody);
+      print('RESPONSE STATUS (CHECKOUT): ${res.statusCode}'); // Debug log
+      print('RESPONSE BODY (CHECKOUT): ${res.body}'); // Debug log
+
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {
@@ -130,6 +145,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         });
       }
     } catch (e) {
+      print('ERROR (CHECKOUT): $e'); // Debug log
       setState(() {
         _error = 'Network error';
       });
