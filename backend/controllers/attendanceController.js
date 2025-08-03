@@ -33,10 +33,20 @@ exports.checkIn = async (req, res) => {
       deviceCheckIn: deviceTimeString, // Store exact device time in separate field
     });
     
-    // Force save without timestamps and without schema validation
-    await attendance.save({ timestamps: false, validateBeforeSave: false });
-    console.log('SAVED ATTENDANCE:', attendance); // Debug log
-    res.json(attendance);
+    // Use MongoDB directly to avoid Mongoose auto-conversion
+    const result = await Attendance.collection.insertOne({
+      user: req.user.id,
+      checkIn: deviceTimeString,
+      deviceCheckIn: deviceTimeString,
+      workingHours: null,
+      checkOut: null,
+      deviceCheckOut: null
+    });
+    
+    // Fetch the saved document
+    const savedAttendance = await Attendance.findById(result.insertedId);
+    console.log('SAVED ATTENDANCE:', savedAttendance); // Debug log
+    res.json(savedAttendance);
   } catch (err) {
     console.log('CHECK-IN ERROR:', err); // Debug log
     res.status(500).send('Server error');
@@ -67,18 +77,27 @@ exports.checkOut = async (req, res) => {
     // Store device time as string to preserve exact time
     console.log('STORING DEVICE TIME AS STRING (CHECKOUT):', deviceTimeString); // Debug log
     
-    attendance.checkOut = deviceTimeString; // Store as string to preserve device time
-    attendance.deviceCheckOut = deviceTimeString; // Store exact device time in separate field
-    
     // Calculate working hours using the stored string times
     const checkInDate = new Date(attendance.checkIn);
     const checkOutDate = new Date(deviceTimeString);
-    attendance.workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
+    const workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
     
-    // Force save without timestamps and without schema validation
-    await attendance.save({ timestamps: false, validateBeforeSave: false });
-    console.log('SAVED ATTENDANCE (CHECKOUT):', attendance); // Debug log
-    res.json(attendance);
+    // Use MongoDB directly to avoid Mongoose auto-conversion
+    await Attendance.collection.updateOne(
+      { _id: attendance._id },
+      {
+        $set: {
+          checkOut: deviceTimeString,
+          deviceCheckOut: deviceTimeString,
+          workingHours: workingHours
+        }
+      }
+    );
+    
+    // Fetch the updated document
+    const updatedAttendance = await Attendance.findById(attendance._id);
+    console.log('SAVED ATTENDANCE (CHECKOUT):', updatedAttendance); // Debug log
+    res.json(updatedAttendance);
   } catch (err) {
     console.log('CHECK-OUT ERROR:', err); // Debug log
     res.status(500).send('Server error');
