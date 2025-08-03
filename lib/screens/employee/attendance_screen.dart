@@ -233,9 +233,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               final record = history[index];
                               final isCurrentSession =
                                   record['checkOut'] == null;
-                              final checkInTime = record['checkIn'] != null
-                                  ? DateTime.parse(record['checkIn'])
-                                  : null;
 
                               // For current session, show stored device time
                               String checkInDisplay = record['checkIn'] != null
