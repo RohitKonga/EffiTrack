@@ -78,6 +78,20 @@ exports.checkOut = async (req, res) => {
   }
 };
 
+// Test endpoint to verify device time
+exports.testDeviceTime = async (req, res) => {
+  try {
+    console.log('🔍 TEST DEVICE TIME REQUEST:', req.body);
+    res.json({
+      deviceTimeReceived: req.body.deviceTime,
+      serverTime: new Date().toISOString(),
+      message: 'Device time received successfully'
+    });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+};
+
 exports.getHistory = async (req, res) => {
   try {
     const history = await Attendance.find({ user: req.user.id }).sort({ checkIn: -1 });

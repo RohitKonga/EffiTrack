@@ -46,6 +46,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final res = await apiService.get('/attendance/history');
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
+        print('🔍 HISTORY DATA: $data');
         setState(() {
           history = data.cast<Map<String, dynamic>>();
 
@@ -90,9 +91,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final now = DateTime.now();
       final deviceTime = now.toIso8601String();
 
+      print('🔍 DEVICE TIME CAPTURED: $deviceTime');
+      print('🔍 DEVICE TIME TYPE: ${deviceTime.runtimeType}');
+
       final requestBody = {'deviceTime': deviceTime};
+      print('🔍 REQUEST BODY: $requestBody');
 
       final res = await apiService.post('/attendance/checkin', requestBody);
+      print('🔍 RESPONSE STATUS: ${res.statusCode}');
+      print('🔍 RESPONSE BODY: ${res.body}');
 
       if (res.statusCode == 200) {
         await _fetchHistory();
@@ -123,9 +130,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final now = DateTime.now();
       final deviceTime = now.toIso8601String();
 
+      print('🔍 DEVICE TIME CAPTURED (CHECKOUT): $deviceTime');
+      print('🔍 DEVICE TIME TYPE (CHECKOUT): ${deviceTime.runtimeType}');
+
       final requestBody = {'deviceTime': deviceTime};
+      print('🔍 REQUEST BODY (CHECKOUT): $requestBody');
 
       final res = await apiService.post('/attendance/checkout', requestBody);
+      print('🔍 RESPONSE STATUS (CHECKOUT): ${res.statusCode}');
+      print('🔍 RESPONSE BODY (CHECKOUT): ${res.body}');
 
       if (res.statusCode == 200) {
         await _fetchHistory();
@@ -143,6 +156,33 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       setState(() {
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _testDeviceTime() async {
+    try {
+      final now = DateTime.now();
+      final deviceTime = now.toIso8601String();
+
+      print('🔍 TESTING DEVICE TIME: $deviceTime');
+
+      final requestBody = {'deviceTime': deviceTime};
+      final res = await apiService.post(
+        '/attendance/test-device-time',
+        requestBody,
+      );
+
+      print('🔍 TEST RESPONSE: ${res.body}');
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        print(
+          '🔍 DEVICE TIME RECEIVED BY SERVER: ${data['deviceTimeReceived']}',
+        );
+        print('🔍 SERVER TIME: ${data['serverTime']}');
+      }
+    } catch (e) {
+      print('🔍 TEST ERROR: $e');
     }
   }
 
@@ -214,6 +254,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ElevatedButton(
                         onPressed: checkedIn ? _checkOut : null,
                         child: const Text('Check Out'),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: _testDeviceTime,
+                        child: const Text('Test Device Time'),
                       ),
                     ],
                   ),
