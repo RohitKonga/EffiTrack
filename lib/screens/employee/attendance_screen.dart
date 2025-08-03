@@ -18,7 +18,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   bool _loading = true;
   String? _error;
   Timer? _refreshTimer;
-  Timer? _currentSessionTimer;
 
   @override
   void initState() {
@@ -30,20 +29,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         _fetchHistory();
       }
     });
-    // Start current session timer for real-time updates
-    _currentSessionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          // Force rebuild to update current session display
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    _currentSessionTimer?.cancel();
     super.dispose();
   }
 
@@ -257,21 +247,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               String checkOutDisplay;
                               String hoursDisplay;
 
-                              if (isCurrentSession && isTodaySession) {
-                                // Show real-time for today's active session
-                                final now = DateTime.now();
-                                checkOutDisplay = now.toString().substring(
-                                  11,
-                                  16,
-                                ); // Show current time
-
-                                if (checkInTime != null) {
-                                  final duration = now.difference(checkInTime);
-                                  final hours = duration.inMinutes / 60.0;
-                                  hoursDisplay = hours.toStringAsFixed(2);
-                                } else {
-                                  hoursDisplay = 'Calculating...';
-                                }
+                              if (isCurrentSession) {
+                                // Show "Active" for current session (not real-time)
+                                checkOutDisplay = 'Active';
+                                hoursDisplay = 'Calculating...';
                               } else {
                                 // Show stored data for completed sessions
                                 checkOutDisplay = record['checkOut'] != null
