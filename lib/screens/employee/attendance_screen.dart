@@ -214,17 +214,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ],
                   ),
-                  if (_lastUpdated != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'Last updated: ${_lastUpdated!.toString().substring(11, 19)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+
                   const SizedBox(height: 24),
                   const Text(
                     'Attendance History',
@@ -255,7 +245,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               if (isCurrentSession) {
                                 // Show real-time for current session
                                 final now = DateTime.now();
-                                checkOutDisplay = 'Active';
+                                checkOutDisplay = now.toString().substring(
+                                  11,
+                                  16,
+                                ); // Show current time
 
                                 if (checkInTime != null) {
                                   final duration = now.difference(checkInTime);
