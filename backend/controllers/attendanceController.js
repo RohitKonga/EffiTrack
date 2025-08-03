@@ -195,3 +195,91 @@ exports.getAttendanceReports = async (req, res) => {
     res.status(500).send('Server error');
   }
 }; 
+
+// Get team attendance for a specific department
+exports.getTeamAttendance = async (req, res) => {
+  try {
+    const { department } = req.params;
+    const { date } = req.query;
+    
+    // Get date from query parameter or use today
+    let targetDate;
+    if (date) {
+      targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+    } else {
+      targetDate = new Date();
+      targetDate.setHours(0, 0, 0, 0);
+    }
+    
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    console.log('Fetching team attendance for department:', department, 'on date:', targetDate.toISOString().split('T')[0]);
+    
+    // Get all employees in the specified department
+    const teamMembers = await User.find({ 
+      department: department,
+      role: 'Employee'
+    }).select('name email department role');
+    
+    console.log('Team members found:', teamMembers.length);
+    
+    // Get attendance records for the selected date
+    const attendanceRecords = await Attendance.find({
+      checkIn: { $gte: targetDate, $lt: nextDay }
+    }).populate('user', 'name email department role');
+    
+    console.log('Attendance records found:', attendanceRecords.length);
+    
+    // Create team attendance data
+    const teamAttendance = teamMembers.map(member => {
+      const attendance = attendanceRecords.find(record => 
+        record.user && record.user._id.toString() === member._id.toString()
+      );
+      
+      return {
+        id: member._id,
+        name: member.name,
+        email: member.email,
+        department: member.department,
+        status: attendance ? 'Present' : 'Absent',
+        checkInTime: attendance ? attendance.checkIn : null,
+        checkOutTime: attendance ? attendance.checkOut : null,
+        workingHours: attendance ? attendance.workingHours : null,
+      };
+    });
+    
+    // Calculate statistics
+    const presentCount = teamAttendance.filter(member => member.status === 'Present').length;
+    const absentCount = teamAttendance.filter(member => member.status === 'Absent').length;
+    const totalCount = teamAttendance.length;
+    const attendanceRate = totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(1) : '0.0';
+    
+    const response = {
+      department: department,
+      date: targetDate.toISOString().split('T')[0],
+      teamMembers: teamAttendance,
+      statistics: {
+        present: presentCount,
+        absent: absentCount,
+        total: totalCount,
+        attendanceRate: attendanceRate
+      }
+    };
+    
+    console.log('Team attendance response:', {
+      department,
+      date: targetDate.toISOString().split('T')[0],
+      totalMembers: totalCount,
+      present: presentCount,
+      absent: absentCount,
+      rate: attendanceRate
+    });
+    
+    res.json(response);
+  } catch (err) {
+    console.error('Team attendance error:', err);
+    res.status(500).send('Server error');
+  }
+}; 

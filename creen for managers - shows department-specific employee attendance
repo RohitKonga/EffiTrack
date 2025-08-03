@@ -1,0 +1,3 @@
+[33md9990b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix date filtering and add no data handling for attendance reports
+[33me2f15b0[m Add date picker to attendance reports - view reports for any date
+[33m1309ada[m Remove debug features from attendance reports - clean production code
