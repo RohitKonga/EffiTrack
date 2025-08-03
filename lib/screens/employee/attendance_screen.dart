@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'dart:convert';
+import 'dart:async';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -16,11 +17,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   List<Map<String, dynamic>> history = [];
   bool _loading = true;
   String? _error;
+  Timer? _refreshTimer;
+  DateTime? _lastUpdated;
 
   @override
   void initState() {
     super.initState();
     _fetchHistory();
+    // Start real-time updates every 30 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        _fetchHistory();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchHistory() async {
@@ -34,6 +49,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         final List<dynamic> data = jsonDecode(res.body);
         setState(() {
           history = data.cast<Map<String, dynamic>>();
+          _lastUpdated = DateTime.now();
           // Determine if currently checked in
           final open = history.cast<Map<String, dynamic>>().firstWhere(
             (rec) => rec['checkOut'] == null,
@@ -120,7 +136,50 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Attendance')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Text('Attendance'),
+            if (checkedIn) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.green.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 6,
+                      height: 6,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'LIVE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _loading
@@ -145,16 +204,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    checkedIn
-                        ? 'Checked in at: ${checkInTime != null ? checkInTime!.toString().substring(11, 16) : '-'}'
-                        : 'Not checked in',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  if (_lastUpdated != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Last updated: ${_lastUpdated!.toString().substring(11, 19)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 24),
                   const Text(
                     'Attendance History',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 
 class TeamAttendanceScreen extends StatefulWidget {
@@ -16,11 +17,25 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
   String? _error;
   DateTime _selectedDate = DateTime.now();
   String? _managerDepartment;
+  Timer? _refreshTimer;
+  DateTime? _lastUpdated;
 
   @override
   void initState() {
     super.initState();
     _fetchManagerInfo();
+    // Start real-time updates every 30 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted && _managerDepartment != null) {
+        _fetchTeamAttendance();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchManagerInfo() async {
@@ -65,6 +80,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
         final data = jsonDecode(res.body);
         setState(() {
           teamData = data;
+          _lastUpdated = DateTime.now();
         });
       } else {
         setState(() {
@@ -113,7 +129,42 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${_managerDepartment ?? 'Team'} Attendance'),
+        title: Row(
+          children: [
+            Text('Attendance'),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'LIVE',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
@@ -202,7 +253,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '${teamData?['department'] ?? 'Team'} Attendance',
+                                      '${teamData?['department'] ?? 'Team'} Team Attendance',
                                       style: GoogleFonts.poppins(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600,
@@ -218,17 +269,16 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                ElevatedButton.icon(
-                                  onPressed: _selectDate,
-                                  icon: const Icon(Icons.calendar_month),
-                                  label: const Text('Change Date'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.indigo.shade100,
-                                    foregroundColor: Colors.indigo.shade700,
-                                    elevation: 0,
+                                if (_lastUpdated != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Last updated: ${_formatTime(_lastUpdated!.toIso8601String())}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.green.shade600,
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
