@@ -30,10 +30,11 @@ exports.checkIn = async (req, res) => {
     const attendance = new Attendance({
       user: req.user.id,
       checkIn: deviceTimeString, // Store as string to preserve device time
+      deviceCheckIn: deviceTimeString, // Store exact device time in separate field
     });
     
-    // Force save without timestamps
-    await attendance.save({ timestamps: false });
+    // Force save without timestamps and without schema validation
+    await attendance.save({ timestamps: false, validateBeforeSave: false });
     console.log('SAVED ATTENDANCE:', attendance); // Debug log
     res.json(attendance);
   } catch (err) {
@@ -67,14 +68,15 @@ exports.checkOut = async (req, res) => {
     console.log('STORING DEVICE TIME AS STRING (CHECKOUT):', deviceTimeString); // Debug log
     
     attendance.checkOut = deviceTimeString; // Store as string to preserve device time
+    attendance.deviceCheckOut = deviceTimeString; // Store exact device time in separate field
     
     // Calculate working hours using the stored string times
     const checkInDate = new Date(attendance.checkIn);
     const checkOutDate = new Date(deviceTimeString);
     attendance.workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
     
-    // Force save without timestamps
-    await attendance.save({ timestamps: false });
+    // Force save without timestamps and without schema validation
+    await attendance.save({ timestamps: false, validateBeforeSave: false });
     console.log('SAVED ATTENDANCE (CHECKOUT):', attendance); // Debug log
     res.json(attendance);
   } catch (err) {

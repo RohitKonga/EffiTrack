@@ -248,12 +248,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   record['checkOut'] == null;
 
                               // For current session, show stored device time
-                              String checkInDisplay = record['checkIn'] != null
-                                  ? record['checkIn'].toString().substring(
-                                      11,
-                                      16,
-                                    )
-                                  : '-';
+                              String checkInDisplay =
+                                  record['deviceCheckIn'] != null
+                                  ? record['deviceCheckIn']
+                                        .toString()
+                                        .substring(11, 16)
+                                  : (record['checkIn'] != null
+                                        ? record['checkIn']
+                                              .toString()
+                                              .substring(11, 16)
+                                        : '-');
 
                               String checkOutDisplay;
                               String hoursDisplay;
@@ -264,12 +268,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 hoursDisplay = 'Calculating...';
                               } else {
                                 // Show stored device time for completed sessions
-                                checkOutDisplay = record['checkOut'] != null
-                                    ? record['checkOut'].toString().substring(
-                                        11,
-                                        16,
-                                      )
-                                    : '-';
+                                checkOutDisplay =
+                                    record['deviceCheckOut'] != null
+                                    ? record['deviceCheckOut']
+                                          .toString()
+                                          .substring(11, 16)
+                                    : (record['checkOut'] != null
+                                          ? record['checkOut']
+                                                .toString()
+                                                .substring(11, 16)
+                                          : '-');
                                 hoursDisplay = record['workingHours'] != null
                                     ? record['workingHours'].toStringAsFixed(2)
                                     : '-';

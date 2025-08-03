@@ -5,6 +5,8 @@ const AttendanceSchema = new mongoose.Schema({
   checkIn: { type: String, required: true }, // Store as string to preserve device time
   checkOut: { type: String }, // Store as string to preserve device time
   workingHours: { type: Number },
+  deviceCheckIn: { type: String }, // Additional field to store exact device time
+  deviceCheckOut: { type: String }, // Additional field to store exact device time
 }, { timestamps: false }); // Disable timestamps to prevent server time interference
 
 module.exports = mongoose.model('Attendance', AttendanceSchema); 
