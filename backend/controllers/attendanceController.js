@@ -3,14 +3,19 @@ const User = require('../models/User');
 
 exports.checkIn = async (req, res) => {
   try {
+    // Validate device time is provided
+    if (!req.body.deviceTime) {
+      return res.status(400).json({ msg: 'Device time is required' });
+    }
+    
     // Prevent multiple check-ins without check-out
     const openAttendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (openAttendance) {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
     
-    // Use device time if provided, otherwise use server time
-    const checkInTime = req.body.deviceTime ? new Date(req.body.deviceTime) : new Date();
+    // Use device time only
+    const checkInTime = new Date(req.body.deviceTime);
     
     const attendance = new Attendance({
       user: req.user.id,
@@ -25,13 +30,18 @@ exports.checkIn = async (req, res) => {
 
 exports.checkOut = async (req, res) => {
   try {
+    // Validate device time is provided
+    if (!req.body.deviceTime) {
+      return res.status(400).json({ msg: 'Device time is required' });
+    }
+    
     const attendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (!attendance) {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
     
-    // Use device time if provided, otherwise use server time
-    const checkOutTime = req.body.deviceTime ? new Date(req.body.deviceTime) : new Date();
+    // Use device time only
+    const checkOutTime = new Date(req.body.deviceTime);
     
     attendance.checkOut = checkOutTime;
     attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60); // hours
