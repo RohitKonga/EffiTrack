@@ -33,7 +33,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     });
     // Start current session timer for real-time updates
     _currentSessionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && checkedIn) {
+      if (mounted) {
         setState(() {
           // Force rebuild to update current session display
         });
@@ -234,6 +234,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   ? DateTime.parse(record['checkIn'])
                                   : null;
 
+                              // Check if this is today's session
+                              final today = DateTime.now();
+                              final recordDate = checkInTime != null
+                                  ? DateTime(
+                                      checkInTime.year,
+                                      checkInTime.month,
+                                      checkInTime.day,
+                                    )
+                                  : null;
+                              final todayDate = DateTime(
+                                today.year,
+                                today.month,
+                                today.day,
+                              );
+                              final isTodaySession = recordDate == todayDate;
+
                               // For current session, show real-time
                               String checkInDisplay = checkInTime != null
                                   ? checkInTime.toString().substring(11, 16)
@@ -242,8 +258,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               String checkOutDisplay;
                               String hoursDisplay;
 
-                              if (isCurrentSession) {
-                                // Show real-time for current session
+                              if (isCurrentSession && isTodaySession) {
+                                // Show real-time for today's active session
                                 final now = DateTime.now();
                                 checkOutDisplay = now.toString().substring(
                                   11,
