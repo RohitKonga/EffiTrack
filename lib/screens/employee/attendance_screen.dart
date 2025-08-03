@@ -18,6 +18,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   bool _loading = true;
   String? _error;
   Timer? _refreshTimer;
+  Timer? _currentSessionTimer;
   DateTime? _lastUpdated;
 
   @override
@@ -30,11 +31,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         _fetchHistory();
       }
     });
+    // Start current session timer for real-time updates
+    _currentSessionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && checkedIn) {
+        setState(() {
+          // Force rebuild to update current session display
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _currentSessionTimer?.cancel();
     super.dispose();
   }
 
@@ -210,7 +220,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       'Last updated: ${_lastUpdated!.toString().substring(11, 19)}',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.green,
+                        color: Colors.grey,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -228,14 +238,53 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             itemCount: history.length,
                             itemBuilder: (context, index) {
                               final record = history[index];
+                              final isCurrentSession =
+                                  record['checkOut'] == null;
+                              final checkInTime = record['checkIn'] != null
+                                  ? DateTime.parse(record['checkIn'])
+                                  : null;
+
+                              // For current session, show real-time
+                              String checkInDisplay = checkInTime != null
+                                  ? checkInTime.toString().substring(11, 16)
+                                  : '-';
+
+                              String checkOutDisplay;
+                              String hoursDisplay;
+
+                              if (isCurrentSession) {
+                                // Show real-time for current session
+                                final now = DateTime.now();
+                                checkOutDisplay = 'Active';
+
+                                if (checkInTime != null) {
+                                  final duration = now.difference(checkInTime);
+                                  final hours = duration.inMinutes / 60.0;
+                                  hoursDisplay = hours.toStringAsFixed(2);
+                                } else {
+                                  hoursDisplay = 'Calculating...';
+                                }
+                              } else {
+                                // Show stored data for completed sessions
+                                checkOutDisplay = record['checkOut'] != null
+                                    ? record['checkOut'].toString().substring(
+                                        11,
+                                        16,
+                                      )
+                                    : '-';
+                                hoursDisplay = record['workingHours'] != null
+                                    ? record['workingHours'].toStringAsFixed(2)
+                                    : '-';
+                              }
+
                               return ListTile(
                                 title: Text(
                                   'Date: ${record['checkIn']?.toString().substring(0, 10) ?? '-'}',
                                 ),
                                 subtitle: Text(
-                                  'In: ${record['checkIn'] != null ? record['checkIn'].toString().substring(11, 16) : '-'}  '
-                                  'Out: ${record['checkOut'] != null ? record['checkOut'].toString().substring(11, 16) : '-'}  '
-                                  'Hours: ${record['workingHours'] != null ? record['workingHours'].toStringAsFixed(2) : '-'}',
+                                  'In: $checkInDisplay  '
+                                  'Out: $checkOutDisplay  '
+                                  'Hours: $hoursDisplay',
                                 ),
                               );
                             },
