@@ -1,0 +1,99 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Android build directories (comprehensive)
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/gradle/
+android/key.properties
+android/app/src/main/res/drawable-*
+android/app/src/main/res/mipmap-*
+android/app/src/main/res/values-night/
+android/app/src/main/res/values-v21/
+android/app/src/main/res/values-v23/
+android/app/src/main/res/values-v24/
+android/app/src/main/res/values-v25/
+android/app/src/main/res/values-v26/
+android/app/src/main/res/values-v27/
+android/app/src/main/res/values-v28/
+android/app/src/main/res/values-v29/
+android/app/src/main/res/values-v30/
+android/app/src/main/res/values-v31/
+android/app/src/main/res/values-v32/
+android/app/src/main/res/values-v33/
+android/app/src/main/res/values-v34/
+
+# iOS build directories
+ios/Pods/
+ios/Runner.xcworkspace/xcshareddata/
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Node.js
+node_modules/
+*.log
+*.zip
+.DS_Store
+build/
+dist/
+
+# Backend specific
+backend/node_modules/
+backend/.env
+backend/logs/
+backend/uploads/
