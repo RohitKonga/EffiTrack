@@ -15,6 +15,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
   Map<String, dynamic>? reportData;
   bool _loading = true;
   String? _error;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -28,7 +29,10 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
       _error = null;
     });
     try {
-      final res = await apiService.get('/attendance/reports');
+      // Format date as YYYY-MM-DD
+      final dateString =
+          "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
+      final res = await apiService.get('/attendance/reports?date=$dateString');
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() {
@@ -50,6 +54,33 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
     }
   }
 
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.indigo,
+              onPrimary: Colors.white,
+              onSurface: Colors.indigo.shade700,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+      _fetchAttendanceReports();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,6 +89,11 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            tooltip: 'Select Date',
+            onPressed: _selectDate,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _fetchAttendanceReports,
@@ -138,7 +174,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Today\'s Attendance Report',
+                                      'Attendance Report',
                                       style: GoogleFonts.poppins(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600,
@@ -149,9 +185,20 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Date: ${reportData?['date'] ?? 'N/A'}',
+                                  'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                                   style: GoogleFonts.poppins(
                                     color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton.icon(
+                                  onPressed: _selectDate,
+                                  icon: const Icon(Icons.calendar_month),
+                                  label: const Text('Change Date'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.indigo.shade100,
+                                    foregroundColor: Colors.indigo.shade700,
+                                    elevation: 0,
                                   ),
                                 ),
                               ],
@@ -161,102 +208,8 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                         const SizedBox(height: 16),
 
                         // Overall Statistics
-                        if (reportData?['employeeTotalStats'] != null ||
-                            reportData?['managerTotalStats'] != null) ...[
-                          // Employee Statistics
-                          if (reportData?['employeeTotalStats'] != null) ...[
-                            Card(
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.people,
-                                          color: Colors.blue.shade600,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Employee Statistics',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            'Present',
-                                            reportData!['employeeTotalStats']['present'],
-                                            Colors.green,
-                                            Icons.check_circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            'Absent',
-                                            reportData!['employeeTotalStats']['absent'],
-                                            Colors.red,
-                                            Icons.cancel,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            'Total',
-                                            reportData!['employeeTotalStats']['total'],
-                                            Colors.blue,
-                                            Icons.people,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.trending_up,
-                                            color: Colors.blue.shade600,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Employee Attendance Rate: ${reportData!['employeeTotalStats']['percentage']}%',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.blue.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
+                        if (reportData?['managerTotalStats'] != null ||
+                            reportData?['employeeTotalStats'] != null) ...[
                           // Manager Statistics
                           if (reportData?['managerTotalStats'] != null) ...[
                             Card(
@@ -350,113 +303,99 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
-                        ],
-
-                        // Employee Department Reports
-                        if (reportData?['employeeReports'] != null &&
-                            (reportData!['employeeReports'] as List)
-                                .isNotEmpty) ...[
-                          Text(
-                            'Employee Department Reports',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ...List.generate(
-                            (reportData!['employeeReports'] as List).length,
-                            (index) {
-                              final report =
-                                  reportData!['employeeReports'][index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                          // Employee Statistics
+                          if (reportData?['employeeTotalStats'] != null) ...[
+                            Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.people,
+                                          color: Colors.blue.shade600,
+                                          size: 24,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Employee Statistics',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.blue.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildStatCard(
+                                            'Present',
+                                            reportData!['employeeTotalStats']['present'],
+                                            Colors.green,
+                                            Icons.check_circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildStatCard(
+                                            'Absent',
+                                            reportData!['employeeTotalStats']['absent'],
+                                            Colors.red,
+                                            Icons.cancel,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildStatCard(
+                                            'Total',
+                                            reportData!['employeeTotalStats']['total'],
+                                            Colors.blue,
+                                            Icons.people,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
                                         children: [
                                           Icon(
-                                            Icons.business,
+                                            Icons.trending_up,
                                             color: Colors.blue.shade600,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            report['department'],
+                                            'Employee Attendance Rate: ${reportData!['employeeTotalStats']['percentage']}%',
                                             style: GoogleFonts.poppins(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
                                               color: Colors.blue.shade700,
                                             ),
                                           ),
-                                          const Spacer(),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade100,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              '${report['percentage']}%',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.blue.shade700,
-                                              ),
-                                            ),
-                                          ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: _buildMiniStat(
-                                              'Present',
-                                              report['present'],
-                                              Colors.green.shade100,
-                                              Colors.green.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: _buildMiniStat(
-                                              'Absent',
-                                              report['absent'],
-                                              Colors.red.shade100,
-                                              Colors.red.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: _buildMiniStat(
-                                              'Total',
-                                              report['total'],
-                                              Colors.blue.shade100,
-                                              Colors.blue.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 16),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ],
 
                         // Manager Department Reports
@@ -563,6 +502,114 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                               );
                             },
                           ),
+
+                          // Employee Department Reports
+                          if (reportData?['employeeReports'] != null &&
+                              (reportData!['employeeReports'] as List)
+                                  .isNotEmpty) ...[
+                            Text(
+                              'Employee Department Reports',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ...List.generate(
+                              (reportData!['employeeReports'] as List).length,
+                              (index) {
+                                final report =
+                                    reportData!['employeeReports'][index];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.business,
+                                              color: Colors.blue.shade600,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              report['department'],
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.blue.shade700,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '${report['percentage']}%',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.blue.shade700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildMiniStat(
+                                                'Present',
+                                                report['present'],
+                                                Colors.green.shade100,
+                                                Colors.green.shade700,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: _buildMiniStat(
+                                                'Absent',
+                                                report['absent'],
+                                                Colors.red.shade100,
+                                                Colors.red.shade700,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: _buildMiniStat(
+                                                'Total',
+                                                report['total'],
+                                                Colors.blue.shade100,
+                                                Colors.blue.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ],
 
                         // No data message

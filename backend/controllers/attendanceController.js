@@ -46,23 +46,32 @@ exports.getHistory = async (req, res) => {
 // Get attendance reports (admin only)
 exports.getAttendanceReports = async (req, res) => {
   try {
+    // Get date from query parameter or use today
+    let targetDate;
+    if (req.query.date) {
+      targetDate = new Date(req.query.date);
+      targetDate.setHours(0, 0, 0, 0);
+    } else {
+      targetDate = new Date();
+      targetDate.setHours(0, 0, 0, 0);
+    }
+    
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    console.log('Fetching attendance for date:', targetDate.toISOString().split('T')[0]);
+    
     // Get all users with their departments
     const users = await User.find().select('name department role');
     console.log('Total users found:', users.length);
     console.log('Users:', users.map(u => ({ name: u.name, role: u.role, department: u.department })));
     
-    // Get today's date
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Get today's attendance records
-    const todayAttendance = await Attendance.find({
-      checkIn: { $gte: today, $lt: tomorrow }
+    // Get attendance records for the selected date
+    const attendanceRecords = await Attendance.find({
+      checkIn: { $gte: targetDate, $lt: nextDay }
     }).populate('user', 'name department role');
     
-    console.log('Today\'s attendance records:', todayAttendance.length);
+    console.log('Attendance records for selected date:', attendanceRecords.length);
     
     // Separate users by role
     const employees = users.filter(user => user.role === 'Employee');
@@ -102,7 +111,7 @@ exports.getAttendanceReports = async (req, res) => {
     console.log('Manager departments:', Object.keys(managerDepartmentStats));
     
     // Count present users by role
-    todayAttendance.forEach(attendance => {
+    attendanceRecords.forEach(attendance => {
       if (attendance.user && attendance.user.department) {
         if (attendance.user.role === 'Employee') {
           if (!employeeDepartmentStats[attendance.user.department]) {
@@ -173,7 +182,7 @@ exports.getAttendanceReports = async (req, res) => {
           ? ((managerTotalStats.present / managerTotalStats.total) * 100).toFixed(1)
           : '0.0'
       },
-      date: today.toISOString().split('T')[0]
+      date: targetDate.toISOString().split('T')[0]
     };
     
     console.log('Response:', response);
