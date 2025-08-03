@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const { checkIn, checkOut, getHistory, getAttendanceReports, getTeamAttendance, testDeviceTime, checkInDeviceTime } = require('../controllers/attendanceController');
+const { checkIn, checkOut, getHistory, getAttendanceReports, getTeamAttendance, testDeviceTime } = require('../controllers/attendanceController');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance'); // Added missing import for Attendance
 
@@ -16,7 +16,6 @@ router.get('/history', auth, getHistory);
 router.get('/reports', auth, getAttendanceReports);
 router.get('/team/:department', auth, getTeamAttendance);
 router.post('/test-device-time', testDeviceTime);
-router.post('/checkin-device-time', auth, checkInDeviceTime);
 
 // Debug endpoint to check database status (no auth required for testing)
 router.get('/debug', async (req, res) => {
