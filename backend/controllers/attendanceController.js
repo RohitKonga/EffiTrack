@@ -64,7 +64,6 @@ exports.getAttendanceReports = async (req, res) => {
     // Get all users with their departments
     const users = await User.find().select('name department role');
     console.log('Total users found:', users.length);
-    console.log('Users:', users.map(u => ({ name: u.name, role: u.role, department: u.department })));
     
     // Get attendance records for the selected date
     const attendanceRecords = await Attendance.find({
@@ -72,6 +71,7 @@ exports.getAttendanceReports = async (req, res) => {
     }).populate('user', 'name department role');
     
     console.log('Attendance records for selected date:', attendanceRecords.length);
+    console.log('Date range:', targetDate.toISOString(), 'to', nextDay.toISOString());
     
     // Separate users by role
     const employees = users.filter(user => user.role === 'Employee');
@@ -107,10 +107,7 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
-    console.log('Employee departments:', Object.keys(employeeDepartmentStats));
-    console.log('Manager departments:', Object.keys(managerDepartmentStats));
-    
-    // Count present users by role
+    // Count present users by role for the selected date
     attendanceRecords.forEach(attendance => {
       if (attendance.user && attendance.user.department) {
         if (attendance.user.role === 'Employee') {
@@ -182,10 +179,16 @@ exports.getAttendanceReports = async (req, res) => {
           ? ((managerTotalStats.present / managerTotalStats.total) * 100).toFixed(1)
           : '0.0'
       },
-      date: targetDate.toISOString().split('T')[0]
+      date: targetDate.toISOString().split('T')[0],
+      selectedDate: targetDate.toISOString().split('T')[0],
+      hasData: attendanceRecords.length > 0
     };
     
-    console.log('Response:', response);
+    console.log('Response for date:', targetDate.toISOString().split('T')[0]);
+    console.log('Has attendance data:', attendanceRecords.length > 0);
+    console.log('Employee reports:', employeeReports.length);
+    console.log('Manager reports:', managerReports.length);
+    
     res.json(response);
   } catch (err) {
     console.error('Attendance reports error:', err);

@@ -303,6 +303,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
+
                           // Employee Statistics
                           if (reportData?['employeeTotalStats'] != null) ...[
                             Card(
@@ -396,6 +397,62 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
+                        ],
+
+                        // No data message for selected date
+                        if (reportData != null &&
+                            reportData!['hasData'] == false) ...[
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(40),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.event_busy,
+                                    size: 64,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No Attendance Data Available',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedDate = DateTime.now();
+                                      });
+                                      _fetchAttendanceReports();
+                                    },
+                                    icon: const Icon(Icons.today),
+                                    label: const Text('View Today\'s Data'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.indigo,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
 
                         // Manager Department Reports
