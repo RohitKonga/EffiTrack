@@ -231,22 +231,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   ? DateTime.parse(record['checkIn'])
                                   : null;
 
-                              // Check if this is today's session
-                              final today = DateTime.now();
-                              final recordDate = checkInTime != null
-                                  ? DateTime(
-                                      checkInTime.year,
-                                      checkInTime.month,
-                                      checkInTime.day,
-                                    )
-                                  : null;
-                              final todayDate = DateTime(
-                                today.year,
-                                today.month,
-                                today.day,
-                              );
-                              final isTodaySession = recordDate == todayDate;
-
                               // For current session, show real-time
                               String checkInDisplay = checkInTime != null
                                   ? checkInTime.toString().substring(11, 16)
