@@ -26,11 +26,14 @@ exports.checkIn = async (req, res) => {
     // Store device time as string to preserve exact time
     console.log('STORING DEVICE TIME AS STRING:', deviceTimeString); // Debug log
     
+    // Store the device time in a format that won't be auto-converted by MongoDB
     const attendance = new Attendance({
       user: req.user.id,
       checkIn: deviceTimeString, // Store as string to preserve device time
     });
-    await attendance.save();
+    
+    // Force save without timestamps
+    await attendance.save({ timestamps: false });
     console.log('SAVED ATTENDANCE:', attendance); // Debug log
     res.json(attendance);
   } catch (err) {
@@ -69,7 +72,9 @@ exports.checkOut = async (req, res) => {
     const checkInDate = new Date(attendance.checkIn);
     const checkOutDate = new Date(deviceTimeString);
     attendance.workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
-    await attendance.save();
+    
+    // Force save without timestamps
+    await attendance.save({ timestamps: false });
     console.log('SAVED ATTENDANCE (CHECKOUT):', attendance); // Debug log
     res.json(attendance);
   } catch (err) {
@@ -78,19 +83,7 @@ exports.checkOut = async (req, res) => {
   }
 };
 
-// Test endpoint to verify device time
-exports.testDeviceTime = async (req, res) => {
-  try {
-    console.log('🔍 TEST DEVICE TIME REQUEST:', req.body);
-    res.json({
-      deviceTimeReceived: req.body.deviceTime,
-      serverTime: new Date().toISOString(),
-      message: 'Device time received successfully'
-    });
-  } catch (err) {
-    res.status(500).send('Server error');
-  }
-};
+
 
 exports.getHistory = async (req, res) => {
   try {

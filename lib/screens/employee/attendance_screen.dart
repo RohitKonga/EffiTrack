@@ -159,33 +159,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  Future<void> _testDeviceTime() async {
-    try {
-      final now = DateTime.now();
-      final deviceTime = now.toIso8601String();
-
-      print('🔍 TESTING DEVICE TIME: $deviceTime');
-
-      final requestBody = {'deviceTime': deviceTime};
-      final res = await apiService.post(
-        '/attendance/test-device-time',
-        requestBody,
-      );
-
-      print('🔍 TEST RESPONSE: ${res.body}');
-
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        print(
-          '🔍 DEVICE TIME RECEIVED BY SERVER: ${data['deviceTimeReceived']}',
-        );
-        print('🔍 SERVER TIME: ${data['serverTime']}');
-      }
-    } catch (e) {
-      print('🔍 TEST ERROR: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,11 +227,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ElevatedButton(
                         onPressed: checkedIn ? _checkOut : null,
                         child: const Text('Check Out'),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _testDeviceTime,
-                        child: const Text('Test Device Time'),
                       ),
                     ],
                   ),
