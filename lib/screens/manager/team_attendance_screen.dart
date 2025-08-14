@@ -487,8 +487,9 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
   String _formatTime(String? timeString) {
     if (timeString == null) return 'N/A';
     try {
-      final date = DateTime.parse(timeString);
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      final utcDate = DateTime.parse(timeString);
+      final localDate = utcDate.toLocal();
+      return '${localDate.hour.toString().padLeft(2, '0')}:${localDate.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return 'N/A';
     }

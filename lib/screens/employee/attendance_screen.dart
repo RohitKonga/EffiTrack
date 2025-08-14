@@ -2,6 +2,30 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'dart:convert';
 
+// Utility function to convert UTC time to local time for display
+String _formatLocalTime(String? utcTimeString) {
+  if (utcTimeString == null) return '-';
+  try {
+    final utcTime = DateTime.parse(utcTimeString);
+    final localTime = utcTime.toLocal();
+    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
+  } catch (e) {
+    return '-';
+  }
+}
+
+// Utility function to format date for display
+String _formatDate(String? utcTimeString) {
+  if (utcTimeString == null) return '-';
+  try {
+    final utcTime = DateTime.parse(utcTimeString);
+    final localTime = utcTime.toLocal();
+    return '${localTime.day.toString().padLeft(2, '0')}/${localTime.month.toString().padLeft(2, '0')}/${localTime.year}';
+  } catch (e) {
+    return '-';
+  }
+}
+
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
 
@@ -41,7 +65,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           );
           if (open.isNotEmpty) {
             checkedIn = true;
-            checkInTime = DateTime.parse(open['checkIn']);
+            // Parse UTC time and convert to local time
+            final utcTime = DateTime.parse(open['checkIn']);
+            checkInTime = utcTime.toLocal();
             checkOutTime = null;
           } else {
             checkedIn = false;
@@ -74,11 +100,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final now = DateTime.now(); // Device time
       final deviceTimeString = now.toIso8601String(); // Send device time
 
-      // Debug: Print device time
-      print('Device time being sent: $deviceTimeString');
-      print('Device time object: $now');
-      print('Device timezone: ${now.timeZoneName}');
-
       final res = await apiService.post('/attendance/checkin', {
         "checkIn": deviceTimeString,
         "timezone": now.timeZoneName,
@@ -110,11 +131,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     try {
       final now = DateTime.now(); // Device time
       final deviceTimeString = now.toIso8601String(); // Send device time
-
-      // Debug: Print device time
-      print('Device time being sent: $deviceTimeString');
-      print('Device time object: $now');
-      print('Device timezone: ${now.timeZoneName}');
 
       final res = await apiService.post('/attendance/checkout', {
         "checkOut": deviceTimeString,
@@ -170,7 +186,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   const SizedBox(height: 16),
                   Text(
                     checkedIn
-                        ? 'Checked in at: ${checkInTime != null ? checkInTime!.toString().substring(11, 16) : '-'}'
+                        ? 'Checked in at: ${checkInTime != null ? _formatLocalTime(checkInTime!.toIso8601String()) : '-'}'
                         : 'Not checked in',
                     style: const TextStyle(
                       fontSize: 16,
@@ -192,11 +208,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               final record = history[index];
                               return ListTile(
                                 title: Text(
-                                  'Date: ${record['checkIn']?.toString().substring(0, 10) ?? '-'}',
+                                  'Date: ${_formatDate(record['checkIn']?.toString())}',
                                 ),
                                 subtitle: Text(
-                                  'In: ${record['checkIn'] != null ? record['checkIn'].toString().substring(11, 16) : '-'}  '
-                                  'Out: ${record['checkOut'] != null ? record['checkOut'].toString().substring(11, 16) : '-'}  '
+                                  'In: ${_formatLocalTime(record['checkIn']?.toString())}  '
+                                  'Out: ${_formatLocalTime(record['checkOut']?.toString())}  '
                                   'Hours: ${record['workingHours'] != null ? record['workingHours'].toStringAsFixed(2) : '-'}',
                                 ),
                               );
