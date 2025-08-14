@@ -14,6 +14,8 @@ class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String? _email, _password;
+  String? _selectedRole;
+  final _roles = ['Employee', 'Manager', 'Admin'];
   bool _loading = false;
   String? _error;
   bool _obscurePassword = true;
@@ -73,6 +75,13 @@ class _LoginScreenState extends State<LoginScreen>
   void _login() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedRole == null) {
+      setState(() {
+        _error = 'Please select your role';
+      });
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -88,12 +97,21 @@ class _LoginScreenState extends State<LoginScreen>
       if (res.statusCode == 200 && data['token'] != null) {
         apiService.setToken(data['token']);
         final role = data['user']['role'];
-        if (role == 'Employee') {
-          Navigator.pushReplacementNamed(context, '/employee');
-        } else if (role == 'Manager') {
-          Navigator.pushReplacementNamed(context, '/manager');
-        } else if (role == 'Admin') {
-          Navigator.pushReplacementNamed(context, '/admin');
+
+        // Validate that the selected role matches the user's actual role
+        if (role == _selectedRole) {
+          if (role == 'Employee') {
+            Navigator.pushReplacementNamed(context, '/employee');
+          } else if (role == 'Manager') {
+            Navigator.pushReplacementNamed(context, '/manager');
+          } else if (role == 'Admin') {
+            Navigator.pushReplacementNamed(context, '/admin');
+          }
+        } else {
+          setState(() {
+            _error =
+                'Selected role does not match your account role. Your role is: $role';
+          });
         }
       } else {
         setState(() {
@@ -108,6 +126,32 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() {
         _loading = false;
       });
+    }
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role) {
+      case 'Employee':
+        return Colors.blue;
+      case 'Manager':
+        return Colors.teal;
+      case 'Admin':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getRoleIcon(String role) {
+    switch (role) {
+      case 'Employee':
+        return Icons.person;
+      case 'Manager':
+        return Icons.manage_accounts;
+      case 'Admin':
+        return Icons.admin_panel_settings;
+      default:
+        return Icons.person;
     }
   }
 
@@ -145,14 +189,14 @@ class _LoginScreenState extends State<LoginScreen>
                           scale: _logoAnimation,
                           child: Container(
                             padding: const EdgeInsets.all(20),
-                                                         decoration: BoxDecoration(
-                               color: Colors.white.withValues(alpha: 0.2),
-                               borderRadius: BorderRadius.circular(30),
-                               border: Border.all(
-                                 color: Colors.white.withValues(alpha: 0.3),
-                                 width: 2,
-                               ),
-                             ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 2,
+                              ),
+                            ),
                             child: Icon(
                               Icons.track_changes,
                               size: 60,
@@ -173,11 +217,11 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                                                     'Sign in to your account',
-                           style: GoogleFonts.poppins(
-                             fontSize: 16,
-                             color: Colors.white.withValues(alpha: 0.9),
-                           ),
+                          'Sign in to your account',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
                         ),
                         const SizedBox(height: 40),
 
@@ -189,13 +233,13 @@ class _LoginScreenState extends State<LoginScreen>
                             decoration: BoxDecoration(
                               color: Colors.red.shade400,
                               borderRadius: BorderRadius.circular(16),
-                                                             boxShadow: [
-                                 BoxShadow(
-                                   color: Colors.red.withValues(alpha: 0.3),
-                                   blurRadius: 10,
-                                   offset: const Offset(0, 4),
-                                 ),
-                               ],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Row(
                               children: [
@@ -228,16 +272,35 @@ class _LoginScreenState extends State<LoginScreen>
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
-                                                           boxShadow: [
-                                 BoxShadow(
-                                   color: Colors.black.withValues(alpha: 0.1),
-                                   blurRadius: 20,
-                                   offset: const Offset(0, 10),
-                                 ),
-                               ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Role Selection Section
+                              Text(
+                                'Select Your Role',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Role Radio Buttons
+                              ..._roles.map(
+                                (role) => _buildRoleRadioButton(role),
+                              ),
+
+                              const SizedBox(height: 24),
+
                               // Email Field
                               TextFormField(
                                 decoration: InputDecoration(
@@ -355,7 +418,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 width: double.infinity,
                                 height: 56,
                                 child: ElevatedButton(
-                                  onPressed: _loading ? null : _login,
+                                  onPressed: (_selectedRole == null || _loading)
+                                      ? null
+                                      : _login,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.indigo.shade600,
                                     foregroundColor: Colors.white,
@@ -363,7 +428,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
-                                                                         shadowColor: Colors.indigo.withValues(alpha: 0.3),
+                                    shadowColor: Colors.indigo.withValues(
+                                      alpha: 0.3,
+                                    ),
                                   ),
                                   child: _loading
                                       ? const SizedBox(
@@ -402,13 +469,13 @@ class _LoginScreenState extends State<LoginScreen>
                         // Register Link
                         Container(
                           padding: const EdgeInsets.all(16),
-                                                     decoration: BoxDecoration(
-                             color: Colors.white.withValues(alpha: 0.1),
-                             borderRadius: BorderRadius.circular(16),
-                             border: Border.all(
-                               color: Colors.white.withValues(alpha: 0.2),
-                             ),
-                           ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -450,6 +517,64 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoleRadioButton(String role) {
+    final isSelected = _selectedRole == role;
+    final roleColor = _getRoleColor(role);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? roleColor.withValues(alpha: 0.1)
+            : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? roleColor : Colors.grey.shade300,
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: RadioListTile<String>(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? roleColor.withValues(alpha: 0.2)
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _getRoleIcon(role),
+                color: isSelected ? roleColor : Colors.grey.shade600,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              role,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? roleColor : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+        value: role,
+        groupValue: _selectedRole,
+        onChanged: (value) {
+          setState(() {
+            _selectedRole = value;
+            _error = null; // Clear error when role is selected
+          });
+        },
+        activeColor: roleColor,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }
