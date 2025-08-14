@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'dart:convert';
-import 'dart:async';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -17,24 +16,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   List<Map<String, dynamic>> history = [];
   bool _loading = true;
   String? _error;
-  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchHistory();
-    // Start real-time updates every 30 seconds
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (mounted) {
-        _fetchHistory();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
   }
 
   Future<void> _fetchHistory() async {
@@ -46,10 +32,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final res = await apiService.get('/attendance/history');
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
-        print('🔍 HISTORY DATA: $data');
         setState(() {
           history = data.cast<Map<String, dynamic>>();
-
           // Determine if currently checked in
           final open = history.cast<Map<String, dynamic>>().firstWhere(
             (rec) => rec['checkOut'] == null,
@@ -87,20 +71,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      // Capture device current time (local timezone)
-      final now = DateTime.now();
-      final deviceTime = now.toIso8601String();
-
-      print('🔍 DEVICE TIME CAPTURED: $deviceTime');
-      print('🔍 DEVICE TIME TYPE: ${deviceTime.runtimeType}');
-
-      final requestBody = {'deviceTime': deviceTime};
-      print('🔍 REQUEST BODY: $requestBody');
-
-      final res = await apiService.post('/attendance/checkin', requestBody);
-      print('🔍 RESPONSE STATUS: ${res.statusCode}');
-      print('🔍 RESPONSE BODY: ${res.body}');
-
+      final now = DateTime.now(); // Device time
+      final res = await apiService.post('/attendance/checkin', {
+        "checkIn": now.toIso8601String(), // Send device time
+      });
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {
@@ -126,20 +100,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _error = null;
     });
     try {
-      // Capture device current time (local timezone)
-      final now = DateTime.now();
-      final deviceTime = now.toIso8601String();
-
-      print('🔍 DEVICE TIME CAPTURED (CHECKOUT): $deviceTime');
-      print('🔍 DEVICE TIME TYPE (CHECKOUT): ${deviceTime.runtimeType}');
-
-      final requestBody = {'deviceTime': deviceTime};
-      print('🔍 REQUEST BODY (CHECKOUT): $requestBody');
-
-      final res = await apiService.post('/attendance/checkout', requestBody);
-      print('🔍 RESPONSE STATUS (CHECKOUT): ${res.statusCode}');
-      print('🔍 RESPONSE BODY (CHECKOUT): ${res.body}');
-
+      final now = DateTime.now(); // Device time
+      final res = await apiService.post('/attendance/checkout', {
+        "checkOut": now.toIso8601String(), // Send device time
+      });
       if (res.statusCode == 200) {
         await _fetchHistory();
       } else {
@@ -159,72 +123,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  Future<void> _testNewCode() async {
-    try {
-      final now = DateTime.now();
-      final deviceTime = now.toIso8601String();
-
-      print('🔍 TESTING NEW CODE: $deviceTime');
-
-      final requestBody = {'deviceTime': deviceTime};
-      final res = await apiService.post(
-        '/attendance/test-new-code',
-        requestBody,
-      );
-
-      print('🔍 NEW CODE TEST RESPONSE: ${res.body}');
-    } catch (e) {
-      print('🔍 NEW CODE TEST ERROR: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Attendance'),
-            if (checkedIn) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.green.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 6,
-                      height: 6,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'LIVE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text('Attendance')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _loading
@@ -247,14 +149,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onPressed: checkedIn ? _checkOut : null,
                         child: const Text('Check Out'),
                       ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _testNewCode,
-                        child: const Text('Test New Code'),
-                      ),
                     ],
                   ),
-
+                  const SizedBox(height: 16),
+                  Text(
+                    checkedIn
+                        ? 'Checked in at: ${checkInTime != null ? checkInTime!.toString().substring(11, 16) : '-'}'
+                        : 'Not checked in',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   const Text(
                     'Attendance History',
@@ -268,53 +174,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             itemCount: history.length,
                             itemBuilder: (context, index) {
                               final record = history[index];
-                              final isCurrentSession =
-                                  record['checkOut'] == null;
-
-                              // For current session, show stored device time
-                              String checkInDisplay =
-                                  record['deviceCheckIn'] != null
-                                  ? record['deviceCheckIn']
-                                        .toString()
-                                        .substring(11, 16)
-                                  : (record['checkIn'] != null
-                                        ? record['checkIn']
-                                              .toString()
-                                              .substring(11, 16)
-                                        : '-');
-
-                              String checkOutDisplay;
-                              String hoursDisplay;
-
-                              if (isCurrentSession) {
-                                // Show "Active" for current session (not real-time)
-                                checkOutDisplay = 'Active';
-                                hoursDisplay = 'Calculating...';
-                              } else {
-                                // Show stored device time for completed sessions
-                                checkOutDisplay =
-                                    record['deviceCheckOut'] != null
-                                    ? record['deviceCheckOut']
-                                          .toString()
-                                          .substring(11, 16)
-                                    : (record['checkOut'] != null
-                                          ? record['checkOut']
-                                                .toString()
-                                                .substring(11, 16)
-                                          : '-');
-                                hoursDisplay = record['workingHours'] != null
-                                    ? record['workingHours'].toStringAsFixed(2)
-                                    : '-';
-                              }
-
                               return ListTile(
                                 title: Text(
                                   'Date: ${record['checkIn']?.toString().substring(0, 10) ?? '-'}',
                                 ),
                                 subtitle: Text(
-                                  'In: $checkInDisplay  '
-                                  'Out: $checkOutDisplay  '
-                                  'Hours: $hoursDisplay',
+                                  'In: ${record['checkIn'] != null ? record['checkIn'].toString().substring(11, 16) : '-'}  '
+                                  'Out: ${record['checkOut'] != null ? record['checkOut'].toString().substring(11, 16) : '-'}  '
+                                  'Hours: ${record['workingHours'] != null ? record['workingHours'].toStringAsFixed(2) : '-'}',
                                 ),
                               );
                             },

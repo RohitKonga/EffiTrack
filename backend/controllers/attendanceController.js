@@ -3,121 +3,44 @@ const User = require('../models/User');
 
 exports.checkIn = async (req, res) => {
   try {
-    console.log('CHECK-IN REQUEST BODY:', req.body); // Debug log
-    
-    // Validate device time is provided
-    if (!req.body.deviceTime) {
-      console.log('DEVICE TIME MISSING'); // Debug log
-      return res.status(400).json({ msg: 'Device time is required' });
-    }
-    
-    console.log('DEVICE TIME RECEIVED:', req.body.deviceTime); // Debug log
-    
-    // Prevent multiple check-ins without check-out
     const openAttendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (openAttendance) {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
-    
-    // Use device time only - store exactly as received
-    const deviceTimeString = req.body.deviceTime;
-    console.log('DEVICE TIME STRING:', deviceTimeString); // Debug log
-    
-    // Store device time as string to preserve exact time
-    console.log('STORING DEVICE TIME AS STRING:', deviceTimeString); // Debug log
-    console.log('USING DIRECT MONGODB INSERTION'); // Debug log
-    
-    // Store the device time in a format that won't be auto-converted by MongoDB
+
+    // Use client-provided time if available, else fallback to server time
+    const deviceTime = req.body.checkIn ? new Date(req.body.checkIn) : new Date();
+
     const attendance = new Attendance({
       user: req.user.id,
-      checkIn: deviceTimeString, // Store as string to preserve device time
-      deviceCheckIn: deviceTimeString, // Store exact device time in separate field
+      checkIn: deviceTime,
     });
-    
-    // Use MongoDB directly to avoid Mongoose auto-conversion
-    const result = await Attendance.collection.insertOne({
-      user: req.user.id,
-      checkIn: deviceTimeString,
-      deviceCheckIn: deviceTimeString,
-      workingHours: null,
-      checkOut: null,
-      deviceCheckOut: null,
-      createdAt: null,
-      updatedAt: null
-    });
-    
-    // Fetch the saved document
-    const savedAttendance = await Attendance.findById(result.insertedId);
-    console.log('SAVED ATTENDANCE:', savedAttendance); // Debug log
-    res.json(savedAttendance);
+
+    await attendance.save();
+    res.json(attendance);
   } catch (err) {
-    console.log('CHECK-IN ERROR:', err); // Debug log
+    console.error(err);
     res.status(500).send('Server error');
   }
 };
 
 exports.checkOut = async (req, res) => {
   try {
-    console.log('CHECK-OUT REQUEST BODY:', req.body); // Debug log
-    
-    // Validate device time is provided
-    if (!req.body.deviceTime) {
-      console.log('DEVICE TIME MISSING (CHECKOUT)'); // Debug log
-      return res.status(400).json({ msg: 'Device time is required' });
-    }
-    
-    console.log('DEVICE TIME RECEIVED (CHECKOUT):', req.body.deviceTime); // Debug log
-    
     const attendance = await Attendance.findOne({ user: req.user.id, checkOut: null });
     if (!attendance) {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
+
+    // Use client-provided time if available
+    const deviceTime = req.body.checkOut ? new Date(req.body.checkOut) : new Date();
+
+    attendance.checkOut = deviceTime;
+    attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
     
-    // Use device time only - store exactly as received
-    const deviceTimeString = req.body.deviceTime;
-    console.log('DEVICE TIME STRING (CHECKOUT):', deviceTimeString); // Debug log
-    
-    // Store device time as string to preserve exact time
-    console.log('STORING DEVICE TIME AS STRING (CHECKOUT):', deviceTimeString); // Debug log
-    
-    // Calculate working hours using the stored string times
-    const checkInDate = new Date(attendance.checkIn);
-    const checkOutDate = new Date(deviceTimeString);
-    const workingHours = (checkOutDate - checkInDate) / (1000 * 60 * 60); // hours
-    
-    // Use MongoDB directly to avoid Mongoose auto-conversion
-    await Attendance.collection.updateOne(
-      { _id: attendance._id },
-      {
-        $set: {
-          checkOut: deviceTimeString,
-          deviceCheckOut: deviceTimeString,
-          workingHours: workingHours
-        }
-      }
-    );
-    
-    // Fetch the updated document
-    const updatedAttendance = await Attendance.findById(attendance._id);
-    console.log('SAVED ATTENDANCE (CHECKOUT):', updatedAttendance); // Debug log
-    res.json(updatedAttendance);
+    await attendance.save();
+    res.json(attendance);
   } catch (err) {
-    console.log('CHECK-OUT ERROR:', err); // Debug log
-    res.status(500).send('Server error');
-  }
-};
-
-
-
-// Test endpoint to verify new code is running
-exports.testNewCode = async (req, res) => {
-  try {
-    res.json({
-      message: 'New code is running!',
-      timestamp: new Date().toISOString(),
-      deviceTimeTest: req.body.deviceTime || 'No device time provided'
-    });
-  } catch (err) {
+    console.error(err);
     res.status(500).send('Server error');
   }
 };
@@ -154,12 +77,8 @@ exports.getAttendanceReports = async (req, res) => {
     console.log('Total users found:', users.length);
     
     // Get attendance records for the selected date
-    // Since checkIn is now stored as string, we need to query differently
-    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const nextDateString = nextDay.toISOString().split('T')[0];
-    
     const attendanceRecords = await Attendance.find({
-      checkIn: { $gte: dateString, $lt: nextDateString }
+      checkIn: { $gte: targetDate, $lt: nextDay }
     }).populate('user', 'name department role');
     
     console.log('Attendance records for selected date:', attendanceRecords.length);
@@ -288,8 +207,6 @@ exports.getAttendanceReports = async (req, res) => {
   }
 }; 
 
-
-
 // Get team attendance for a specific department
 exports.getTeamAttendance = async (req, res) => {
   try {
@@ -320,12 +237,8 @@ exports.getTeamAttendance = async (req, res) => {
     console.log('Team members found:', teamMembers.length);
     
     // Get attendance records for the selected date
-    // Since checkIn is now stored as string, we need to query differently
-    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const nextDateString = nextDay.toISOString().split('T')[0];
-    
     const attendanceRecords = await Attendance.find({
-      checkIn: { $gte: dateString, $lt: nextDateString }
+      checkIn: { $gte: targetDate, $lt: nextDay }
     }).populate('user', 'name email department role');
     
     console.log('Attendance records found:', attendanceRecords.length);
