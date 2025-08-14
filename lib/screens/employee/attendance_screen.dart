@@ -72,8 +72,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     });
     try {
       final now = DateTime.now(); // Device time
+      final deviceTimeString = now.toIso8601String(); // Send device time
+
+      // Debug: Print device time
+      print('Device time being sent: $deviceTimeString');
+      print('Device time object: $now');
+      print('Device timezone: ${now.timeZoneName}');
+
       final res = await apiService.post('/attendance/checkin', {
-        "checkIn": now.toIso8601String(), // Send device time
+        "checkIn": deviceTimeString,
+        "timezone": now.timeZoneName,
       });
       if (res.statusCode == 200) {
         await _fetchHistory();
@@ -101,8 +109,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     });
     try {
       final now = DateTime.now(); // Device time
+      final deviceTimeString = now.toIso8601String(); // Send device time
+
+      // Debug: Print device time
+      print('Device time being sent: $deviceTimeString');
+      print('Device time object: $now');
+      print('Device timezone: ${now.timeZoneName}');
+
       final res = await apiService.post('/attendance/checkout', {
-        "checkOut": now.toIso8601String(), // Send device time
+        "checkOut": deviceTimeString,
+        "timezone": now.timeZoneName,
       });
       if (res.statusCode == 200) {
         await _fetchHistory();

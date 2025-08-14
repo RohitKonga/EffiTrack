@@ -8,15 +8,36 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
 
+    // Debug: Log the request body
+    console.log('Check-in request body:', req.body);
+    console.log('Device time from request:', req.body.checkIn);
+    
     // Use client-provided time if available, else fallback to server time
-    const deviceTime = req.body.checkIn ? new Date(req.body.checkIn) : new Date();
+    let deviceTime;
+    if (req.body.checkIn) {
+      // Parse the ISO string and preserve the timezone information
+      deviceTime = new Date(req.body.checkIn);
+      console.log('Using device-provided time:', req.body.checkIn);
+    } else {
+      deviceTime = new Date();
+      console.log('Using server time as fallback');
+    }
+    const serverTime = new Date();
+    
+    console.log('Parsed device time:', deviceTime);
+    console.log('Server time:', serverTime);
+    console.log('Time difference (minutes):', (deviceTime - serverTime) / (1000 * 60));
+    console.log('Device time ISO string:', deviceTime.toISOString());
+    console.log('Device time local string:', deviceTime.toString());
 
     const attendance = new Attendance({
       user: req.user.id,
       checkIn: deviceTime,
+      checkInTimezone: req.body.timezone || 'UTC', // Store timezone info
     });
 
     await attendance.save();
+    console.log('Saved attendance with checkIn time:', attendance.checkIn);
     res.json(attendance);
   } catch (err) {
     console.error(err);
@@ -31,13 +52,34 @@ exports.checkOut = async (req, res) => {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
 
+    // Debug: Log the request body
+    console.log('Check-out request body:', req.body);
+    console.log('Device time from request:', req.body.checkOut);
+    
     // Use client-provided time if available
-    const deviceTime = req.body.checkOut ? new Date(req.body.checkOut) : new Date();
+    let deviceTime;
+    if (req.body.checkOut) {
+      // Parse the ISO string and preserve the timezone information
+      deviceTime = new Date(req.body.checkOut);
+      console.log('Using device-provided time:', req.body.checkOut);
+    } else {
+      deviceTime = new Date();
+      console.log('Using server time as fallback');
+    }
+    const serverTime = new Date();
+    
+    console.log('Parsed device time:', deviceTime);
+    console.log('Server time:', serverTime);
+    console.log('Time difference (minutes):', (deviceTime - serverTime) / (1000 * 60));
+    console.log('Device time ISO string:', deviceTime.toISOString());
+    console.log('Device time local string:', deviceTime.toString());
 
     attendance.checkOut = deviceTime;
+    attendance.checkOutTimezone = req.body.timezone || 'UTC'; // Store timezone info
     attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
     
     await attendance.save();
+    console.log('Saved attendance with checkOut time:', attendance.checkOut);
     res.json(attendance);
   } catch (err) {
     console.error(err);
