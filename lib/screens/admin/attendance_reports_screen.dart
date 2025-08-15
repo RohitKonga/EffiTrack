@@ -413,78 +413,6 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                     const SizedBox(height: 16),
                                     _buildSelectedDepartmentReports(),
                                   ],
-
-                                  // No data message (department level)
-                                  if ((reportData?['employeeReports'] == null ||
-                                          (reportData!['employeeReports']
-                                                  as List)
-                                              .isEmpty) &&
-                                      (reportData?['managerReports'] == null ||
-                                          (reportData!['managerReports']
-                                                  as List)
-                                              .isEmpty) &&
-                                      (reportData?['employeeTotalStats'] ==
-                                              null ||
-                                          reportData!['employeeTotalStats']['total'] ==
-                                              '0') &&
-                                      (reportData?['managerTotalStats'] ==
-                                              null ||
-                                          reportData!['managerTotalStats']['total'] ==
-                                              '0')) ...[
-                                    Container(
-                                      padding: const EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade100,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Icon(
-                                              Icons.business_outlined,
-                                              size: 48,
-                                              color: Colors.grey.shade400,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'No Department Data Available',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'No department reports found for the selected date',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-
-                                  const SizedBox(height: 32),
                                 ],
                               ),
                             ),
@@ -869,7 +797,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$title Attendance Rate: ${stats['percentage']}%',
+                    'Attendance Rate: ${stats['percentage']}%',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
