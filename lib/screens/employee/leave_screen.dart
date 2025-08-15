@@ -671,7 +671,10 @@ class _LeaveScreenState extends State<LeaveScreen>
           .map(
             (type) => DropdownMenuItem(
               value: type,
-              child: Text(type, style: GoogleFonts.poppins(fontSize: 16)),
+              child: Text(
+                type,
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+              ),
             ),
           )
           .toList(),
@@ -680,7 +683,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
-      style: GoogleFonts.poppins(fontSize: 16),
+      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
     );
   }
 

@@ -575,7 +575,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               .map(
                 (item) => DropdownMenuItem(
                   value: item,
-                  child: Text(item, style: GoogleFonts.poppins(fontSize: 16)),
+                  child: Text(
+                    item,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ),
               )
               .toList(),
@@ -605,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
           dropdownColor: Colors.white,
-          style: GoogleFonts.poppins(fontSize: 16),
+          style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
         ),
       ],
     );

@@ -596,14 +596,22 @@ class _UserManagementScreenState extends State<UserManagementScreen>
       value: value,
       isExpanded: true,
       items: items
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .map(
+            (item) => DropdownMenuItem(
+              value: item,
+              child: Text(
+                item,
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+              ),
+            ),
+          )
           .toList(),
       onChanged: onChanged,
       validator: validator,
       icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
-      style: GoogleFonts.poppins(fontSize: 16),
+      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
     );
   }
 

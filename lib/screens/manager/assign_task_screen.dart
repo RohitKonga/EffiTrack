@@ -350,7 +350,10 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
           .map(
             (e) => DropdownMenuItem(
               value: e,
-              child: Text(e, style: GoogleFonts.poppins(fontSize: 16)),
+              child: Text(
+                e,
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+              ),
             ),
           )
           .toList(),
@@ -359,7 +362,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
-      style: GoogleFonts.poppins(fontSize: 16),
+      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
     );
   }
 

@@ -276,7 +276,10 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                               value: status,
                               child: Text(
                                 status,
-                                style: GoogleFonts.poppins(fontSize: 16),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
                           )
@@ -293,6 +296,10 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                       ),
                       dropdownColor: Colors.white,
                       menuMaxHeight: 320,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
                     ),
                   ],
                 ),

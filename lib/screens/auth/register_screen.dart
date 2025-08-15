@@ -535,7 +535,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   .map(
                                     (role) => DropdownMenuItem(
                                       value: role,
-                                      child: Text(role),
+                                      child: Text(
+                                        role,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
                                     ),
                                   )
                                   .toList(),
@@ -549,7 +555,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 Icons.keyboard_arrow_down,
                                 color: Colors.purple.shade600,
                               ),
-                              style: GoogleFonts.poppins(fontSize: 16),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
                             ),
                             const SizedBox(height: 20),
 
@@ -644,7 +653,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   .map(
                                     (dept) => DropdownMenuItem(
                                       value: dept,
-                                      child: Text(dept),
+                                      child: Text(
+                                        dept,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
                                     ),
                                   )
                                   .toList(),
@@ -659,7 +674,10 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 Icons.keyboard_arrow_down,
                                 color: Colors.purple.shade600,
                               ),
-                              style: GoogleFonts.poppins(fontSize: 16),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
                             ),
                             const SizedBox(height: 32),
 
