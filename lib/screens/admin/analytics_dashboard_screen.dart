@@ -571,7 +571,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
                                         ],
                                       ),
                                     );
-                                  }).toList(),
+                                  }),
 
                                   const SizedBox(height: 32),
 

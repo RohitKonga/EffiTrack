@@ -483,7 +483,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                       ),
 
                                       // Input Field
-                                      Container(
+                                      SizedBox(
                                         width: 100,
                                         child: TextFormField(
                                           initialValue: days.toString(),

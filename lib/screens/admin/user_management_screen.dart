@@ -15,7 +15,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
   List<dynamic> users = [];
   bool _loading = true;
   String? _error;
-  
+
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -25,33 +25,26 @@ class _UserManagementScreenState extends State<UserManagementScreen>
   void initState() {
     super.initState();
     _fetchUsers();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+
     _fadeController.forward();
     _slideController.forward();
   }
@@ -94,10 +87,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
     if (userId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Invalid user ID',
-            style: GoogleFonts.poppins(),
-          ),
+          content: Text('Invalid user ID', style: GoogleFonts.poppins()),
           backgroundColor: Colors.red.shade600,
         ),
       );
@@ -107,9 +97,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Icon(
@@ -173,10 +161,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 12),
-                Text(
-                  'User deleted successfully',
-                  style: GoogleFonts.poppins(),
-                ),
+                Text('User deleted successfully', style: GoogleFonts.poppins()),
               ],
             ),
             backgroundColor: Colors.green.shade600,
@@ -215,10 +200,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
             children: [
               Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 12),
-              Text(
-                'Network error: $e',
-                style: GoogleFonts.poppins(),
-              ),
+              Text('Network error: $e', style: GoogleFonts.poppins()),
             ],
           ),
           backgroundColor: Colors.red.shade600,
@@ -232,13 +214,13 @@ class _UserManagementScreenState extends State<UserManagementScreen>
   }
 
   Future<void> _addUserDialog() async {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String? name, email, password, role, phone, department;
     final roles = ['Employee', 'Manager', 'Admin'];
     final departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
     bool loading = false;
     String? error;
-    
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -298,7 +280,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Error Display
                     if (error != null) ...[
                       Container(
@@ -331,18 +313,20 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Form
                     Flexible(
                       child: SingleChildScrollView(
                         child: Form(
-                          key: _formKey,
+                          key: formKey,
                           child: Column(
                             children: [
                               _buildFormField(
                                 label: 'Full Name',
                                 icon: Icons.person_outline,
-                                validator: (v) => v == null || v.trim().isEmpty ? 'Enter name' : null,
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Enter name'
+                                    : null,
                                 onSaved: (v) => name = v,
                               ),
                               const SizedBox(height: 16),
@@ -350,7 +334,12 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                 label: 'Email Address',
                                 icon: Icons.email_outlined,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (v) => v == null || !v.contains('@') || !v.contains('.') ? 'Enter valid email' : null,
+                                validator: (v) =>
+                                    v == null ||
+                                        !v.contains('@') ||
+                                        !v.contains('.')
+                                    ? 'Enter valid email'
+                                    : null,
                                 onSaved: (v) => email = v,
                               ),
                               const SizedBox(height: 16),
@@ -358,7 +347,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                 label: 'Password',
                                 icon: Icons.lock_outline,
                                 obscureText: true,
-                                validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null,
+                                validator: (v) => v == null || v.length < 6
+                                    ? 'Min 6 characters'
+                                    : null,
                                 onSaved: (v) => password = v,
                               ),
                               const SizedBox(height: 16),
@@ -368,7 +359,8 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                 value: role,
                                 items: roles,
                                 onChanged: (v) => setState(() => role = v),
-                                validator: (v) => v == null ? 'Select role' : null,
+                                validator: (v) =>
+                                    v == null ? 'Select role' : null,
                               ),
                               const SizedBox(height: 16),
                               _buildFormField(
@@ -383,17 +375,19 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                 icon: Icons.business_outlined,
                                 value: department,
                                 items: departments,
-                                onChanged: (v) => setState(() => department = v),
-                                validator: (v) => v == null ? 'Select department' : null,
+                                onChanged: (v) =>
+                                    setState(() => department = v),
+                                validator: (v) =>
+                                    v == null ? 'Select department' : null,
                               ),
                             ],
                           ),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Actions
                     Row(
                       children: [
@@ -418,51 +412,69 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: loading ? null : () async {
-                              if (!_formKey.currentState!.validate()) return;
-                              _formKey.currentState!.save();
-                              setState(() => loading = true);
-                              try {
-                                final res = await apiService.post('/auth/register', {
-                                  'name': name,
-                                  'email': email,
-                                  'password': password,
-                                  'role': role,
-                                  'phone': phone,
-                                  'department': department,
-                                });
-                                final data = jsonDecode(res.body);
-                                if (res.statusCode == 200 && data['token'] != null) {
-                                  Navigator.pop(context);
-                                  _fetchUsers();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(Icons.check_circle, color: Colors.white),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            'User added successfully!',
-                                            style: GoogleFonts.poppins(),
+                            onPressed: loading
+                                ? null
+                                : () async {
+                                    if (!formKey.currentState!.validate())
+                                      return;
+                                    formKey.currentState!.save();
+                                    setState(() => loading = true);
+                                    try {
+                                      final res = await apiService
+                                          .post('/auth/register', {
+                                            'name': name,
+                                            'email': email,
+                                            'password': password,
+                                            'role': role,
+                                            'phone': phone,
+                                            'department': department,
+                                          });
+                                      final data = jsonDecode(res.body);
+                                      if (res.statusCode == 200 &&
+                                          data['token'] != null) {
+                                        Navigator.pop(context);
+                                        _fetchUsers();
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.white,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  'User added successfully!',
+                                                  style: GoogleFonts.poppins(),
+                                                ),
+                                              ],
+                                            ),
+                                            backgroundColor:
+                                                Colors.green.shade600,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                      backgroundColor: Colors.green.shade600,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  setState(() => error = data['msg'] ?? 'Failed to add user');
-                                }
-                              } catch (e) {
-                                setState(() => error = 'Network error: $e');
-                              } finally {
-                                setState(() => loading = false);
-                              }
-                            },
+                                        );
+                                      } else {
+                                        setState(
+                                          () => error =
+                                              data['msg'] ??
+                                              'Failed to add user',
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setState(
+                                        () => error = 'Network error: $e',
+                                      );
+                                    } finally {
+                                      setState(() => loading = false);
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple.shade600,
                               foregroundColor: Colors.white,
@@ -477,12 +489,16 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
                                 : Text(
                                     'Add User',
-                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                           ),
                         ),
@@ -517,11 +533,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
             color: Colors.purple.shade50,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: Colors.purple.shade600,
-            size: 20,
-          ),
+          child: Icon(icon, color: Colors.purple.shade600, size: 20),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -564,11 +576,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
             color: Colors.purple.shade50,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            icon,
-            color: Colors.purple.shade600,
-            size: 20,
-          ),
+          child: Icon(icon, color: Colors.purple.shade600, size: 20),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -586,7 +594,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
         fillColor: Colors.grey.shade50,
       ),
       value: value,
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
       onChanged: onChanged,
       validator: validator,
     );
@@ -711,7 +721,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.purple,
+                                  ),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
@@ -755,7 +767,10 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.purple.shade600,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -770,13 +785,16 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                             child: users.isEmpty
                                 ? Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
                                             color: Colors.grey.shade100,
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           child: Icon(
                                             Icons.people_outline,
@@ -805,34 +823,46 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                     ),
                                   )
                                 : ListView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
                                     itemCount: users.length,
                                     itemBuilder: (context, index) {
                                       final user = users[index];
-                                      final userId = user['_id'] ?? user['id'] ?? '';
+                                      final userId =
+                                          user['_id'] ?? user['id'] ?? '';
                                       final role = user['role'] ?? 'Unknown';
                                       final roleColor = _getRoleColor(role);
 
                                       return Container(
-                                        margin: const EdgeInsets.only(bottom: 16),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 16,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.05),
+                                              color: Colors.black.withOpacity(
+                                                0.05,
+                                              ),
                                               blurRadius: 10,
                                               offset: const Offset(0, 4),
                                             ),
                                           ],
                                         ),
                                         child: ListTile(
-                                          contentPadding: const EdgeInsets.all(20),
+                                          contentPadding: const EdgeInsets.all(
+                                            20,
+                                          ),
                                           leading: Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
                                               color: roleColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                             child: Icon(
                                               _getRoleIcon(role),
@@ -849,15 +879,26 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                             ),
                                           ),
                                           subtitle: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               const SizedBox(height: 8),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: roleColor.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  border: Border.all(color: roleColor.withOpacity(0.3)),
+                                                  color: roleColor.withOpacity(
+                                                    0.1,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: roleColor
+                                                        .withOpacity(0.3),
+                                                  ),
                                                 ),
                                                 child: Text(
                                                   role,
@@ -890,8 +931,11 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                           trailing: Container(
                                             decoration: BoxDecoration(
                                               color: Colors.red.shade50,
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: Colors.red.shade200),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.red.shade200,
+                                              ),
                                             ),
                                             child: IconButton(
                                               icon: Icon(
@@ -899,7 +943,8 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                                 color: Colors.red.shade600,
                                                 size: 20,
                                               ),
-                                              onPressed: () => _deleteUser(userId),
+                                              onPressed: () =>
+                                                  _deleteUser(userId),
                                             ),
                                           ),
                                         ),
