@@ -10,17 +10,52 @@ class TeamAttendanceScreen extends StatefulWidget {
   State<TeamAttendanceScreen> createState() => _TeamAttendanceScreenState();
 }
 
-class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
+class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
+    with TickerProviderStateMixin {
   Map<String, dynamic>? teamData;
   bool _loading = true;
   String? _error;
   DateTime _selectedDate = DateTime.now();
   String? _managerDepartment;
 
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
     _fetchManagerInfo();
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+
+    _fadeController.forward();
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchManagerInfo() async {
@@ -92,9 +127,9 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.indigo,
+              primary: Colors.purple.shade600,
               onPrimary: Colors.white,
-              onSurface: Colors.indigo.shade700,
+              onSurface: Colors.purple.shade700,
             ),
           ),
           child: child!,
@@ -112,338 +147,613 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Attendance'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            tooltip: 'Select Date',
-            onPressed: _selectDate,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchTeamAttendance,
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade50, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade50,
+              Colors.indigo.shade50,
+              Colors.blue.shade50,
+              Colors.white,
+            ],
           ),
         ),
         child: SafeArea(
-          child: _loading
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading team attendance...'),
-                    ],
-                  ),
-                )
-              : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red.shade400,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _error!,
-                        style: TextStyle(color: Colors.red.shade700),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _fetchTeamAttendance,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchTeamAttendance,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
                       children: [
-                        // Header with date
-                        Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                            ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.group,
-                                      color: Colors.indigo.shade600,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${teamData?['department'] ?? 'Team'} Team Attendance',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.indigo.shade700,
-                                      ),
-                                    ),
-                                  ],
+                          child: Icon(
+                            Icons.group,
+                            color: Colors.purple.shade600,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Team Attendance',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.purple.shade700,
                                 ),
-                                const SizedBox(height: 8),
+                              ),
+                              Text(
+                                'Monitor your team\'s attendance',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple.shade200),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.calendar_today,
+                              color: Colors.purple.shade600,
+                              size: 20,
+                            ),
+                            onPressed: _selectDate,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple.shade200),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.refresh,
+                              color: Colors.purple.shade600,
+                              size: 20,
+                            ),
+                            onPressed: _fetchTeamAttendance,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Date Selection Card
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.calendar_month,
+                            color: Colors.purple.shade600,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Selected Date',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              Text(
+                                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.purple.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _selectDate,
+                          icon: Icon(Icons.edit_calendar),
+                          label: Text('Change Date'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Content
+                  Expanded(
+                    child: _loading
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.purple,
+                                  ),
+                                ),
+                                SizedBox(height: 16),
                                 Text(
-                                  'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                  'Loading team attendance...',
+                                  style: TextStyle(color: Colors.purple),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _error != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    size: 48,
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _error!,
                                   style: GoogleFonts.poppins(
-                                    color: Colors.grey.shade600,
+                                    color: Colors.red.shade700,
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: _fetchTeamAttendance,
+                                  icon: Icon(Icons.refresh),
+                                  label: Text('Retry'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Statistics
-                        if (teamData?['statistics'] != null) ...[
-                          Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _fetchTeamAttendance,
+                            color: Colors.purple.shade600,
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Team Statistics',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.indigo.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildStatCard(
-                                          'Present',
-                                          teamData!['statistics']['present']
-                                              .toString(),
-                                          Colors.green,
-                                          Icons.check_circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _buildStatCard(
-                                          'Absent',
-                                          teamData!['statistics']['absent']
-                                              .toString(),
-                                          Colors.red,
-                                          Icons.cancel,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _buildStatCard(
-                                          'Total',
-                                          teamData!['statistics']['total']
-                                              .toString(),
-                                          Colors.blue,
-                                          Icons.people,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
+                                  // Team Header
                                   Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
-                                      color: Colors.indigo.shade50,
-                                      borderRadius: BorderRadius.circular(12),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(
-                                          Icons.trending_up,
-                                          color: Colors.indigo.shade600,
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.purple.shade50,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.business,
+                                            color: Colors.purple.shade600,
+                                            size: 24,
+                                          ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Team Attendance Rate: ${teamData!['statistics']['attendanceRate']}%',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.indigo.shade700,
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${teamData?['department'] ?? 'Team'} Department',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.purple.shade700,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Team Attendance Overview',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 14,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
+
+                                  const SizedBox(height: 24),
+
+                                  // Statistics
+                                  if (teamData?['statistics'] != null) ...[
+                                    Text(
+                                      'Team Statistics',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.purple.shade700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  'Present',
+                                                  teamData!['statistics']['present']
+                                                      .toString(),
+                                                  Colors.green,
+                                                  Icons.check_circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  'Absent',
+                                                  teamData!['statistics']['absent']
+                                                      .toString(),
+                                                  Colors.red,
+                                                  Icons.cancel,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  'Total',
+                                                  teamData!['statistics']['total']
+                                                      .toString(),
+                                                  Colors.blue,
+                                                  Icons.people,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.purple.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.purple.shade200,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.trending_up,
+                                                  color: Colors.purple.shade600,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Team Attendance Rate: ${teamData!['statistics']['attendanceRate']}%',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors
+                                                          .purple
+                                                          .shade700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                  ],
+
+                                  // Team Members
+                                  Text(
+                                    'Team Members',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  if (teamData?['members'] != null &&
+                                      (teamData!['members'] as List)
+                                          .isNotEmpty) ...[
+                                    ...List.generate(
+                                      (teamData!['members'] as List).length,
+                                      (index) {
+                                        final member =
+                                            teamData!['members'][index];
+                                        return _buildMemberCard(member, index);
+                                      },
+                                    ),
+                                  ] else ...[
+                                    Container(
+                                      padding: const EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Icon(
+                                              Icons.people_outline,
+                                              size: 48,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'No Team Members Found',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'No team members found for the selected date',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 32),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Team Members List
-                        Text(
-                          'Team Members',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.indigo.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (teamData?['teamMembers'] != null) ...[
-                          ...List.generate(
-                            (teamData!['teamMembers'] as List).length,
-                            (index) {
-                              final member = teamData!['teamMembers'][index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  leading: CircleAvatar(
-                                    backgroundColor:
-                                        member['status'] == 'Present'
-                                        ? Colors.green.shade100
-                                        : Colors.red.shade100,
-                                    child: Icon(
-                                      member['status'] == 'Present'
-                                          ? Icons.check_circle
-                                          : Icons.cancel,
-                                      color: member['status'] == 'Present'
-                                          ? Colors.green.shade700
-                                          : Colors.red.shade700,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    member['name'],
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        member['email'],
-                                        style: GoogleFonts.poppins(
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                      if (member['checkInTime'] != null) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Check-in: ${_formatTime(member['checkInTime'])}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: Colors.green.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                      if (member['checkOutTime'] != null) ...[
-                                        Text(
-                                          'Check-out: ${_formatTime(member['checkOutTime'])}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                      if (member['workingHours'] != null) ...[
-                                        Text(
-                                          'Hours: ${member['workingHours'].toStringAsFixed(1)}h',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: Colors.orange.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  trailing: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: member['status'] == 'Present'
-                                          ? Colors.green.shade100
-                                          : Colors.red.shade100,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      member['status'],
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: member['status'] == 'Present'
-                                            ? Colors.green.shade700
-                                            : Colors.red.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ] else ...[
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Center(
-                                child: Text(
-                                  'No team members found',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMemberCard(Map<String, dynamic> member, int index) {
+    final isPresent = member['status'] == 'Present';
+    final statusColor = isPresent ? Colors.green : Colors.red;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              isPresent ? Icons.person : Icons.person_off,
+              color: statusColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  member['name'] ?? 'Unknown',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.purple.shade700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ID: ${member['employeeId'] ?? 'N/A'}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _buildTimeInfo(
+                      'Check In',
+                      _formatTime(member['checkInTime']),
+                    ),
+                    const SizedBox(width: 16),
+                    _buildTimeInfo(
+                      'Check Out',
+                      _formatTime(member['checkOutTime']),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              member['status'] ?? 'Unknown',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: statusColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeInfo(String label, String time) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        Text(
+          time,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.purple.shade700,
+          ),
+        ),
+      ],
     );
   }
 
