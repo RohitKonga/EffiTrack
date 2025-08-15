@@ -530,6 +530,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 fillColor: Colors.grey.shade50,
                               ),
                               value: _selectedRole,
+                              isExpanded: true,
                               items: _roles
                                   .map(
                                     (role) => DropdownMenuItem(
@@ -542,6 +543,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   setState(() => _selectedRole = value),
                               validator: (value) =>
                                   value == null ? 'Please select a role' : null,
+                              dropdownColor: Colors.white,
+                              menuMaxHeight: 320,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.purple.shade600,
+                              ),
+                              style: GoogleFonts.poppins(fontSize: 16),
                             ),
                             const SizedBox(height: 20),
 
@@ -631,6 +639,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 fillColor: Colors.grey.shade50,
                               ),
                               value: _selectedDepartment,
+                              isExpanded: true,
                               items: _departments
                                   .map(
                                     (dept) => DropdownMenuItem(
@@ -644,6 +653,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                               validator: (v) => v == null
                                   ? 'Please select a department'
                                   : null,
+                              dropdownColor: Colors.white,
+                              menuMaxHeight: 320,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.purple.shade600,
+                              ),
+                              style: GoogleFonts.poppins(fontSize: 16),
                             ),
                             const SizedBox(height: 32),
 

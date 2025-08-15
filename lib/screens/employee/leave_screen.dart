@@ -644,6 +644,7 @@ class _LeaveScreenState extends State<LeaveScreen>
   Widget _buildLeaveTypeDropdown() {
     return DropdownButtonFormField<String>(
       value: _leaveType,
+      isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Select leave type',
         prefixIcon: Icon(Icons.category, color: Colors.purple.shade600),
@@ -678,6 +679,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       validator: (value) => value == null ? 'Please select a leave type' : null,
       icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
       dropdownColor: Colors.white,
+      menuMaxHeight: 320,
       style: GoogleFonts.poppins(fontSize: 16),
     );
   }

@@ -292,6 +292,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                         color: Colors.purple.shade600,
                       ),
                       dropdownColor: Colors.white,
+                      menuMaxHeight: 320,
                     ),
                   ],
                 ),

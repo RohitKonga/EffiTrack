@@ -570,6 +570,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value.isNotEmpty ? value : null,
+          isExpanded: true,
           items: items
               .map(
                 (item) => DropdownMenuItem(
@@ -580,6 +581,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               .toList(),
           onChanged: onChanged,
           validator: validator,
+          menuMaxHeight: 320,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.purple.shade600),
             border: OutlineInputBorder(
