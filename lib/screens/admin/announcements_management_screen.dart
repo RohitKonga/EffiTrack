@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class AnnouncementsManagementScreen extends StatefulWidget {
   const AnnouncementsManagementScreen({super.key});
@@ -14,37 +16,8 @@ class _AnnouncementsManagementScreenState
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String? _title, _message;
-  List<Map<String, dynamic>> announcements = [
-    {
-      'title': 'System Maintenance',
-      'message':
-          'Scheduled maintenance on 2024-08-01. The system will be temporarily unavailable from 2:00 AM to 4:00 AM.',
-      'date': '2024-01-15',
-      'time': '10:30 AM',
-      'priority': 'High',
-      'id': '1',
-    },
-    {
-      'title': 'Team Meeting',
-      'message':
-          'Weekly team meeting scheduled for Friday at 3:00 PM. Please prepare your updates.',
-      'date': '2024-01-14',
-      'time': '2:15 PM',
-      'priority': 'Medium',
-      'id': '2',
-    },
-    {
-      'title': 'Holiday Notice',
-      'message':
-          'Office will be closed on Independence Day. Have a great holiday!',
-      'date': '2024-01-13',
-      'time': '9:00 AM',
-      'priority': 'Low',
-      'id': '3',
-    },
-  ];
-
-  bool _loading = false;
+  List<Map<String, dynamic>> announcements = [];
+  bool _loading = true;
   String? _error;
   bool _showForm = false;
 
@@ -95,96 +68,114 @@ class _AnnouncementsManagementScreenState
     });
 
     try {
-      // For now, using existing data. Replace with actual API call when backend is ready
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      ); // Simulate API call
-
-      setState(() {
-        _loading = false;
-      });
+      final res = await apiService.get('/announcements');
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        setState(() {
+          announcements = data.cast<Map<String, dynamic>>();
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load announcements';
+          _loading = false;
+        });
+      }
     } catch (e) {
       setState(() {
-        _error = 'Failed to load announcements: $e';
+        _error = 'Network error';
         _loading = false;
       });
     }
   }
 
   Future<void> _addAnnouncement() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    _formKey.currentState!.save();
-
-    setState(() {
-      _loading = true;
-    });
-
-    try {
-      // For now, just simulate adding. Replace with actual API call when backend is ready
-      await Future.delayed(const Duration(seconds: 1));
-
-      final newAnnouncement = {
-        'title': _title!,
-        'message': _message!,
-        'date': DateTime.now().toString().split(' ')[0],
-        'time':
-            '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'PM' : 'AM'}',
-        'priority': 'Medium',
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      };
-
-      setState(() {
-        announcements.insert(0, newAnnouncement);
-        _title = null;
-        _message = null;
-        _showForm = false;
-        _loading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Announcement added successfully!',
-                style: GoogleFonts.poppins(),
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      
+      try {
+        final res = await apiService.post('/announcements', {
+          'title': _title,
+          'message': _message,
+          'priority': 'Medium',
+        });
+        
+        if (res.statusCode == 201) {
+          await _fetchAnnouncements();
+          setState(() {
+            _title = null;
+            _message = null;
+            _showForm = false;
+          });
+          _formKey.currentState!.reset();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Announcement added successfully!',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } catch (e) {
-      setState(() {
-        _loading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Failed to add announcement: $e',
-                style: GoogleFonts.poppins(),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to add announcement',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Network error while adding announcement',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -246,32 +237,53 @@ class _AnnouncementsManagementScreenState
     if (confirmed != true) return;
 
     try {
-      // For now, just simulate deleting. Replace with actual API call when backend is ready
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      setState(() {
-        announcements.removeWhere((ann) => ann['id'] == id);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Announcement deleted successfully!',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
+      final res = await apiService.delete('/announcements/$id');
+      if (res.statusCode == 200) {
+        await _fetchAnnouncements();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Announcement deleted successfully!',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to delete announcement',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -279,9 +291,11 @@ class _AnnouncementsManagementScreenState
             children: [
               Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 12),
-              Text(
-                'Failed to delete announcement: $e',
-                style: GoogleFonts.poppins(),
+              Expanded(
+                child: Text(
+                  'Network error while deleting announcement',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                ),
               ),
             ],
           ),

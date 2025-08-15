@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class LeavePoliciesScreen extends StatefulWidget {
   const LeavePoliciesScreen({super.key});
@@ -10,18 +12,11 @@ class LeavePoliciesScreen extends StatefulWidget {
 
 class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
     with TickerProviderStateMixin {
-  Map<String, int> policies = {
-    'Sick Leave': 10,
-    'Casual Leave': 8,
-    'Earned Leave': 15,
-    'Maternity Leave': 90,
-    'Paternity Leave': 15,
-    'Bereavement Leave': 5,
-  };
-
-  bool _loading = false;
+  List<Map<String, dynamic>> policies = [];
+  bool _loading = true;
   String? _error;
   bool _hasChanges = false;
+  bool _saving = false;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -70,18 +65,22 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
     });
 
     try {
-      // For now, using existing data. Replace with actual API call when backend is ready
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      ); // Simulate API call
-
-      // Keep existing policies for now
-      setState(() {
-        _loading = false;
-      });
+      final res = await apiService.get('/leaves/policies');
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        setState(() {
+          policies = data.cast<Map<String, dynamic>>();
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load leave policies';
+          _loading = false;
+        });
+      }
     } catch (e) {
       setState(() {
-        _error = 'Failed to load policies: $e';
+        _error = 'Network error';
         _loading = false;
       });
     }
@@ -89,49 +88,85 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
 
   Future<void> _savePolicies() async {
     setState(() {
-      _loading = true;
+      _saving = true;
     });
 
     try {
-      // For now, just simulate saving. Replace with actual API call when backend is ready
-      await Future.delayed(const Duration(seconds: 1));
-
-      setState(() {
-        _loading = false;
-        _hasChanges = false;
+      final res = await apiService.put('/leaves/policies', {
+        'policies': policies,
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Leave policies updated successfully!',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
+      
+      if (res.statusCode == 200) {
+        setState(() {
+          _hasChanges = false;
+          _saving = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Leave policies updated successfully!',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        );
+      } else {
+        setState(() {
+          _saving = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to update leave policies',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       setState(() {
-        _loading = false;
+        _saving = false;
       });
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 12),
-              Text('Failed to save policies: $e', style: GoogleFonts.poppins()),
+              Expanded(
+                child: Text(
+                  'Network error while saving',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                ),
+              ),
             ],
           ),
           backgroundColor: Colors.red.shade600,
@@ -142,6 +177,13 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
         ),
       );
     }
+  }
+
+  void _updatePolicy(int index, int newDays) {
+    setState(() {
+      policies[index]['days'] = newDays;
+      _hasChanges = true;
+    });
   }
 
   Color _getLeaveTypeColor(String type) {
@@ -261,7 +303,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                 color: Colors.orange.shade600,
                                 size: 20,
                               ),
-                              onPressed: _loading ? null : _savePolicies,
+                              onPressed: _saving ? null : _savePolicies,
                             ),
                           ),
                       ],
@@ -310,7 +352,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                 ),
                               ),
                               Text(
-                                '${policies.values.reduce((a, b) => a + b)} days',
+                                '${policies.map((p) => p['days']).reduce((a, b) => a + b)} days',
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -415,8 +457,8 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             itemCount: policies.length,
                             itemBuilder: (context, index) {
-                              final type = policies.keys.elementAt(index);
-                              final days = policies[type]!;
+                              final type = policies[index]['type'] as String;
+                              final days = policies[index]['days'] as int;
                               final color = _getLeaveTypeColor(type);
 
                               return Container(
@@ -540,10 +582,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                             final newValue =
                                                 int.tryParse(value) ?? days;
                                             if (newValue != days) {
-                                              setState(() {
-                                                policies[type] = newValue;
-                                                _hasChanges = true;
-                                              });
+                                              _updatePolicy(index, newValue);
                                             }
                                           },
                                         ),
@@ -564,8 +603,8 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton.icon(
-                          onPressed: _loading ? null : _savePolicies,
-                          icon: _loading
+                          onPressed: _saving ? null : _savePolicies,
+                          icon: _saving
                               ? SizedBox(
                                   height: 20,
                                   width: 20,
@@ -578,7 +617,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                 )
                               : Icon(Icons.save),
                           label: Text(
-                            _loading ? 'Saving...' : 'Save Changes',
+                            _saving ? 'Saving...' : 'Save Changes',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                             ),

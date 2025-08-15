@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class TaskReportsScreen extends StatefulWidget {
   const TaskReportsScreen({super.key});
@@ -10,9 +12,10 @@ class TaskReportsScreen extends StatefulWidget {
 
 class _TaskReportsScreenState extends State<TaskReportsScreen>
     with TickerProviderStateMixin {
-  List<Map<String, dynamic>> reports = [];
+  List<Map<String, dynamic>> tasks = [];
   bool _loading = true;
   String? _error;
+  Map<String, dynamic> _summary = {'total': 0, 'completed': 0, 'pending': 0};
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -61,81 +64,101 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
     });
 
     try {
-      // For now, using mock data. Replace with actual API call when backend is ready
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+      final res = await apiService.get('/tasks/all');
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        final List<Map<String, dynamic>> taskList = data
+            .cast<Map<String, dynamic>>();
 
-      setState(() {
-        reports = [
-          {
-            'employee': 'Alice Johnson',
-            'department': 'Design',
-            'assigned': 8,
-            'completed': 6,
-            'pending': 2,
-            'completionRate': 75.0,
-            'avatar': '👩‍🎨',
-          },
-          {
-            'employee': 'Bob Smith',
-            'department': 'Development',
-            'assigned': 12,
-            'completed': 10,
-            'pending': 2,
-            'completionRate': 83.3,
-            'avatar': '👨‍💻',
-          },
-          {
-            'employee': 'Carol Davis',
-            'department': 'Marketing',
-            'assigned': 5,
-            'completed': 4,
-            'pending': 1,
-            'completionRate': 80.0,
-            'avatar': '👩‍💼',
-          },
-          {
-            'employee': 'David Wilson',
-            'department': 'Sales',
-            'assigned': 15,
-            'completed': 12,
-            'pending': 3,
-            'completionRate': 80.0,
-            'avatar': '👨‍💼',
-          },
-          {
-            'employee': 'Emma Brown',
-            'department': 'HR',
-            'assigned': 6,
-            'completed': 5,
-            'pending': 1,
-            'completionRate': 83.3,
-            'avatar': '👩‍💼',
-          },
-        ];
-      });
+        // Calculate summary
+        int completed = 0;
+        int pending = 0;
+
+        for (var task in taskList) {
+          if (task['status'] == 'Completed') {
+            completed++;
+          } else {
+            pending++;
+          }
+        }
+
+        setState(() {
+          tasks = taskList;
+          _summary = {
+            'total': taskList.length,
+            'completed': completed,
+            'pending': pending,
+          };
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load task reports';
+          _loading = false;
+        });
+      }
     } catch (e) {
       setState(() {
-        _error = 'Failed to load task reports: $e';
-      });
-    } finally {
-      setState(() {
+        _error = 'Network error';
         _loading = false;
       });
     }
   }
 
-  Color _getCompletionRateColor(double rate) {
-    if (rate >= 90) return Colors.green;
-    if (rate >= 75) return Colors.orange;
-    if (rate >= 60) return Colors.yellow.shade700;
-    return Colors.red;
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'in progress':
+        return Colors.orange;
+      case 'to do':
+        return Colors.blue;
+      case 'overdue':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
-  IconData _getCompletionRateIcon(double rate) {
-    if (rate >= 90) return Icons.trending_up;
-    if (rate >= 75) return Icons.check_circle;
-    if (rate >= 60) return Icons.warning;
-    return Icons.error;
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Icons.check_circle;
+      case 'in progress':
+        return Icons.pending;
+      case 'to do':
+        return Icons.schedule;
+      case 'overdue':
+        return Icons.warning;
+      default:
+        return Icons.info;
+    }
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return Colors.red;
+      case 'medium':
+        return Colors.orange;
+      case 'low':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return 'No due date';
+    try {
+      if (date is String) {
+        final parsed = DateTime.parse(date);
+        return '${parsed.day}/${parsed.month}/${parsed.year}';
+      }
+      return 'Invalid date';
+    } catch (e) {
+      return 'Invalid date';
+    }
   }
 
   @override
@@ -231,11 +254,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                         Expanded(
                           child: _buildSummaryCard(
                             title: 'Total Tasks',
-                            value: reports.fold<int>(
-                              0,
-                              (sum, report) =>
-                                  sum + (report['assigned'] as int),
-                            ),
+                            value: _summary['total'],
                             icon: Icons.assignment,
                             color: Colors.blue,
                           ),
@@ -244,11 +263,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                         Expanded(
                           child: _buildSummaryCard(
                             title: 'Completed',
-                            value: reports.fold<int>(
-                              0,
-                              (sum, report) =>
-                                  sum + (report['completed'] as int),
-                            ),
+                            value: _summary['completed'],
                             icon: Icons.check_circle,
                             color: Colors.green,
                           ),
@@ -257,10 +272,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                         Expanded(
                           child: _buildSummaryCard(
                             title: 'Pending',
-                            value: reports.fold<int>(
-                              0,
-                              (sum, report) => sum + (report['pending'] as int),
-                            ),
+                            value: _summary['pending'],
                             icon: Icons.pending,
                             color: Colors.orange,
                           ),
@@ -340,7 +352,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                         : RefreshIndicator(
                             onRefresh: _fetchTaskReports,
                             color: Colors.purple.shade600,
-                            child: reports.isEmpty
+                            child: tasks.isEmpty
                                 ? Center(
                                     child: Column(
                                       mainAxisAlignment:
@@ -384,13 +396,13 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
                                     ),
-                                    itemCount: reports.length,
+                                    itemCount: tasks.length,
                                     itemBuilder: (context, index) {
-                                      final report = reports[index];
-                                      final completionRate =
-                                          report['completionRate'] as double;
-                                      final rateColor = _getCompletionRateColor(
-                                        completionRate,
+                                      final task = tasks[index];
+                                      final status =
+                                          task['status'] ?? 'Unknown';
+                                      final statusColor = _getStatusColor(
+                                        status,
                                       );
 
                                       return Container(
@@ -416,7 +428,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                           padding: const EdgeInsets.all(20),
                                           child: Column(
                                             children: [
-                                              // Employee Info
+                                              // Task Info
                                               Row(
                                                 children: [
                                                   Container(
@@ -425,18 +437,19 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                           12,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      color:
-                                                          Colors.purple.shade50,
+                                                      color: statusColor
+                                                          .withValues(
+                                                            alpha: 0.1,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             12,
                                                           ),
                                                     ),
-                                                    child: Text(
-                                                      report['avatar'],
-                                                      style: const TextStyle(
-                                                        fontSize: 24,
-                                                      ),
+                                                    child: Icon(
+                                                      _getStatusIcon(status),
+                                                      color: statusColor,
+                                                      size: 24,
                                                     ),
                                                   ),
                                                   const SizedBox(width: 16),
@@ -447,16 +460,17 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          report['employee'],
+                                                          task['title'] ??
+                                                              'Untitled Task',
                                                           style:
                                                               GoogleFonts.poppins(
-                                                                fontSize: 16,
+                                                                fontSize: 18,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
                                                                 color: Colors
-                                                                    .grey
-                                                                    .shade800,
+                                                                    .purple
+                                                                    .shade700,
                                                               ),
                                                         ),
                                                         const SizedBox(
@@ -470,20 +484,16 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                               ),
                                                           decoration: BoxDecoration(
                                                             color: Colors
-                                                                .blue
+                                                                .purple
                                                                 .shade50,
                                                             borderRadius:
                                                                 BorderRadius.circular(
                                                                   8,
                                                                 ),
-                                                            border: Border.all(
-                                                              color: Colors
-                                                                  .blue
-                                                                  .shade200,
-                                                            ),
                                                           ),
                                                           child: Text(
-                                                            report['department'],
+                                                            task['assignedTo'] ??
+                                                                'Unassigned',
                                                             style:
                                                                 GoogleFonts.poppins(
                                                                   fontSize: 12,
@@ -491,7 +501,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                                       FontWeight
                                                                           .w500,
                                                                   color: Colors
-                                                                      .blue
+                                                                      .purple
                                                                       .shade700,
                                                                 ),
                                                           ),
@@ -499,128 +509,80 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                       ],
                                                     ),
                                                   ),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: rateColor
-                                                          .withValues(
-                                                            alpha: 0.1,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
-                                                      border: Border.all(
-                                                        color: rateColor
-                                                            .withValues(
-                                                              alpha: 0.3,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    child: Icon(
-                                                      _getCompletionRateIcon(
-                                                        completionRate,
-                                                      ),
-                                                      color: rateColor,
-                                                      size: 20,
-                                                    ),
-                                                  ),
                                                 ],
                                               ),
 
                                               const SizedBox(height: 20),
 
-                                              // Task Statistics
+                                              // Task Details
                                               Row(
                                                 children: [
                                                   Expanded(
                                                     child: _buildStatCard(
-                                                      title: 'Assigned',
-                                                      value: report['assigned']
-                                                          .toString(),
-                                                      icon: Icons.assignment,
-                                                      color: Colors.blue,
+                                                      title: 'Status',
+                                                      value: status,
+                                                      icon: _getStatusIcon(
+                                                        status,
+                                                      ),
+                                                      color: statusColor,
                                                     ),
                                                   ),
                                                   const SizedBox(width: 12),
                                                   Expanded(
                                                     child: _buildStatCard(
-                                                      title: 'Completed',
-                                                      value: report['completed']
-                                                          .toString(),
-                                                      icon: Icons.check_circle,
-                                                      color: Colors.green,
+                                                      title: 'Priority',
+                                                      value:
+                                                          task['priority'] ??
+                                                          'Medium',
+                                                      icon: Icons.priority_high,
+                                                      color: _getPriorityColor(
+                                                        task['priority'] ?? '',
+                                                      ),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 12),
                                                   Expanded(
                                                     child: _buildStatCard(
-                                                      title: 'Pending',
-                                                      value: report['pending']
-                                                          .toString(),
-                                                      icon: Icons.pending,
+                                                      title: 'Due Date',
+                                                      value: _formatDate(
+                                                        task['dueDate'],
+                                                      ),
+                                                      icon:
+                                                          Icons.calendar_today,
                                                       color: Colors.orange,
                                                     ),
                                                   ),
                                                 ],
                                               ),
 
-                                              const SizedBox(height: 16),
-
-                                              // Progress Bar
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        'Completion Rate',
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                              color: Colors
-                                                                  .grey
-                                                                  .shade700,
-                                                            ),
-                                                      ),
-                                                      Text(
-                                                        '${completionRate.toStringAsFixed(1)}%',
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color: rateColor,
-                                                            ),
-                                                      ),
-                                                    ],
+                                              if (task['description'] != null &&
+                                                  task['description']
+                                                      .toString()
+                                                      .isNotEmpty) ...[
+                                                const SizedBox(height: 20),
+                                                Container(
+                                                  width: double.infinity,
+                                                  padding: const EdgeInsets.all(
+                                                    16,
                                                   ),
-                                                  const SizedBox(height: 8),
-                                                  LinearProgressIndicator(
-                                                    value: completionRate / 100,
-                                                    backgroundColor:
-                                                        Colors.grey.shade200,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                          Color
-                                                        >(rateColor),
-                                                    minHeight: 8,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade50,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          4,
+                                                          12,
                                                         ),
                                                   ),
-                                                ],
-                                              ),
+                                                  child: Text(
+                                                    task['description']
+                                                        .toString(),
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 14,
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ],
                                           ),
                                         ),

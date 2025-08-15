@@ -7,6 +7,7 @@ import 'announcements_management_screen.dart';
 import 'analytics_dashboard_screen.dart';
 import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -21,10 +22,21 @@ class _AdminDashboardState extends State<AdminDashboard>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  
+  // Real-time data
+  Map<String, dynamic> _stats = {
+    'totalUsers': 0,
+    'totalTasks': 0,
+    'pendingLeaves': 0,
+    'attendanceRate': 0.0,
+  };
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    _fetchDashboardStats();
     
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -61,6 +73,59 @@ class _AdminDashboardState extends State<AdminDashboard>
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchDashboardStats() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    
+    try {
+      // Fetch user count
+      final userRes = await apiService.get('/profile/all');
+      if (userRes.statusCode == 200) {
+        final users = jsonDecode(userRes.body);
+        _stats['totalUsers'] = users.length;
+      }
+      
+      // Fetch task count
+      final taskRes = await apiService.get('/tasks/all');
+      if (taskRes.statusCode == 200) {
+        final tasks = jsonDecode(taskRes.body);
+        _stats['totalTasks'] = tasks.length;
+      }
+      
+      // Fetch pending leaves
+      final leaveRes = await apiService.get('/leaves/pending');
+      if (leaveRes.statusCode == 200) {
+        final leaves = jsonDecode(leaveRes.body);
+        _stats['pendingLeaves'] = leaves.length;
+      }
+      
+      // Fetch attendance rate (today's attendance)
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final attendanceRes = await apiService.get('/attendance/reports?date=$today');
+      if (attendanceRes.statusCode == 200) {
+        final data = jsonDecode(attendanceRes.body);
+        if (data['hasData'] && data['employeeReports'] != null) {
+          final totalEmployees = data['employeeTotalStats']['totalEmployees'] ?? 0;
+          final presentEmployees = data['employeeTotalStats']['presentEmployees'] ?? 0;
+          if (totalEmployees > 0) {
+            _stats['attendanceRate'] = (presentEmployees / totalEmployees * 100).roundToDouble();
+          }
+        }
+      }
+      
+      setState(() {
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load dashboard stats';
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -174,46 +239,174 @@ class _AdminDashboardState extends State<AdminDashboard>
                               ),
                             ],
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.dashboard,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          child: _loading
+                              ? Row(
                                   children: [
-                                    Text(
-                                      'System Overview',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const CircularProgressIndicator(
                                         color: Colors.white,
+                                        strokeWidth: 2,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Monitor and control all aspects of your organization',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        'Loading dashboard stats...',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          ),
+                                )
+                              : _error != null
+                                  ? Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(
+                                            Icons.error_outline,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Error Loading Stats',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _error!,
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  color: Colors.white.withValues(alpha: 0.9),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.refresh,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                          onPressed: _fetchDashboardStats,
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(alpha: 0.2),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Icon(
+                                                Icons.dashboard,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'System Overview',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'Monitor and control all aspects of your organization',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 12,
+                                                      color: Colors.white.withValues(alpha: 0.9),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.refresh,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              onPressed: _fetchDashboardStats,
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 20),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Total Users',
+                                                _stats['totalUsers'].toString(),
+                                                Icons.people,
+                                                Colors.blue.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Total Tasks',
+                                                _stats['totalTasks'].toString(),
+                                                Icons.task,
+                                                Colors.orange.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Pending Leaves',
+                                                _stats['pendingLeaves'].toString(),
+                                                Icons.pending_actions,
+                                                Colors.red.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Attendance Rate',
+                                                '${_stats['attendanceRate']}%',
+                                                Icons.trending_up,
+                                                Colors.green.shade100,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                         ),
                       ],
                     ),
@@ -316,6 +509,38 @@ class _AdminDashboardState extends State<AdminDashboard>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
