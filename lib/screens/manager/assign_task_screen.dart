@@ -70,7 +70,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Task "$_title" assigned to $_employee successfully!',
+                  'Task "$_title" assigned to $_employee successfully!${(_desc != null && _desc!.trim().isNotEmpty) ? ' (Desc: ${_desc!.trim()})' : ''}',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                 ),
               ),

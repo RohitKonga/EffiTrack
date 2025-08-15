@@ -15,9 +15,14 @@ class _LeaveScreenState extends State<LeaveScreen>
   final _formKey = GlobalKey<FormState>();
   String? _leaveType, _reason;
   DateTimeRange? _dateRange;
-  final _leaveTypes = ['Sick Leave', 'Casual Leave', 'Annual Leave', 'Maternity Leave', 'Personal Leave'];
+  final _leaveTypes = [
+    'Sick Leave',
+    'Casual Leave',
+    'Annual Leave',
+    'Maternity Leave',
+    'Personal Leave',
+  ];
   List<Map<String, dynamic>> leaveHistory = [];
-  bool _loading = true;
   bool _submitting = false;
   bool _showForm = false;
   String? _error;
@@ -31,26 +36,26 @@ class _LeaveScreenState extends State<LeaveScreen>
   void initState() {
     super.initState();
     _fetchLeaveHistory();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
-    
+
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
           CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
         );
-    
+
     _fadeController.forward();
     _slideController.forward();
   }
@@ -64,7 +69,6 @@ class _LeaveScreenState extends State<LeaveScreen>
 
   Future<void> _fetchLeaveHistory() async {
     setState(() {
-      _loading = true;
       _error = null;
     });
     try {
@@ -83,11 +87,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       setState(() {
         _error = 'Network error';
       });
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
+    } finally {}
   }
 
   Future<void> _submitLeaveRequest() async {
@@ -113,7 +113,7 @@ class _LeaveScreenState extends State<LeaveScreen>
           _showForm = false;
         });
         _formKey.currentState!.reset();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -130,7 +130,9 @@ class _LeaveScreenState extends State<LeaveScreen>
             ),
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       } else {
@@ -181,9 +183,15 @@ class _LeaveScreenState extends State<LeaveScreen>
 
   @override
   Widget build(BuildContext context) {
-    final pendingCount = leaveHistory.where((leave) => leave['status'] == 'Pending').length;
-    final approvedCount = leaveHistory.where((leave) => leave['status'] == 'Approved').length;
-    final rejectedCount = leaveHistory.where((leave) => leave['status'] == 'Rejected').length;
+    final pendingCount = leaveHistory
+        .where((leave) => leave['status'] == 'Pending')
+        .length;
+    final approvedCount = leaveHistory
+        .where((leave) => leave['status'] == 'Approved')
+        .length;
+    final rejectedCount = leaveHistory
+        .where((leave) => leave['status'] == 'Rejected')
+        .length;
 
     return Scaffold(
       body: Container(
@@ -362,52 +370,59 @@ class _LeaveScreenState extends State<LeaveScreen>
                               ],
                             ),
                             const SizedBox(height: 20),
-                            
+
                             // Leave Type
                             _buildFormField(
                               'Leave Type',
                               Icons.category,
                               _buildLeaveTypeDropdown(),
                             ),
-                            
+
                             const SizedBox(height: 20),
-                            
+
                             // Date Range
                             _buildFormField(
                               'Date Range',
                               Icons.calendar_today,
                               _buildDateRangeField(),
                             ),
-                            
+
                             const SizedBox(height: 20),
-                            
+
                             // Reason
                             _buildFormField(
                               'Reason',
                               Icons.note,
                               _buildReasonField(),
                             ),
-                            
+
                             const SizedBox(height: 24),
-                            
+
                             // Submit Button
                             SizedBox(
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton.icon(
-                                onPressed: _submitting ? null : _submitLeaveRequest,
+                                onPressed: _submitting
+                                    ? null
+                                    : _submitLeaveRequest,
                                 icon: _submitting
                                     ? SizedBox(
                                         width: 20,
                                         height: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
                                     : Icon(Icons.send, size: 20),
                                 label: Text(
-                                  _submitting ? 'Submitting...' : 'Submit Request',
+                                  _submitting
+                                      ? 'Submitting...'
+                                      : 'Submit Request',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -447,7 +462,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           if (_error != null) ...[
                             Container(
                               width: double.infinity,
@@ -475,7 +490,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             ),
                             const SizedBox(height: 16),
                           ],
-                          
+
                           if (leaveHistory.isEmpty) ...[
                             Expanded(
                               child: Center(
@@ -486,7 +501,9 @@ class _LeaveScreenState extends State<LeaveScreen>
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 4),
                                       ),
@@ -499,7 +516,9 @@ class _LeaveScreenState extends State<LeaveScreen>
                                         padding: const EdgeInsets.all(20),
                                         decoration: BoxDecoration(
                                           color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Icon(
                                           Icons.history,
@@ -554,7 +573,12 @@ class _LeaveScreenState extends State<LeaveScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, Color color, IconData icon) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -637,16 +661,18 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       items: _leaveTypes
-          .map((type) => DropdownMenuItem(
-                value: type,
-                child: Text(
-                  type,
-                  style: GoogleFonts.poppins(fontSize: 16),
-                ),
-              ))
+          .map(
+            (type) => DropdownMenuItem(
+              value: type,
+              child: Text(type, style: GoogleFonts.poppins(fontSize: 16)),
+            ),
+          )
           .toList(),
       onChanged: (value) => setState(() => _leaveType = value),
       validator: (value) => value == null ? 'Please select a leave type' : null,
@@ -698,7 +724,9 @@ class _LeaveScreenState extends State<LeaveScreen>
                     : '${_dateRange!.start.toString().substring(0, 10)} to ${_dateRange!.end.toString().substring(0, 10)}',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: _dateRange == null ? Colors.grey.shade500 : Colors.purple.shade700,
+                  color: _dateRange == null
+                      ? Colors.grey.shade500
+                      : Colors.purple.shade700,
                 ),
               ),
             ),
@@ -732,7 +760,10 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       style: GoogleFonts.poppins(fontSize: 16),
     );
@@ -741,7 +772,7 @@ class _LeaveScreenState extends State<LeaveScreen>
   Widget _buildLeaveHistoryCard(Map<String, dynamic> leave) {
     final leaveTypeColor = _getLeaveTypeColor(leave['type'] ?? 'Leave');
     final statusColor = _getStatusColor(leave['status'] ?? 'Pending');
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -789,7 +820,11 @@ class _LeaveScreenState extends State<LeaveScreen>
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 14, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${leave['startDate']?.toString().substring(0, 10) ?? '-'} to ${leave['endDate']?.toString().substring(0, 10) ?? '-'}',
@@ -821,7 +856,7 @@ class _LeaveScreenState extends State<LeaveScreen>
               ),
             ],
           ),
-          
+
           if (leave['reason'] != null) ...[
             const SizedBox(height: 16),
             Container(

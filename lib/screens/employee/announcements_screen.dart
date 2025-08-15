@@ -85,7 +85,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
   }
 
   Color _getPriorityColor(String priority) {
-    switch (priority?.toLowerCase()) {
+    switch (priority.toLowerCase()) {
       case 'high':
         return Colors.red;
       case 'medium':
@@ -355,7 +355,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
   }
 
   Widget _buildAnnouncementCard(Map<String, dynamic> ann) {
-    final priorityColor = _getPriorityColor(ann['priority']);
+    final priorityColor = _getPriorityColor(ann['priority'] ?? '');
     final hasPriority =
         ann['priority'] != null && ann['priority'].toString().isNotEmpty;
 

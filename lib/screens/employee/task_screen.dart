@@ -244,7 +244,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    DropdownButton<String>(
+                    DropdownButtonFormField<String>(
                       value: task['status'],
                       isExpanded: true,
                       decoration: InputDecoration(
@@ -358,7 +358,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
   }
 
   Color _getStatusColor(String status) {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'completed':
         return Colors.green;
       case 'in progress':
@@ -371,7 +371,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
   }
 
   IconData _getStatusIcon(String status) {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'completed':
         return Icons.check_circle;
       case 'in progress':
