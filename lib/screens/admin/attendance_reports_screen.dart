@@ -24,6 +24,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
   late Animation<Offset> _slideAnimation;
   int _selectedStatsTabIndex =
       0; // 0 -> first available (Manager if present), 1 -> second
+  int _selectedDepartmentTabIndex = 0; // 0 -> Manager, 1 -> Employee
 
   @override
   void initState() {
@@ -485,47 +486,9 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-
-                                    // Manager Department Reports
-                                    if (reportData?['managerReports'] != null &&
-                                        (reportData!['managerReports'] as List)
-                                            .isNotEmpty) ...[
-                                      ...List.generate(
-                                        (reportData!['managerReports'] as List)
-                                            .length,
-                                        (index) {
-                                          final report =
-                                              reportData!['managerReports'][index];
-                                          return _buildDepartmentReportCard(
-                                            report: report,
-                                            color: Colors.orange,
-                                            icon: Icons.manage_accounts,
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
-
-                                    // Employee Department Reports
-                                    if (reportData?['employeeReports'] !=
-                                            null &&
-                                        (reportData!['employeeReports'] as List)
-                                            .isNotEmpty) ...[
-                                      ...List.generate(
-                                        (reportData!['employeeReports'] as List)
-                                            .length,
-                                        (index) {
-                                          final report =
-                                              reportData!['employeeReports'][index];
-                                          return _buildDepartmentReportCard(
-                                            report: report,
-                                            color: Colors.blue,
-                                            icon: Icons.people,
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
+                                    _buildDepartmentTabs(),
+                                    const SizedBox(height: 16),
+                                    _buildSelectedDepartmentReports(),
                                   ],
 
                                   // No data message (department level)
@@ -694,6 +657,91 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     );
   }
 
+  // Build the two tabs for department reports (Manager / Employee)
+  Widget _buildDepartmentTabs() {
+    final hasManager =
+        reportData?['managerReports'] != null &&
+        (reportData!['managerReports'] as List).isNotEmpty;
+    final hasEmployee =
+        reportData?['employeeReports'] != null &&
+        (reportData!['employeeReports'] as List).isNotEmpty;
+
+    final tabs = <Map<String, dynamic>>[];
+    if (hasManager) {
+      tabs.add({'label': 'Manager Departments', 'color': Colors.orange});
+    }
+    if (hasEmployee) {
+      tabs.add({'label': 'Employee Departments', 'color': Colors.blue});
+    }
+
+    if (tabs.length <= 1) return const SizedBox.shrink();
+
+    return Row(
+      children: List.generate(tabs.length, (index) {
+        final isSelected = _selectedDepartmentTabIndex == index;
+        final Color color = tabs[index]['color'] as Color;
+        final String label = tabs[index]['label'] as String;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedDepartmentTabIndex = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              margin: EdgeInsets.only(
+                right: index == 0 ? 8 : 0,
+                left: index == 1 ? 8 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
+                border: Border.all(
+                  color: isSelected
+                      ? color.withValues(alpha: 0.4)
+                      : Colors.grey.shade200,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    hasManager && index == 0 && hasEmployee
+                        ? Icons.manage_accounts
+                        : (hasManager && !hasEmployee
+                              ? Icons.manage_accounts
+                              : Icons.people),
+                    color: isSelected ? color : Colors.grey.shade600,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? color : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
   // Render selected statistics card based on active tab
   Widget _buildSelectedStatisticsCard() {
     final hasManager = reportData?['managerTotalStats'] != null;
@@ -728,6 +776,83 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
         icon: Icons.people,
         color: Colors.blue,
         stats: reportData!['employeeTotalStats'],
+      );
+    }
+  }
+
+  // Render selected department reports based on active tab
+  Widget _buildSelectedDepartmentReports() {
+    final hasManager =
+        reportData?['managerReports'] != null &&
+        (reportData!['managerReports'] as List).isNotEmpty;
+    final hasEmployee =
+        reportData?['employeeReports'] != null &&
+        (reportData!['employeeReports'] as List).isNotEmpty;
+
+    if (!hasManager && !hasEmployee) return const SizedBox.shrink();
+
+    // Determine which reports to show based on selected tab and availability
+    if (hasManager && hasEmployee) {
+      if (_selectedDepartmentTabIndex == 0) {
+        // Show Manager reports
+        return Column(
+          children: List.generate(
+            (reportData!['managerReports'] as List).length,
+            (index) {
+              final report = reportData!['managerReports'][index];
+              return _buildDepartmentReportCard(
+                report: report,
+                color: Colors.orange,
+                icon: Icons.manage_accounts,
+              );
+            },
+          ),
+        );
+      } else {
+        // Show Employee reports
+        return Column(
+          children: List.generate(
+            (reportData!['employeeReports'] as List).length,
+            (index) {
+              final report = reportData!['employeeReports'][index];
+              return _buildDepartmentReportCard(
+                report: report,
+                color: Colors.blue,
+                icon: Icons.people,
+              );
+            },
+          ),
+        );
+      }
+    } else if (hasManager) {
+      // Only Manager reports available
+      return Column(
+        children: List.generate(
+          (reportData!['managerReports'] as List).length,
+          (index) {
+            final report = reportData!['managerReports'][index];
+            return _buildDepartmentReportCard(
+              report: report,
+              color: Colors.orange,
+              icon: Icons.manage_accounts,
+            );
+          },
+        ),
+      );
+    } else {
+      // Only Employee reports available
+      return Column(
+        children: List.generate(
+          (reportData!['employeeReports'] as List).length,
+          (index) {
+            final report = reportData!['employeeReports'][index];
+            return _buildDepartmentReportCard(
+              report: report,
+              color: Colors.blue,
+              icon: Icons.people,
+            );
+          },
+        ),
       );
     }
   }
