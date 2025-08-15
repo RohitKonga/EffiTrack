@@ -22,6 +22,8 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  int _selectedStatsTabIndex =
+      0; // 0 -> first available (Manager if present), 1 -> second
 
   @override
   void initState() {
@@ -72,6 +74,16 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
         final data = jsonDecode(res.body);
         setState(() {
           reportData = data;
+          // Reset selected tab if needed based on available tabs
+          final hasManager = reportData?['managerTotalStats'] != null;
+          final hasEmployee = reportData?['employeeTotalStats'] != null;
+          if (hasManager && !hasEmployee) {
+            _selectedStatsTabIndex = 0; // only Manager
+          } else if (!hasManager && hasEmployee) {
+            _selectedStatsTabIndex = 0; // only Employee as first
+          } else {
+            _selectedStatsTabIndex = 0; // default to first tab (Manager)
+          }
         });
       } else {
         setState(() {
@@ -364,83 +376,83 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // No data message for selected date
-                                  // if (reportData != null &&
-                                  //     reportData!['hasData'] == false) ...[
-                                  //   Container(
-                                  //     padding: const EdgeInsets.all(40),
-                                  //     decoration: BoxDecoration(
-                                  //       color: Colors.white,
-                                  //       borderRadius: BorderRadius.circular(20),
-                                  //       boxShadow: [
-                                  //         BoxShadow(
-                                  //           color: Colors.black.withValues(
-                                  //             alpha: 0.05,
-                                  //           ),
-                                  //           blurRadius: 10,
-                                  //           offset: const Offset(0, 4),
-                                  //         ),
-                                  //       ],
-                                  //     ),
-                                  //     child: Column(
-                                  //       children: [
-                                  //         Container(
-                                  //           padding: const EdgeInsets.all(20),
-                                  //           decoration: BoxDecoration(
-                                  //             color: Colors.grey.shade100,
-                                  //             borderRadius:
-                                  //                 BorderRadius.circular(20),
-                                  //           ),
-                                  //           child: Icon(
-                                  //             Icons.event_busy,
-                                  //             size: 48,
-                                  //             color: Colors.grey.shade400,
-                                  //           ),
-                                  //         ),
-                                  //         const SizedBox(height: 16),
-                                  //         Text(
-                                  //           'No Attendance Data Available',
-                                  //           style: GoogleFonts.poppins(
-                                  //             fontSize: 18,
-                                  //             fontWeight: FontWeight.w600,
-                                  //             color: Colors.grey.shade700,
-                                  //           ),
-                                  //         ),
-                                  //         const SizedBox(height: 8),
-                                  //         Text(
-                                  //           'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                                  //           style: GoogleFonts.poppins(
-                                  //             fontSize: 14,
-                                  //             color: Colors.grey.shade600,
-                                  //           ),
-                                  //           textAlign: TextAlign.center,
-                                  //         ),
-                                  //         const SizedBox(height: 16),
-                                  //         ElevatedButton.icon(
-                                  //           onPressed: () {
-                                  //             setState(() {
-                                  //               _selectedDate = DateTime.now();
-                                  //             });
-                                  //             _fetchAttendanceReports();
-                                  //           },
-                                  //           icon: Icon(Icons.today),
-                                  //           label: Text('View Today\'s Data'),
-                                  //           style: ElevatedButton.styleFrom(
-                                  //             backgroundColor:
-                                  //                 Colors.purple.shade600,
-                                  //             foregroundColor: Colors.white,
-                                  //             shape: RoundedRectangleBorder(
-                                  //               borderRadius:
-                                  //                   BorderRadius.circular(12),
-                                  //             ),
-                                  //           ),
-                                  //         ),
-                                  //       ],
-                                  //     ),
-                                  //   ),
-                                  //   const SizedBox(height: 24),
-                                  // ],
+                                  if (reportData != null &&
+                                      reportData!['hasData'] == false) ...[
+                                    Container(
+                                      padding: const EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Icon(
+                                              Icons.event_busy,
+                                              size: 48,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'No Attendance Data Available',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              setState(() {
+                                                _selectedDate = DateTime.now();
+                                              });
+                                              _fetchAttendanceReports();
+                                            },
+                                            icon: Icon(Icons.today),
+                                            label: Text('View Today\'s Data'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.purple.shade600,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                  ],
 
-                                  // Overall Statistics
+                                  // Overall Statistics with Tabs
                                   if (reportData?['managerTotalStats'] !=
                                           null ||
                                       reportData?['employeeTotalStats'] !=
@@ -453,32 +465,11 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                         color: Colors.purple.shade700,
                                       ),
                                     ),
+                                    const SizedBox(height: 12),
+                                    _buildStatisticsTabs(),
                                     const SizedBox(height: 16),
-
-                                    // Manager Statistics
-                                    if (reportData?['managerTotalStats'] !=
-                                        null) ...[
-                                      _buildStatisticsCard(
-                                        title: 'Manager Statistics',
-                                        icon: Icons.manage_accounts,
-                                        color: Colors.orange,
-                                        stats: reportData!['managerTotalStats'],
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
-
-                                    // Employee Statistics
-                                    if (reportData?['employeeTotalStats'] !=
-                                        null) ...[
-                                      _buildStatisticsCard(
-                                        title: 'Employee Statistics',
-                                        icon: Icons.people,
-                                        color: Colors.blue,
-                                        stats:
-                                            reportData!['employeeTotalStats'],
-                                      ),
-                                      const SizedBox(height: 24),
-                                    ],
+                                    _buildSelectedStatisticsCard(),
+                                    const SizedBox(height: 24),
                                   ],
 
                                   // Department Reports
@@ -537,7 +528,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                     ],
                                   ],
 
-                                  // No data message
+                                  // No data message (department level)
                                   if ((reportData?['employeeReports'] == null ||
                                           (reportData!['employeeReports']
                                                   as List)
@@ -622,6 +613,125 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     );
   }
 
+  // Build the two tabs (Manager / Employee)
+  Widget _buildStatisticsTabs() {
+    final hasManager = reportData?['managerTotalStats'] != null;
+    final hasEmployee = reportData?['employeeTotalStats'] != null;
+
+    final tabs = <Map<String, dynamic>>[];
+    if (hasManager) {
+      tabs.add({'label': 'Manager Statistics', 'color': Colors.orange});
+    }
+    if (hasEmployee) {
+      tabs.add({'label': 'Employee Statistics', 'color': Colors.blue});
+    }
+
+    if (tabs.length <= 1) return const SizedBox.shrink();
+
+    return Row(
+      children: List.generate(tabs.length, (index) {
+        final isSelected = _selectedStatsTabIndex == index;
+        final Color color = tabs[index]['color'] as Color;
+        final String label = tabs[index]['label'] as String;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedStatsTabIndex = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              margin: EdgeInsets.only(
+                right: index == 0 ? 8 : 0,
+                left: index == 1 ? 8 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
+                border: Border.all(
+                  color: isSelected
+                      ? color.withValues(alpha: 0.4)
+                      : Colors.grey.shade200,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    hasManager && index == 0 && hasEmployee
+                        ? Icons.manage_accounts
+                        : (hasManager && !hasEmployee
+                              ? Icons.manage_accounts
+                              : Icons.people),
+                    color: isSelected ? color : Colors.grey.shade600,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? color : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // Render selected statistics card based on active tab
+  Widget _buildSelectedStatisticsCard() {
+    final hasManager = reportData?['managerTotalStats'] != null;
+    final hasEmployee = reportData?['employeeTotalStats'] != null;
+
+    if (!hasManager && !hasEmployee) return const SizedBox.shrink();
+
+    // Determine which stats to show based on selected tab and availability
+    if (hasManager && hasEmployee) {
+      return _buildStatisticsCard(
+        title: _selectedStatsTabIndex == 0
+            ? 'Manager Statistics'
+            : 'Employee Statistics',
+        icon: _selectedStatsTabIndex == 0
+            ? Icons.manage_accounts
+            : Icons.people,
+        color: _selectedStatsTabIndex == 0 ? Colors.orange : Colors.blue,
+        stats: _selectedStatsTabIndex == 0
+            ? (reportData!['managerTotalStats'] as Map<String, dynamic>)
+            : (reportData!['employeeTotalStats'] as Map<String, dynamic>),
+      );
+    } else if (hasManager) {
+      return _buildStatisticsCard(
+        title: 'Manager Statistics',
+        icon: Icons.manage_accounts,
+        color: Colors.orange,
+        stats: reportData!['managerTotalStats'],
+      );
+    } else {
+      return _buildStatisticsCard(
+        title: 'Employee Statistics',
+        icon: Icons.people,
+        color: Colors.blue,
+        stats: reportData!['employeeTotalStats'],
+      );
+    }
+  }
+
   Widget _buildStatisticsCard({
     required String title,
     required IconData icon,
@@ -655,12 +765,16 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
                 ),
               ),
             ],
@@ -709,12 +823,16 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
               children: [
                 Icon(Icons.trending_up, color: color),
                 const SizedBox(width: 8),
-                Text(
-                  '$title Attendance Rate: ${stats['percentage']}%',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+                Expanded(
+                  child: Text(
+                    '$title Attendance Rate: ${stats['percentage']}%',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                 ),
               ],
@@ -758,15 +876,18 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
-              Text(
-                report['department'],
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+              Expanded(
+                child: Text(
+                  report['department'],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
                 ),
               ),
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
