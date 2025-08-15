@@ -201,16 +201,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.purple.shade200),
                           ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.purple.shade600,
-                              size: 20,
-                            ),
-                            onPressed: _selectDate,
-                          ),
                         ),
-                        const SizedBox(width: 12),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.purple.shade50,
