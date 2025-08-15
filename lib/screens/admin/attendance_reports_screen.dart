@@ -442,67 +442,74 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     if (tabs.length <= 1) return const SizedBox.shrink();
 
-    return Row(
-      children: List.generate(tabs.length, (index) {
-        final isSelected = _selectedStatsTabIndex == index;
-        final Color color = tabs[index]['color'] as Color;
-        final String label = tabs[index]['label'] as String;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedStatsTabIndex = index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-              margin: EdgeInsets.only(
-                right: index == 0 ? 6 : 0,
-                left: index == 1 ? 6 : 0,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? color : Colors.white,
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          final isSelected = _selectedStatsTabIndex == index;
+          final Color color = tabs[index]['color'] as Color;
+          final String label = tabs[index]['label'] as String;
+          return Container(
+            width: 120, // Fixed width to prevent overflow
+            margin: EdgeInsets.only(
+              right: index == 0 ? 6 : 0,
+              left: index == 1 ? 6 : 0,
+            ),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedStatsTabIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
                 ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  if (isSelected)
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    hasManager && index == 0 && hasEmployee
-                        ? Icons.manage_accounts
-                        : (hasManager && !hasEmployee
-                              ? Icons.manage_accounts
-                              : Icons.people),
-                    color: isSelected ? Colors.white : color,
-                    size: 18,
+                decoration: BoxDecoration(
+                  color: isSelected ? color : Colors.white,
+                  border: Border.all(
+                    color: isSelected ? color : Colors.grey.shade300,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? Colors.white : color,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      hasManager && index == 0 && hasEmployee
+                          ? Icons.manage_accounts
+                          : (hasManager && !hasEmployee
+                                ? Icons.manage_accounts
+                                : Icons.people),
+                      color: isSelected ? Colors.white : color,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected ? Colors.white : color,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 
@@ -525,67 +532,74 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     if (tabs.length <= 1) return const SizedBox.shrink();
 
-    return Row(
-      children: List.generate(tabs.length, (index) {
-        final isSelected = _selectedDepartmentTabIndex == index;
-        final Color color = tabs[index]['color'] as Color;
-        final String label = tabs[index]['label'] as String;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedDepartmentTabIndex = index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-              margin: EdgeInsets.only(
-                right: index == 0 ? 6 : 0,
-                left: index == 1 ? 6 : 0,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? color : Colors.white,
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          final isSelected = _selectedDepartmentTabIndex == index;
+          final Color color = tabs[index]['color'] as Color;
+          final String label = tabs[index]['label'] as String;
+          return Container(
+            width: 120, // Fixed width to prevent overflow
+            margin: EdgeInsets.only(
+              right: index == 0 ? 6 : 0,
+              left: index == 1 ? 6 : 0,
+            ),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedDepartmentTabIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
                 ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  if (isSelected)
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    hasManager && index == 0 && hasEmployee
-                        ? Icons.manage_accounts
-                        : (hasManager && !hasEmployee
-                              ? Icons.manage_accounts
-                              : Icons.people),
-                    color: isSelected ? Colors.white : color,
-                    size: 18,
+                decoration: BoxDecoration(
+                  color: isSelected ? color : Colors.white,
+                  border: Border.all(
+                    color: isSelected ? color : Colors.grey.shade300,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? Colors.white : color,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      hasManager && index == 0 && hasEmployee
+                          ? Icons.manage_accounts
+                          : (hasManager && !hasEmployee
+                                ? Icons.manage_accounts
+                                : Icons.people),
+                      color: isSelected ? Colors.white : color,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected ? Colors.white : color,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 
