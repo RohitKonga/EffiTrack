@@ -376,83 +376,6 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // No data message for selected date
-                                  if (reportData != null &&
-                                      reportData!['hasData'] == false) ...[
-                                    Container(
-                                      padding: const EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade100,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Icon(
-                                              Icons.event_busy,
-                                              size: 48,
-                                              color: Colors.grey.shade400,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'No Attendance Data Available',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton.icon(
-                                            onPressed: () {
-                                              setState(() {
-                                                _selectedDate = DateTime.now();
-                                              });
-                                              _fetchAttendanceReports();
-                                            },
-                                            icon: Icon(Icons.today),
-                                            label: Text('View Today\'s Data'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.purple.shade600,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                  ],
-
                                   // Overall Statistics with Tabs
                                   if (reportData?['managerTotalStats'] !=
                                           null ||
@@ -583,10 +506,10 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     final tabs = <Map<String, dynamic>>[];
     if (hasManager) {
-      tabs.add({'label': 'Manager Statistics', 'color': Colors.orange});
+      tabs.add({'label': 'Manager', 'color': Colors.orange});
     }
     if (hasEmployee) {
-      tabs.add({'label': 'Employee Statistics', 'color': Colors.blue});
+      tabs.add({'label': 'Employee', 'color': Colors.blue});
     }
 
     if (tabs.length <= 1) return const SizedBox.shrink();
@@ -601,25 +524,23 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
             onTap: () => setState(() => _selectedStatsTabIndex = index),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               margin: EdgeInsets.only(
-                right: index == 0 ? 8 : 0,
-                left: index == 1 ? 8 : 0,
+                right: index == 0 ? 6 : 0,
+                left: index == 1 ? 6 : 0,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
+                color: isSelected ? color : Colors.white,
                 border: Border.all(
-                  color: isSelected
-                      ? color.withValues(alpha: 0.4)
-                      : Colors.grey.shade200,
+                  color: isSelected ? color : Colors.grey.shade300,
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   if (isSelected)
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                 ],
               ),
@@ -632,7 +553,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                         : (hasManager && !hasEmployee
                               ? Icons.manage_accounts
                               : Icons.people),
-                    color: isSelected ? color : Colors.grey.shade600,
+                    color: isSelected ? Colors.white : color,
                     size: 18,
                   ),
                   const SizedBox(width: 6),
@@ -642,9 +563,9 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? color : Colors.grey.shade700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : color,
                       ),
                     ),
                   ),
@@ -668,10 +589,10 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     final tabs = <Map<String, dynamic>>[];
     if (hasManager) {
-      tabs.add({'label': 'Manager Departments', 'color': Colors.orange});
+      tabs.add({'label': 'Manager', 'color': Colors.orange});
     }
     if (hasEmployee) {
-      tabs.add({'label': 'Employee Departments', 'color': Colors.blue});
+      tabs.add({'label': 'Employee', 'color': Colors.blue});
     }
 
     if (tabs.length <= 1) return const SizedBox.shrink();
@@ -686,25 +607,23 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
             onTap: () => setState(() => _selectedDepartmentTabIndex = index),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               margin: EdgeInsets.only(
-                right: index == 0 ? 8 : 0,
-                left: index == 1 ? 8 : 0,
+                right: index == 0 ? 6 : 0,
+                left: index == 1 ? 6 : 0,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
+                color: isSelected ? color : Colors.white,
                 border: Border.all(
-                  color: isSelected
-                      ? color.withValues(alpha: 0.4)
-                      : Colors.grey.shade200,
+                  color: isSelected ? color : Colors.grey.shade300,
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   if (isSelected)
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                 ],
               ),
@@ -717,7 +636,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                         : (hasManager && !hasEmployee
                               ? Icons.manage_accounts
                               : Icons.people),
-                    color: isSelected ? color : Colors.grey.shade600,
+                    color: isSelected ? Colors.white : color,
                     size: 18,
                   ),
                   const SizedBox(width: 6),
@@ -727,9 +646,9 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? color : Colors.grey.shade700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : color,
                       ),
                     ),
                   ),
