@@ -776,7 +776,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Icons.check_circle,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8), // Reduced from 12 to 8
               Expanded(
                 child: _buildStatCard(
                   'Absent',
@@ -785,7 +785,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Icons.cancel,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8), // Reduced from 12 to 8
               Expanded(
                 child: _buildStatCard(
                   'Total',
@@ -903,7 +903,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Colors.green.shade700,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6), // Reduced from 8 to 6
               Expanded(
                 child: _buildMiniStat(
                   'Absent',
@@ -912,7 +912,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Colors.red.shade700,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6), // Reduced from 8 to 6
               Expanded(
                 child: _buildMiniStat(
                   'Total',
@@ -935,7 +935,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12), // Reduced from 16 to 12
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -943,12 +943,12 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 20), // Reduced from 24 to 20
+          const SizedBox(height: 6), // Reduced from 8 to 6
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 20,
+              fontSize: 18, // Reduced from 20 to 18
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -956,7 +956,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: 11, // Reduced from 12 to 11
               color: color.withValues(alpha: 0.8),
             ),
           ),
@@ -972,7 +972,10 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     Color textColor,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(
+        vertical: 6,
+        horizontal: 8,
+      ), // Reduced from 8,12 to 6,8
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(8),
@@ -982,7 +985,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 14, // Reduced from 16 to 14
               fontWeight: FontWeight.bold,
               color: textColor,
             ),
@@ -990,7 +993,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 10,
+              fontSize: 9, // Reduced from 10 to 9
               color: textColor.withValues(alpha: 0.8),
             ),
           ),
