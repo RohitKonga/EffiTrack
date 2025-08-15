@@ -364,81 +364,81 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // No data message for selected date
-                                  if (reportData != null &&
-                                      reportData!['hasData'] == false) ...[
-                                    Container(
-                                      padding: const EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade100,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Icon(
-                                              Icons.event_busy,
-                                              size: 48,
-                                              color: Colors.grey.shade400,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'No Attendance Data Available',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton.icon(
-                                            onPressed: () {
-                                              setState(() {
-                                                _selectedDate = DateTime.now();
-                                              });
-                                              _fetchAttendanceReports();
-                                            },
-                                            icon: Icon(Icons.today),
-                                            label: Text('View Today\'s Data'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.purple.shade600,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                  ],
+                                  // if (reportData != null &&
+                                  //     reportData!['hasData'] == false) ...[
+                                  //   Container(
+                                  //     padding: const EdgeInsets.all(40),
+                                  //     decoration: BoxDecoration(
+                                  //       color: Colors.white,
+                                  //       borderRadius: BorderRadius.circular(20),
+                                  //       boxShadow: [
+                                  //         BoxShadow(
+                                  //           color: Colors.black.withValues(
+                                  //             alpha: 0.05,
+                                  //           ),
+                                  //           blurRadius: 10,
+                                  //           offset: const Offset(0, 4),
+                                  //         ),
+                                  //       ],
+                                  //     ),
+                                  //     child: Column(
+                                  //       children: [
+                                  //         Container(
+                                  //           padding: const EdgeInsets.all(20),
+                                  //           decoration: BoxDecoration(
+                                  //             color: Colors.grey.shade100,
+                                  //             borderRadius:
+                                  //                 BorderRadius.circular(20),
+                                  //           ),
+                                  //           child: Icon(
+                                  //             Icons.event_busy,
+                                  //             size: 48,
+                                  //             color: Colors.grey.shade400,
+                                  //           ),
+                                  //         ),
+                                  //         const SizedBox(height: 16),
+                                  //         Text(
+                                  //           'No Attendance Data Available',
+                                  //           style: GoogleFonts.poppins(
+                                  //             fontSize: 18,
+                                  //             fontWeight: FontWeight.w600,
+                                  //             color: Colors.grey.shade700,
+                                  //           ),
+                                  //         ),
+                                  //         const SizedBox(height: 8),
+                                  //         Text(
+                                  //           'No attendance records found for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                  //           style: GoogleFonts.poppins(
+                                  //             fontSize: 14,
+                                  //             color: Colors.grey.shade600,
+                                  //           ),
+                                  //           textAlign: TextAlign.center,
+                                  //         ),
+                                  //         const SizedBox(height: 16),
+                                  //         ElevatedButton.icon(
+                                  //           onPressed: () {
+                                  //             setState(() {
+                                  //               _selectedDate = DateTime.now();
+                                  //             });
+                                  //             _fetchAttendanceReports();
+                                  //           },
+                                  //           icon: Icon(Icons.today),
+                                  //           label: Text('View Today\'s Data'),
+                                  //           style: ElevatedButton.styleFrom(
+                                  //             backgroundColor:
+                                  //                 Colors.purple.shade600,
+                                  //             foregroundColor: Colors.white,
+                                  //             shape: RoundedRectangleBorder(
+                                  //               borderRadius:
+                                  //                   BorderRadius.circular(12),
+                                  //             ),
+                                  //           ),
+                                  //         ),
+                                  //       ],
+                                  //     ),
+                                  //   ),
+                                  //   const SizedBox(height: 24),
+                                  // ],
 
                                   // Overall Statistics
                                   if (reportData?['managerTotalStats'] !=
