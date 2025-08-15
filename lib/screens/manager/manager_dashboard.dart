@@ -7,6 +7,7 @@ import 'announcements_management_screen.dart';
 import '../../services/api_service.dart';
 import '../employee/attendance_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class ManagerDashboard extends StatefulWidget {
   const ManagerDashboard({super.key});
@@ -21,10 +22,22 @@ class _ManagerDashboardState extends State<ManagerDashboard>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  
+  // Real-time data
+  Map<String, dynamic> _stats = {
+    'teamSize': 0,
+    'presentToday': 0,
+    'pendingTasks': 0,
+    'pendingLeaves': 0,
+  };
+  bool _loading = true;
+  String? _error;
+  String? _department;
 
   @override
   void initState() {
     super.initState();
+    _fetchManagerStats();
     
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -61,6 +74,76 @@ class _ManagerDashboardState extends State<ManagerDashboard>
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchManagerStats() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    
+    try {
+      // Fetch manager's profile to get department
+      final profileRes = await apiService.get('/profile');
+      if (profileRes.statusCode == 200) {
+        final profile = jsonDecode(profileRes.body);
+        _department = profile['department'];
+        
+        if (_department != null) {
+          // Fetch team size
+          final teamRes = await apiService.get('/profile/department/$_department');
+          if (teamRes.statusCode == 200) {
+            final team = jsonDecode(teamRes.body);
+            _stats['teamSize'] = team.length;
+          }
+          
+          // Fetch today's attendance for team
+          final today = DateTime.now().toIso8601String().split('T')[0];
+          final attendanceRes = await apiService.get('/attendance/team/$_department?date=$today');
+          if (attendanceRes.statusCode == 200) {
+            final data = jsonDecode(attendanceRes.body);
+            if (data['hasData']) {
+              _stats['presentToday'] = data['presentMembers'] ?? 0;
+            }
+          }
+          
+          // Fetch pending tasks for team
+          final taskRes = await apiService.get('/tasks/department/$_department');
+          if (taskRes.statusCode == 200) {
+            final tasks = jsonDecode(taskRes.body);
+            int pending = 0;
+            for (var task in tasks) {
+              if (task['status'] != 'Completed') {
+                pending++;
+              }
+            }
+            _stats['pendingTasks'] = pending;
+          }
+          
+          // Fetch pending leave requests for team
+          final leaveRes = await apiService.get('/leaves/department/$_department');
+          if (leaveRes.statusCode == 200) {
+            final leaves = jsonDecode(leaveRes.body);
+            int pending = 0;
+            for (var leave in leaves) {
+              if (leave['status'] == 'Pending') {
+                pending++;
+              }
+            }
+            _stats['pendingLeaves'] = pending;
+          }
+        }
+      }
+      
+      setState(() {
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load dashboard stats';
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -174,46 +257,174 @@ class _ManagerDashboardState extends State<ManagerDashboard>
                               ),
                             ],
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.leaderboard,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          child: _loading
+                              ? Row(
                                   children: [
-                                    Text(
-                                      'Team Management',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const CircularProgressIndicator(
                                         color: Colors.white,
+                                        strokeWidth: 2,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Monitor and manage your team\'s performance',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        'Loading team stats...',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          ),
+                                )
+                              : _error != null
+                                  ? Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(
+                                            Icons.error_outline,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Error Loading Stats',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _error!,
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  color: Colors.white.withValues(alpha: 0.9),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.refresh,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                          onPressed: _fetchManagerStats,
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(alpha: 0.2),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Icon(
+                                                Icons.leaderboard,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Team Management',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'Monitor and manage your team\'s performance',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 12,
+                                                      color: Colors.white.withValues(alpha: 0.9),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.refresh,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              onPressed: _fetchManagerStats,
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 20),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Team Size',
+                                                _stats['teamSize'].toString(),
+                                                Icons.people,
+                                                Colors.blue.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Present Today',
+                                                '${_stats['presentToday']}/${_stats['teamSize']}',
+                                                Icons.check_circle,
+                                                Colors.green.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Pending Tasks',
+                                                _stats['pendingTasks'].toString(),
+                                                Icons.pending,
+                                                Colors.orange.shade100,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: _buildStatItem(
+                                                'Pending Leaves',
+                                                _stats['pendingLeaves'].toString(),
+                                                Icons.event_busy,
+                                                Colors.red.shade100,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                         ),
                       ],
                     ),
@@ -316,6 +527,38 @@ class _ManagerDashboardState extends State<ManagerDashboard>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

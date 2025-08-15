@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class AssignTaskScreen extends StatefulWidget {
   const AssignTaskScreen({super.key});
@@ -12,13 +14,10 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String? _employee, _title, _desc, _deadline;
-  final _employees = [
-    'Alice Johnson',
-    'Bob Smith',
-    'Charlie Brown',
-    'Diana Wilson',
-    'Eva Davis',
-  ];
+  List<Map<String, dynamic>> _employees = [];
+  bool _loading = true;
+  String? _error;
+  bool _submitting = false;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -28,6 +27,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
   @override
   void initState() {
     super.initState();
+    _fetchEmployees();
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -59,37 +59,175 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
     super.dispose();
   }
 
-  void _assignTask() {
+  Future<void> _fetchEmployees() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      // Fetch manager's profile to get department
+      final profileRes = await apiService.get('/profile');
+      if (profileRes.statusCode == 200) {
+        final profile = jsonDecode(profileRes.body);
+        final department = profile['department'];
+
+        if (department != null) {
+          // Fetch employees from the same department
+          final employeeRes = await apiService.get(
+            '/profile/department/$department',
+          );
+          if (employeeRes.statusCode == 200) {
+            final employees = jsonDecode(employeeRes.body);
+            final List<Map<String, dynamic>> employeeList = [];
+
+            for (var emp in employees) {
+              if (emp['role'] == 'Employee') {
+                employeeList.add({
+                  'id': emp['_id'],
+                  'name': emp['name'],
+                  'email': emp['email'],
+                });
+              }
+            }
+
+            setState(() {
+              _employees = employeeList;
+              _loading = false;
+            });
+          } else {
+            setState(() {
+              _error = 'Failed to load employees';
+              _loading = false;
+            });
+          }
+        } else {
+          setState(() {
+            _error = 'Department not found';
+            _loading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = 'Failed to load profile';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Network error';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _assignTask() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Task "$_title" assigned to $_employee successfully!${(_desc != null && _desc!.trim().isNotEmpty) ? ' (Desc: ${_desc!.trim()})' : ''}',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+
       setState(() {
-        _employee = null;
-        _title = null;
-        _desc = null;
-        _deadline = null;
+        _submitting = true;
       });
-      _formKey.currentState!.reset();
+
+      try {
+        final selectedEmployee = _employees.firstWhere(
+          (e) => e['name'] == _employee,
+        );
+
+        final res = await apiService.post('/tasks', {
+          'title': _title,
+          'description': _desc,
+          'assignedTo': selectedEmployee['id'],
+          'dueDate': _deadline,
+          'priority': 'Medium',
+          'status': 'To Do',
+        });
+
+        if (res.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Task "$_title" assigned to $_employee successfully!${(_desc != null && _desc!.trim().isNotEmpty) ? ' (Desc: ${_desc!.trim()})' : ''}',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+
+          setState(() {
+            _employee = null;
+            _title = null;
+            _desc = null;
+            _deadline = null;
+            _submitting = false;
+          });
+          _formKey.currentState!.reset();
+        } else {
+          setState(() {
+            _submitting = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to assign task',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _submitting = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Network error while assigning task',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -240,10 +378,22 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                               width: double.infinity,
                               height: 56,
                               child: ElevatedButton.icon(
-                                onPressed: _assignTask,
-                                icon: Icon(Icons.send, size: 24),
+                                onPressed: _submitting ? null : _assignTask,
+                                icon: _submitting
+                                    ? SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : Icon(Icons.send, size: 24),
                                 label: Text(
-                                  'Assign Task',
+                                  _submitting ? 'Assigning...' : 'Assign Task',
                                   style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -348,10 +498,10 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       ),
       items: _employees
           .map(
-            (e) => DropdownMenuItem(
-              value: e,
+            (e) => DropdownMenuItem<String>(
+              value: e['name'] as String,
               child: Text(
-                e,
+                e['name'] as String,
                 style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
               ),
             ),
