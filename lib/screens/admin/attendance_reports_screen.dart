@@ -442,74 +442,67 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     if (tabs.length <= 1) return const SizedBox.shrink();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedStatsTabIndex == index;
-          final Color color = tabs[index]['color'] as Color;
-          final String label = tabs[index]['label'] as String;
-          return Container(
-            width: 120, // Fixed width to prevent overflow
-            margin: EdgeInsets.only(
-              right: index == 0 ? 6 : 0,
-              left: index == 1 ? 6 : 0,
-            ),
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedStatsTabIndex = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
+    return Row(
+      children: List.generate(tabs.length, (index) {
+        final isSelected = _selectedStatsTabIndex == index;
+        final Color color = tabs[index]['color'] as Color;
+        final String label = tabs[index]['label'] as String;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedStatsTabIndex = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              margin: EdgeInsets.only(
+                right: index == 0 ? 6 : 0,
+                left: index == 1 ? 6 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? color : Colors.white,
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade300,
                 ),
-                decoration: BoxDecoration(
-                  color: isSelected ? color : Colors.white,
-                  border: Border.all(
-                    color: isSelected ? color : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    hasManager && index == 0 && hasEmployee
+                        ? Icons.manage_accounts
+                        : (hasManager && !hasEmployee
+                              ? Icons.manage_accounts
+                              : Icons.people),
+                    color: isSelected ? Colors.white : color,
+                    size: 18,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    if (isSelected)
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      hasManager && index == 0 && hasEmployee
-                          ? Icons.manage_accounts
-                          : (hasManager && !hasEmployee
-                                ? Icons.manage_accounts
-                                : Icons.people),
-                      color: isSelected ? Colors.white : color,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : color,
-                        ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : color,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -532,74 +525,67 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
 
     if (tabs.length <= 1) return const SizedBox.shrink();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedDepartmentTabIndex == index;
-          final Color color = tabs[index]['color'] as Color;
-          final String label = tabs[index]['label'] as String;
-          return Container(
-            width: 120, // Fixed width to prevent overflow
-            margin: EdgeInsets.only(
-              right: index == 0 ? 6 : 0,
-              left: index == 1 ? 6 : 0,
-            ),
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedDepartmentTabIndex = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
+    return Row(
+      children: List.generate(tabs.length, (index) {
+        final isSelected = _selectedDepartmentTabIndex == index;
+        final Color color = tabs[index]['color'] as Color;
+        final String label = tabs[index]['label'] as String;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedDepartmentTabIndex = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              margin: EdgeInsets.only(
+                right: index == 0 ? 6 : 0,
+                left: index == 1 ? 6 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? color : Colors.white,
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade300,
                 ),
-                decoration: BoxDecoration(
-                  color: isSelected ? color : Colors.white,
-                  border: Border.all(
-                    color: isSelected ? color : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  if (isSelected)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    hasManager && index == 0 && hasEmployee
+                        ? Icons.manage_accounts
+                        : (hasManager && !hasEmployee
+                              ? Icons.manage_accounts
+                              : Icons.people),
+                    color: isSelected ? Colors.white : color,
+                    size: 18,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    if (isSelected)
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      hasManager && index == 0 && hasEmployee
-                          ? Icons.manage_accounts
-                          : (hasManager && !hasEmployee
-                                ? Icons.manage_accounts
-                                : Icons.people),
-                      color: isSelected ? Colors.white : color,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : color,
-                        ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : color,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -776,7 +762,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Icons.check_circle,
                 ),
               ),
-              const SizedBox(width: 8), // Reduced from 12 to 8
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
                   'Absent',
@@ -785,7 +771,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Icons.cancel,
                 ),
               ),
-              const SizedBox(width: 8), // Reduced from 12 to 8
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
                   'Total',
@@ -903,7 +889,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Colors.green.shade700,
                 ),
               ),
-              const SizedBox(width: 6), // Reduced from 8 to 6
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMiniStat(
                   'Absent',
@@ -912,7 +898,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
                   Colors.red.shade700,
                 ),
               ),
-              const SizedBox(width: 6), // Reduced from 8 to 6
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMiniStat(
                   'Total',
@@ -935,7 +921,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -943,12 +929,12 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 20), // Reduced from 24 to 20
-          const SizedBox(height: 6), // Reduced from 8 to 6
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 18, // Reduced from 20 to 18
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -956,7 +942,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 11, // Reduced from 12 to 11
+              fontSize: 12,
               color: color.withValues(alpha: 0.8),
             ),
           ),
@@ -972,10 +958,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
     Color textColor,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 6,
-        horizontal: 8,
-      ), // Reduced from 8,12 to 6,8
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(8),
@@ -985,7 +968,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 14, // Reduced from 16 to 14
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: textColor,
             ),
@@ -993,7 +976,7 @@ class _AttendanceReportsScreenState extends State<AttendanceReportsScreen>
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 9, // Reduced from 10 to 9
+              fontSize: 10,
               color: textColor.withValues(alpha: 0.8),
             ),
           ),
