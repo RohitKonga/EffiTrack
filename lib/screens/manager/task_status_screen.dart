@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class TaskStatusScreen extends StatefulWidget {
   const TaskStatusScreen({super.key});
@@ -10,44 +12,15 @@ class TaskStatusScreen extends StatefulWidget {
 
 class _TaskStatusScreenState extends State<TaskStatusScreen>
     with TickerProviderStateMixin {
-  List<Map<String, dynamic>> tasks = [
-    {
-      'employee': 'Alice Johnson',
-      'title': 'Prepare Monthly Report',
-      'status': 'Completed',
-      'priority': 'High',
-      'progress': 100,
-      'dueDate': '2024-07-25',
-      'id': '1',
-    },
-    {
-      'employee': 'Bob Smith',
-      'title': 'Client Meeting Preparation',
-      'status': 'In Progress',
-      'priority': 'Medium',
-      'progress': 65,
-      'dueDate': '2024-07-28',
-      'id': '2',
-    },
-    {
-      'employee': 'Charlie Brown',
-      'title': 'Website Content Update',
-      'status': 'To Do',
-      'priority': 'Low',
-      'progress': 0,
-      'dueDate': '2024-08-01',
-      'id': '3',
-    },
-    {
-      'employee': 'Diana Wilson',
-      'title': 'Database Optimization',
-      'status': 'In Progress',
-      'priority': 'High',
-      'progress': 45,
-      'dueDate': '2024-07-30',
-      'id': '4',
-    },
-  ];
+  List<Map<String, dynamic>> tasks = [];
+  bool _loading = true;
+  String? _error;
+  Map<String, dynamic> _summary = {
+    'total': 0,
+    'completed': 0,
+    'inProgress': 0,
+    'toDo': 0,
+  };
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -57,6 +30,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
   @override
   void initState() {
     super.initState();
+    _fetchTasks();
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -86,6 +60,160 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchTasks() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      // Fetch manager's profile to get department
+      final profileRes = await apiService.get('/profile');
+      if (profileRes.statusCode == 200) {
+        final profile = jsonDecode(profileRes.body);
+        final department = profile['department'];
+
+        if (department != null) {
+          // Fetch tasks from the same department
+          final taskRes = await apiService.get('/tasks/department/$department');
+          if (taskRes.statusCode == 200) {
+            final List<dynamic> data = jsonDecode(taskRes.body);
+            final List<Map<String, dynamic>> taskList = data
+                .cast<Map<String, dynamic>>();
+
+            // Calculate summary
+            int completed = 0;
+            int inProgress = 0;
+            int toDo = 0;
+
+            for (var task in taskList) {
+              switch (task['status']) {
+                case 'Completed':
+                  completed++;
+                  break;
+                case 'In Progress':
+                  inProgress++;
+                  break;
+                case 'To Do':
+                  toDo++;
+                  break;
+              }
+            }
+
+            setState(() {
+              tasks = taskList;
+              _summary = {
+                'total': taskList.length,
+                'completed': completed,
+                'inProgress': inProgress,
+                'toDo': toDo,
+              };
+              _loading = false;
+            });
+          } else {
+            setState(() {
+              _error = 'Failed to load tasks';
+              _loading = false;
+            });
+          }
+        } else {
+          setState(() {
+            _error = 'Department not found';
+            _loading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = 'Failed to load profile';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Network error';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _updateTaskStatus(int index, String newStatus) async {
+    try {
+      final taskId = tasks[index]['_id'];
+      final res = await apiService.put('/tasks/$taskId/status', {
+        'status': newStatus,
+      });
+
+      if (res.statusCode == 200) {
+        await _fetchTasks(); // Refresh the list
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Task status updated successfully!',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to update task status',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Network error while updating status',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -133,13 +261,9 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = tasks
-        .where((task) => task['status'] == 'Completed')
-        .length;
-    final inProgressCount = tasks
-        .where((task) => task['status'] == 'In Progress')
-        .length;
-    final toDoCount = tasks.where((task) => task['status'] == 'To Do').length;
+    final completedCount = _summary['completed'] ?? 0;
+    final inProgressCount = _summary['inProgress'] ?? 0;
+    final toDoCount = _summary['toDo'] ?? 0;
 
     return Scaffold(
       body: Container(
@@ -263,7 +387,29 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                           ),
                           const SizedBox(height: 16),
 
-                          if (tasks.isEmpty) ...[
+                          if (_loading) ...[
+                            Expanded(
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.purple.shade600,
+                                ),
+                              ),
+                            ),
+                          ] else if (_error != null) ...[
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  _error!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ] else if (tasks.isEmpty) ...[
                             Expanded(
                               child: Center(
                                 child: Container(
@@ -323,12 +469,16 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             ),
                           ] else ...[
                             Expanded(
-                              child: ListView.builder(
-                                itemCount: tasks.length,
-                                itemBuilder: (context, index) {
-                                  final task = tasks[index];
-                                  return _buildTaskCard(task);
-                                },
+                              child: RefreshIndicator(
+                                onRefresh: _fetchTasks,
+                                color: Colors.purple.shade600,
+                                child: ListView.builder(
+                                  itemCount: tasks.length,
+                                  itemBuilder: (context, index) {
+                                    final task = tasks[index];
+                                    return _buildTaskCard(task);
+                                  },
+                                ),
                               ),
                             ),
                           ],
@@ -398,7 +548,21 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
   Widget _buildTaskCard(Map<String, dynamic> task) {
     final statusColor = _getStatusColor(task['status'] ?? 'To Do');
     final priorityColor = _getPriorityColor(task['priority'] ?? 'Medium');
-    final progress = task['progress'] ?? 0;
+    // Calculate progress based on status
+    int progress = 0;
+    switch (task['status']) {
+      case 'Completed':
+        progress = 100;
+        break;
+      case 'In Progress':
+        progress = 50;
+        break;
+      case 'To Do':
+        progress = 0;
+        break;
+      default:
+        progress = 0;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -455,7 +619,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          task['employee'] ?? 'Unknown',
+                          task['assignedTo'] ?? 'Unknown',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -543,7 +707,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               Expanded(
                 child: _buildDetailItem(
                   'Due Date',
-                  task['dueDate'] ?? 'N/A',
+                  _formatDate(task['dueDate']),
                   Icons.calendar_today,
                   Colors.blue,
                 ),
@@ -561,7 +725,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
 
           const SizedBox(height: 16),
 
-          // Status Badge
+          // Status Badge with Update Button
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -571,20 +735,57 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  _getStatusIcon(task['status'] ?? 'To Do'),
-                  color: statusColor,
-                  size: 20,
+                Row(
+                  children: [
+                    Icon(
+                      _getStatusIcon(task['status'] ?? 'To Do'),
+                      color: statusColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Status: ${task['status'] ?? 'Unknown'}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Status: ${task['status'] ?? 'Unknown'}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
+                PopupMenuButton<String>(
+                  onSelected: (String newStatus) =>
+                      _updateTaskStatus(tasks.indexOf(task), newStatus),
+                  itemBuilder: (BuildContext context) => [
+                    if (task['status'] != 'To Do')
+                      PopupMenuItem(
+                        value: 'To Do',
+                        child: Text('Mark as To Do'),
+                      ),
+                    if (task['status'] != 'In Progress')
+                      PopupMenuItem(
+                        value: 'In Progress',
+                        child: Text('Mark as In Progress'),
+                      ),
+                    if (task['status'] != 'Completed')
+                      PopupMenuItem(
+                        value: 'Completed',
+                        child: Text('Mark as Completed'),
+                      ),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.edit,
+                      color: Colors.purple.shade600,
+                      size: 16,
+                    ),
                   ),
                 ),
               ],
@@ -593,6 +794,19 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
         ],
       ),
     );
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return 'No due date';
+    try {
+      if (date is String) {
+        final parsed = DateTime.parse(date);
+        return '${parsed.day}/${parsed.month}/${parsed.year}';
+      }
+      return 'Invalid date';
+    } catch (e) {
+      return 'Invalid date';
+    }
   }
 
   Widget _buildDetailItem(

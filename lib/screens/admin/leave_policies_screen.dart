@@ -95,13 +95,13 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
       final res = await apiService.put('/leaves/policies', {
         'policies': policies,
       });
-      
+
       if (res.statusCode == 200) {
         setState(() {
           _hasChanges = false;
           _saving = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -127,7 +127,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
         setState(() {
           _saving = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -154,7 +154,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
       setState(() {
         _saving = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -352,7 +352,7 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                                 ),
                               ),
                               Text(
-                                '${policies.map((p) => p['days']).reduce((a, b) => a + b)} days',
+                                '${policies.isNotEmpty ? policies.map((p) => p['days']).reduce((a, b) => a + b) : 0} days',
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,

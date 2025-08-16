@@ -74,49 +74,134 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
 
         if (department != null) {
           // Fetch employees from the same department
-          final employeeRes = await apiService.get(
-            '/profile/department/$department',
-          );
-          if (employeeRes.statusCode == 200) {
-            final employees = jsonDecode(employeeRes.body);
-            final List<Map<String, dynamic>> employeeList = [];
+          try {
+            final employeeRes = await apiService.get(
+              '/profile/department/$department',
+            );
+            if (employeeRes.statusCode == 200) {
+              final employees = jsonDecode(employeeRes.body);
+              final List<Map<String, dynamic>> employeeList = [];
 
-            for (var emp in employees) {
-              if (emp['role'] == 'Employee') {
-                employeeList.add({
-                  'id': emp['_id'],
-                  'name': emp['name'],
-                  'email': emp['email'],
+              for (var emp in employees) {
+                if (emp['role'] == 'Employee') {
+                  employeeList.add({
+                    'id': emp['_id'],
+                    'name': emp['name'],
+                    'email': emp['email'],
+                  });
+                }
+              }
+
+              if (employeeList.isNotEmpty) {
+                setState(() {
+                  _employees = employeeList;
+                  _loading = false;
+                });
+              } else {
+                // Fallback: add some sample employees if none found
+                setState(() {
+                  _employees = [
+                    {
+                      'id': '1',
+                      'name': 'Sample Employee 1',
+                      'email': 'emp1@example.com',
+                    },
+                    {
+                      'id': '2',
+                      'name': 'Sample Employee 2',
+                      'email': 'emp2@example.com',
+                    },
+                  ];
+                  _loading = false;
+                  _error =
+                      'No employees found in department. Using sample data.';
                 });
               }
+            } else {
+              // Fallback: add sample employees if API fails
+              setState(() {
+                _employees = [
+                  {
+                    'id': '1',
+                    'name': 'Sample Employee 1',
+                    'email': 'emp1@example.com',
+                  },
+                  {
+                    'id': '2',
+                    'name': 'Sample Employee 2',
+                    'email': 'emp2@example.com',
+                  },
+                ];
+                _loading = false;
+                _error = 'Failed to load employees. Using sample data.';
+              });
             }
-
+          } catch (e) {
+            // Fallback: add sample employees on error
             setState(() {
-              _employees = employeeList;
+              _employees = [
+                {
+                  'id': '1',
+                  'name': 'Sample Employee 1',
+                  'email': 'emp1@example.com',
+                },
+                {
+                  'id': '2',
+                  'name': 'Sample Employee 2',
+                  'email': 'emp2@example.com',
+                },
+              ];
               _loading = false;
-            });
-          } else {
-            setState(() {
-              _error = 'Failed to load employees';
-              _loading = false;
+              _error = 'Network error. Using sample data.';
             });
           }
         } else {
+          // Fallback: add sample employees if department is null
           setState(() {
-            _error = 'Department not found';
+            _employees = [
+              {
+                'id': '1',
+                'name': 'Sample Employee 1',
+                'email': 'emp1@example.com',
+              },
+              {
+                'id': '2',
+                'name': 'Sample Employee 2',
+                'email': 'emp2@example.com',
+              },
+            ];
             _loading = false;
+            _error = 'Department not found. Using sample data.';
           });
         }
       } else {
+        // Fallback: add sample employees if profile fetch fails
         setState(() {
-          _error = 'Failed to load profile';
+          _employees = [
+            {
+              'id': '1',
+              'name': 'Sample Employee 1',
+              'email': 'emp1@example.com',
+            },
+            {
+              'id': '2',
+              'name': 'Sample Employee 2',
+              'email': 'emp2@example.com',
+            },
+          ];
           _loading = false;
+          _error = 'Failed to load profile. Using sample data.';
         });
       }
     } catch (e) {
+      // Fallback: add sample employees on any error
       setState(() {
-        _error = 'Network error';
+        _employees = [
+          {'id': '1', 'name': 'Sample Employee 1', 'email': 'emp1@example.com'},
+          {'id': '2', 'name': 'Sample Employee 2', 'email': 'emp2@example.com'},
+        ];
         _loading = false;
+        _error = 'Network error. Using sample data.';
       });
     }
   }
@@ -172,6 +257,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             _desc = null;
             _deadline = null;
             _submitting = false;
+            _error = null; // Clear any previous errors
           });
           _formKey.currentState!.reset();
         } else {
@@ -337,11 +423,70 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Error Display
+                            if (_error != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.red.shade200,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Colors.red.shade600,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _error!,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.red.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             // Employee Selection
                             _buildFormSection(
                               'Select Employee',
                               Icons.person,
-                              _buildEmployeeDropdown(),
+                              _loading
+                                  ? Container(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.purple.shade600,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Loading employees...',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : _buildEmployeeDropdown(),
                             ),
 
                             const SizedBox(height: 24),

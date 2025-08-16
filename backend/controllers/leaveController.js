@@ -52,4 +52,25 @@ exports.updateLeaveStatus = async (req, res) => {
   } catch (err) {
     res.status(500).send('Server error');
   }
+};
+
+// Get leaves by department (for managers)
+exports.getLeavesByDepartment = async (req, res) => {
+  try {
+    const { department } = req.params;
+    
+    // First get all users in the department
+    const users = await User.find({ department }).select('_id');
+    const userIds = users.map(user => user._id);
+    
+    // Then get all leaves requested by these users
+    const leaves = await Leave.find({ user: { $in: userIds } })
+      .populate('user', 'name email department')
+      .sort({ startDate: -1 });
+    
+    res.json(leaves);
+  } catch (err) {
+    console.error('Error fetching leaves by department:', err);
+    res.status(500).send('Server error');
+  }
 }; 

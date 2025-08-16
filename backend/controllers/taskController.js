@@ -48,4 +48,26 @@ exports.getAllTasks = async (req, res) => {
   } catch (err) {
     res.status(500).send('Server error');
   }
+};
+
+// Get tasks by department (for managers)
+exports.getTasksByDepartment = async (req, res) => {
+  try {
+    const { department } = req.params;
+    
+    // First get all users in the department
+    const User = require('../models/User');
+    const users = await User.find({ department }).select('_id');
+    const userIds = users.map(user => user._id);
+    
+    // Then get all tasks assigned to these users
+    const tasks = await Task.find({ assignedTo: { $in: userIds } })
+      .populate('assignedTo', 'name email')
+      .sort({ createdAt: -1 });
+    
+    res.json(tasks);
+  } catch (err) {
+    console.error('Error fetching tasks by department:', err);
+    res.status(500).send('Server error');
+  }
 }; 

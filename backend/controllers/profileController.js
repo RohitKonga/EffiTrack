@@ -53,3 +53,14 @@ exports.deleteUser = async (req, res) => {
     res.status(500).send('Server error');
   }
 }; 
+
+// Get users by department (for managers)
+exports.getUsersByDepartment = async (req, res) => {
+  try {
+    const { department } = req.params;
+    const users = await User.find({ department }).select('-password');
+    res.json(users);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+}; 
