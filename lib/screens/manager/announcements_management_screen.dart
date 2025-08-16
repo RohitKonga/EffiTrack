@@ -229,9 +229,7 @@ class _AnnouncementsManagementScreenState
                 if (res.statusCode == 200 || res.statusCode == 204) {
                   // Remove from local list
                   setState(() {
-                    announcements.removeWhere(
-                      (ann) => ann['id'] == id || ann['_id'] == id,
-                    );
+                    announcements.removeWhere((ann) => ann['_id'] == id);
                   });
 
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1025,8 +1023,8 @@ class _AnnouncementsManagementScreenState
                   print(
                     'Delete button pressed for announcement: $ann',
                   ); // Temporary debug
-                  final announcementId =
-                      ann['id']?.toString() ?? ann['_id']?.toString();
+                  // MongoDB uses _id field, not id
+                  final announcementId = ann['_id']?.toString();
                   print(
                     'Resolved announcement ID: $announcementId',
                   ); // Temporary debug
