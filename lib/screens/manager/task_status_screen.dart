@@ -81,7 +81,8 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
           if (taskRes.statusCode == 200) {
             final List<dynamic> data = jsonDecode(taskRes.body);
             final List<Map<String, dynamic>> taskList = data
-                .cast<Map<String, dynamic>>();
+                .map((item) => item as Map<String, dynamic>)
+                .toList();
 
             // Calculate summary
             int completed = 0;
@@ -89,7 +90,8 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
             int toDo = 0;
 
             for (var task in taskList) {
-              switch (task['status']) {
+              final status = _getTaskStatus(task['status']);
+              switch (status) {
                 case 'Completed':
                   completed++;
                   break;
@@ -257,6 +259,42 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
       default:
         return Icons.info;
     }
+  }
+
+  String _getAssignedToName(dynamic assignedTo) {
+    if (assignedTo == null) return 'Unknown';
+    if (assignedTo is String) return assignedTo;
+    if (assignedTo is Map<String, dynamic>) {
+      return assignedTo['name'] ?? assignedTo['fullName'] ?? 'Unknown';
+    }
+    return 'Unknown';
+  }
+
+  String _getTaskTitle(dynamic title) {
+    if (title == null) return 'Unknown Task';
+    if (title is String) return title;
+    if (title is Map<String, dynamic>) {
+      return title['title'] ?? title['name'] ?? 'Unknown Task';
+    }
+    return 'Unknown Task';
+  }
+
+  String _getTaskPriority(dynamic priority) {
+    if (priority == null) return 'Medium';
+    if (priority is String) return priority;
+    if (priority is Map<String, dynamic>) {
+      return priority['priority'] ?? priority['name'] ?? 'Medium';
+    }
+    return 'Medium';
+  }
+
+  String _getTaskStatus(dynamic status) {
+    if (status == null) return 'To Do';
+    if (status is String) return status;
+    if (status is Map<String, dynamic>) {
+      return status['status'] ?? status['name'] ?? 'To Do';
+    }
+    return 'To Do';
   }
 
   @override
@@ -546,11 +584,13 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
   }
 
   Widget _buildTaskCard(Map<String, dynamic> task) {
-    final statusColor = _getStatusColor(task['status'] ?? 'To Do');
-    final priorityColor = _getPriorityColor(task['priority'] ?? 'Medium');
+    final status = _getTaskStatus(task['status']);
+    final priority = _getTaskPriority(task['priority']);
+    final statusColor = _getStatusColor(status);
+    final priorityColor = _getPriorityColor(priority);
     // Calculate progress based on status
     int progress = 0;
-    switch (task['status']) {
+    switch (status) {
       case 'Completed':
         progress = 100;
         break;
@@ -591,7 +631,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  _getStatusIcon(task['status'] ?? 'To Do'),
+                  _getStatusIcon(status),
                   color: statusColor,
                   size: 20,
                 ),
@@ -602,7 +642,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      task['title'] ?? 'Unknown Task',
+                      _getTaskTitle(task['title']),
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -619,7 +659,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          task['assignedTo'] ?? 'Unknown',
+                          _getAssignedToName(task['assignedTo']),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -640,7 +680,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                   ),
                 ),
                 child: Text(
-                  task['priority'] ?? 'Medium',
+                  _getTaskPriority(task['priority']),
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -739,14 +779,10 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               children: [
                 Row(
                   children: [
-                    Icon(
-                      _getStatusIcon(task['status'] ?? 'To Do'),
-                      color: statusColor,
-                      size: 20,
-                    ),
+                    Icon(_getStatusIcon(status), color: statusColor, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Status: ${task['status'] ?? 'Unknown'}',
+                      'Status: $status',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -759,17 +795,17 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                   onSelected: (String newStatus) =>
                       _updateTaskStatus(tasks.indexOf(task), newStatus),
                   itemBuilder: (BuildContext context) => [
-                    if (task['status'] != 'To Do')
+                    if (status != 'To Do')
                       PopupMenuItem(
                         value: 'To Do',
                         child: Text('Mark as To Do'),
                       ),
-                    if (task['status'] != 'In Progress')
+                    if (status != 'In Progress')
                       PopupMenuItem(
                         value: 'In Progress',
                         child: Text('Mark as In Progress'),
                       ),
-                    if (task['status'] != 'Completed')
+                    if (status != 'Completed')
                       PopupMenuItem(
                         value: 'Completed',
                         child: Text('Mark as Completed'),
