@@ -78,6 +78,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             final employeeRes = await apiService.get(
               '/profile/department/$department',
             );
+
             if (employeeRes.statusCode == 200) {
               final employees = jsonDecode(employeeRes.body);
               final List<Map<String, dynamic>> employeeList = [];
@@ -96,112 +97,51 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                 setState(() {
                   _employees = employeeList;
                   _loading = false;
+                  _error = null;
                 });
               } else {
-                // Fallback: add some sample employees if none found
                 setState(() {
-                  _employees = [
-                    {
-                      'id': '1',
-                      'name': 'Sample Employee 1',
-                      'email': 'emp1@example.com',
-                    },
-                    {
-                      'id': '2',
-                      'name': 'Sample Employee 2',
-                      'email': 'emp2@example.com',
-                    },
-                  ];
+                  _employees = [];
                   _loading = false;
                   _error =
-                      'No employees found in department. Using sample data.';
+                      'No employees found in your department ($department)';
                 });
               }
             } else {
-              // Fallback: add sample employees if API fails
               setState(() {
-                _employees = [
-                  {
-                    'id': '1',
-                    'name': 'Sample Employee 1',
-                    'email': 'emp1@example.com',
-                  },
-                  {
-                    'id': '2',
-                    'name': 'Sample Employee 2',
-                    'email': 'emp2@example.com',
-                  },
-                ];
+                _employees = [];
                 _loading = false;
-                _error = 'Failed to load employees. Using sample data.';
+                _error =
+                    'Failed to load employees: ${employeeRes.statusCode} - ${employeeRes.body}';
               });
             }
           } catch (e) {
-            // Fallback: add sample employees on error
             setState(() {
-              _employees = [
-                {
-                  'id': '1',
-                  'name': 'Sample Employee 1',
-                  'email': 'emp1@example.com',
-                },
-                {
-                  'id': '2',
-                  'name': 'Sample Employee 2',
-                  'email': 'emp2@example.com',
-                },
-              ];
+              _employees = [];
               _loading = false;
-              _error = 'Network error. Using sample data.';
+              _error = 'Network error loading employees: $e';
             });
           }
         } else {
-          // Fallback: add sample employees if department is null
           setState(() {
-            _employees = [
-              {
-                'id': '1',
-                'name': 'Sample Employee 1',
-                'email': 'emp1@example.com',
-              },
-              {
-                'id': '2',
-                'name': 'Sample Employee 2',
-                'email': 'emp2@example.com',
-              },
-            ];
+            _employees = [];
             _loading = false;
-            _error = 'Department not found. Using sample data.';
+            _error = 'Your department is not set. Please contact admin.';
           });
         }
       } else {
-        // Fallback: add sample employees if profile fetch fails
         setState(() {
-          _employees = [
-            {
-              'id': '1',
-              'name': 'Sample Employee 1',
-              'email': 'emp1@example.com',
-            },
-            {
-              'id': '2',
-              'name': 'Sample Employee 2',
-              'email': 'emp2@example.com',
-            },
-          ];
+          _employees = [];
           _loading = false;
-          _error = 'Failed to load profile. Using sample data.';
+          _error =
+              'Failed to load profile: ${profileRes.statusCode} - ${profileRes.body}';
         });
       }
     } catch (e) {
-      // Fallback: add sample employees on any error
       setState(() {
-        _employees = [
-          {'id': '1', 'name': 'Sample Employee 1', 'email': 'emp1@example.com'},
-          {'id': '2', 'name': 'Sample Employee 2', 'email': 'emp2@example.com'},
-        ];
+        _employees = [];
         _loading = false;
-        _error = 'Network error. Using sample data.';
+        _error = 'Network error: $e';
       });
     }
   }
@@ -215,20 +155,22 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       });
 
       try {
-        final selectedEmployee = _employees.firstWhere(
-          (e) => e['name'] == _employee,
-        );
-
         final res = await apiService.post('/tasks', {
           'title': _title,
           'description': _desc,
-          'assignedTo': selectedEmployee['id'],
+          'assignedTo': _employee, // Now _employee contains the ID directly
           'dueDate': _deadline,
           'priority': 'Medium',
           'status': 'To Do',
         });
 
         if (res.statusCode == 201) {
+          // Get employee name for the success message
+          final employeeName = _employees.firstWhere(
+            (e) => e['id'] == _employee,
+            orElse: () => {'name': 'Employee'},
+          )['name'];
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -237,7 +179,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Task "$_title" assigned to $_employee successfully!${(_desc != null && _desc!.trim().isNotEmpty) ? ' (Desc: ${_desc!.trim()})' : ''}',
+                      'Task "$_title" assigned to $employeeName successfully!${(_desc != null && _desc!.trim().isNotEmpty) ? ' (Desc: ${_desc!.trim()})' : ''}',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -410,6 +352,22 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                             ],
                           ),
                         ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple.shade200),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.refresh,
+                              color: Colors.purple.shade600,
+                              size: 20,
+                            ),
+                            onPressed: _fetchEmployees,
+                            tooltip: 'Refresh Employees',
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -435,27 +393,69 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                     color: Colors.red.shade200,
                                   ),
                                 ),
-                                child: Row(
+                                child: Column(
                                   children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      color: Colors.red.shade600,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        _error!,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.red.shade700,
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red.shade600,
                                         ),
-                                      ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _error!,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.red.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: ElevatedButton.icon(
+                                            onPressed: _fetchEmployees,
+                                            icon: Icon(Icons.refresh, size: 16),
+                                            label: Text('Refresh'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.red.shade600,
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 8,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: ElevatedButton.icon(
+                                            onPressed: () =>
+                                                setState(() => _error = null),
+                                            icon: Icon(Icons.close, size: 16),
+                                            label: Text('Dismiss'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.grey.shade600,
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 8,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
                             ],
 
                             // Employee Selection
@@ -617,6 +617,33 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
   }
 
   Widget _buildEmployeeDropdown() {
+    if (_employees.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.grey.shade600),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'No employees available. Please refresh or check your department.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return DropdownButtonFormField<String>(
       initialValue: _employee,
       isExpanded: true,
@@ -644,9 +671,9 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       items: _employees
           .map(
             (e) => DropdownMenuItem<String>(
-              value: e['name'] as String,
+              value: e['id'] as String,
               child: Text(
-                e['name'] as String,
+                '${e['name']} (${e['email']})',
                 style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
               ),
             ),
