@@ -13,7 +13,7 @@ class AnalyticsDashboardScreen extends StatefulWidget {
 
 class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
     with TickerProviderStateMixin {
-  Map<String, dynamic> _stats = {
+  final Map<String, dynamic> _stats = {
     'totalEmployees': 0,
     'totalTasks': 0,
     'completedTasks': 0,

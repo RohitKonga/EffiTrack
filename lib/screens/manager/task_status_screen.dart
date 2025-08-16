@@ -669,7 +669,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                     ),
                   ),
                   Text(
-                    '${progress}%',
+                    '$progress%',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

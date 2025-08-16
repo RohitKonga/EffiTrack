@@ -618,7 +618,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
 
   Widget _buildEmployeeDropdown() {
     return DropdownButtonFormField<String>(
-      value: _employee,
+      initialValue: _employee,
       isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Choose an employee',

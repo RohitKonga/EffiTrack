@@ -22,9 +22,9 @@ class _AdminDashboardState extends State<AdminDashboard>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   // Real-time data
-  Map<String, dynamic> _stats = {
+  final Map<String, dynamic> _stats = {
     'totalUsers': 0,
     'totalTasks': 0,
     'pendingLeaves': 0,
@@ -37,33 +37,26 @@ class _AdminDashboardState extends State<AdminDashboard>
   void initState() {
     super.initState();
     _fetchDashboardStats();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+
     _fadeController.forward();
     _slideController.forward();
   }
@@ -80,7 +73,7 @@ class _AdminDashboardState extends State<AdminDashboard>
       _loading = true;
       _error = null;
     });
-    
+
     try {
       // Fetch user count
       final userRes = await apiService.get('/profile/all');
@@ -88,35 +81,40 @@ class _AdminDashboardState extends State<AdminDashboard>
         final users = jsonDecode(userRes.body);
         _stats['totalUsers'] = users.length;
       }
-      
+
       // Fetch task count
       final taskRes = await apiService.get('/tasks/all');
       if (taskRes.statusCode == 200) {
         final tasks = jsonDecode(taskRes.body);
         _stats['totalTasks'] = tasks.length;
       }
-      
+
       // Fetch pending leaves
       final leaveRes = await apiService.get('/leaves/pending');
       if (leaveRes.statusCode == 200) {
         final leaves = jsonDecode(leaveRes.body);
         _stats['pendingLeaves'] = leaves.length;
       }
-      
+
       // Fetch attendance rate (today's attendance)
       final today = DateTime.now().toIso8601String().split('T')[0];
-      final attendanceRes = await apiService.get('/attendance/reports?date=$today');
+      final attendanceRes = await apiService.get(
+        '/attendance/reports?date=$today',
+      );
       if (attendanceRes.statusCode == 200) {
         final data = jsonDecode(attendanceRes.body);
         if (data['hasData'] && data['employeeReports'] != null) {
-          final totalEmployees = data['employeeTotalStats']['totalEmployees'] ?? 0;
-          final presentEmployees = data['employeeTotalStats']['presentEmployees'] ?? 0;
+          final totalEmployees =
+              data['employeeTotalStats']['totalEmployees'] ?? 0;
+          final presentEmployees =
+              data['employeeTotalStats']['presentEmployees'] ?? 0;
           if (totalEmployees > 0) {
-            _stats['attendanceRate'] = (presentEmployees / totalEmployees * 100).roundToDouble();
+            _stats['attendanceRate'] = (presentEmployees / totalEmployees * 100)
+                .roundToDouble();
           }
         }
       }
-      
+
       setState(() {
         _loading = false;
       });
@@ -215,9 +213,9 @@ class _AdminDashboardState extends State<AdminDashboard>
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Quick Stats Card
                         Container(
                           padding: const EdgeInsets.all(20),
@@ -245,7 +243,9 @@ class _AdminDashboardState extends State<AdminDashboard>
                                     Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const CircularProgressIndicator(
@@ -267,16 +267,75 @@ class _AdminDashboardState extends State<AdminDashboard>
                                   ],
                                 )
                               : _error != null
-                                  ? Row(
+                              ? Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        Icons.error_outline,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Error Loading Stats',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _error!,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.9,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.refresh,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      onPressed: _fetchDashboardStats,
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    Row(
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(12),
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                           child: Icon(
-                                            Icons.error_outline,
+                                            Icons.dashboard,
                                             color: Colors.white,
                                             size: 24,
                                           ),
@@ -284,10 +343,11 @@ class _AdminDashboardState extends State<AdminDashboard>
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Error Loading Stats',
+                                                'System Overview',
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
@@ -296,10 +356,11 @@ class _AdminDashboardState extends State<AdminDashboard>
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                _error!,
+                                                'Monitor and control all aspects of your organization',
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 12,
-                                                  color: Colors.white.withValues(alpha: 0.9),
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.9),
                                                 ),
                                               ),
                                             ],
@@ -314,99 +375,49 @@ class _AdminDashboardState extends State<AdminDashboard>
                                           onPressed: _fetchDashboardStats,
                                         ),
                                       ],
-                                    )
-                                  : Column(
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Row(
                                       children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(12),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withValues(alpha: 0.2),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Icon(
-                                                Icons.dashboard,
-                                                color: Colors.white,
-                                                size: 24,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'System Overview',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    'Monitor and control all aspects of your organization',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 12,
-                                                      color: Colors.white.withValues(alpha: 0.9),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.refresh,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                              onPressed: _fetchDashboardStats,
-                                            ),
-                                          ],
+                                        Expanded(
+                                          child: _buildStatItem(
+                                            'Total Users',
+                                            _stats['totalUsers'].toString(),
+                                            Icons.people,
+                                            Colors.blue.shade100,
+                                          ),
                                         ),
-                                        const SizedBox(height: 20),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: _buildStatItem(
-                                                'Total Users',
-                                                _stats['totalUsers'].toString(),
-                                                Icons.people,
-                                                Colors.blue.shade100,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: _buildStatItem(
-                                                'Total Tasks',
-                                                _stats['totalTasks'].toString(),
-                                                Icons.task,
-                                                Colors.orange.shade100,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: _buildStatItem(
-                                                'Pending Leaves',
-                                                _stats['pendingLeaves'].toString(),
-                                                Icons.pending_actions,
-                                                Colors.red.shade100,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: _buildStatItem(
-                                                'Attendance Rate',
-                                                '${_stats['attendanceRate']}%',
-                                                Icons.trending_up,
-                                                Colors.green.shade100,
-                                              ),
-                                            ),
-                                          ],
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildStatItem(
+                                            'Total Tasks',
+                                            _stats['totalTasks'].toString(),
+                                            Icons.task,
+                                            Colors.orange.shade100,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildStatItem(
+                                            'Pending Leaves',
+                                            _stats['pendingLeaves'].toString(),
+                                            Icons.pending_actions,
+                                            Colors.red.shade100,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildStatItem(
+                                            'Attendance Rate',
+                                            '${_stats['attendanceRate']}%',
+                                            Icons.trending_up,
+                                            Colors.green.shade100,
+                                          ),
                                         ),
                                       ],
                                     ),
+                                  ],
+                                ),
                         ),
                       ],
                     ),
@@ -431,7 +442,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                             () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const UserManagementScreen(),
+                                builder: (context) =>
+                                    const UserManagementScreen(),
                               ),
                             ),
                           ),
@@ -444,7 +456,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                             () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AttendanceReportsScreen(),
+                                builder: (context) =>
+                                    const AttendanceReportsScreen(),
                               ),
                             ),
                           ),
@@ -470,7 +483,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                             () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const LeavePoliciesScreen(),
+                                builder: (context) =>
+                                    const LeavePoliciesScreen(),
                               ),
                             ),
                           ),
@@ -483,7 +497,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                             () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AnnouncementsManagementScreen(),
+                                builder: (context) =>
+                                    const AnnouncementsManagementScreen(),
                               ),
                             ),
                           ),
@@ -496,7 +511,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                             () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AnalyticsDashboardScreen(),
+                                builder: (context) =>
+                                    const AnalyticsDashboardScreen(),
                               ),
                             ),
                           ),
@@ -513,7 +529,12 @@ class _AdminDashboardState extends State<AdminDashboard>
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -588,11 +609,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 32,
-                  ),
+                  child: Icon(icon, color: color, size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(

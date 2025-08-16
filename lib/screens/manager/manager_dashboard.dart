@@ -24,7 +24,7 @@ class _ManagerDashboardState extends State<ManagerDashboard>
   late Animation<Offset> _slideAnimation;
 
   // Real-time data
-  Map<String, dynamic> _stats = {
+  final Map<String, dynamic> _stats = {
     'teamSize': 0,
     'presentToday': 0,
     'pendingTasks': 0,

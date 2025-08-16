@@ -415,8 +415,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                             onPressed: loading
                                 ? null
                                 : () async {
-                                    if (!formKey.currentState!.validate())
+                                    if (!formKey.currentState!.validate()) {
                                       return;
+                                    }
                                     formKey.currentState!.save();
                                     setState(() => loading = true);
                                     try {
@@ -593,7 +594,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
         filled: true,
         fillColor: Colors.grey.shade50,
       ),
-      value: value,
+      initialValue: value,
       isExpanded: true,
       items: items
           .map(

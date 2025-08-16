@@ -529,7 +529,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
                               ),
-                              value: _selectedRole,
+                              initialValue: _selectedRole,
                               isExpanded: true,
                               items: _roles
                                   .map(
@@ -647,7 +647,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
                               ),
-                              value: _selectedDepartment,
+                              initialValue: _selectedDepartment,
                               isExpanded: true,
                               items: _departments
                                   .map(

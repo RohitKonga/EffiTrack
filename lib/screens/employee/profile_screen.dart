@@ -569,7 +569,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value.isNotEmpty ? value : null,
+          initialValue: value.isNotEmpty ? value : null,
           isExpanded: true,
           items: items
               .map(

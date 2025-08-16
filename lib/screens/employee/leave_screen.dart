@@ -643,7 +643,7 @@ class _LeaveScreenState extends State<LeaveScreen>
 
   Widget _buildLeaveTypeDropdown() {
     return DropdownButtonFormField<String>(
-      value: _leaveType,
+      initialValue: _leaveType,
       isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Select leave type',

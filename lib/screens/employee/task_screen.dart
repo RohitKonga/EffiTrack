@@ -245,7 +245,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: task['status'],
+                      initialValue: task['status'],
                       isExpanded: true,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
