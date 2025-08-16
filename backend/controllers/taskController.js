@@ -1,13 +1,8 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
 
-console.log('TaskController loading...');
-console.log('Task model:', Task);
-console.log('User model:', User);
-
 // Assign a new task (Manager)
 exports.assignTask = async (req, res) => {
-  console.log('assignTask function called with body:', req.body);
   try {
     const { title, description, dueDate, priority, status, assignedTo } = req.body;
     const assignedBy = req.user.id;
@@ -35,7 +30,6 @@ exports.assignTask = async (req, res) => {
     await task.save();
     res.status(201).json(task);
   } catch (err) {
-    console.error('Task assignment error:', err);
     res.status(500).send('Server error');
   }
 };
@@ -91,7 +85,6 @@ exports.getTasksByDepartment = async (req, res) => {
     
     res.json(tasks);
   } catch (err) {
-    console.error('Error fetching tasks by department:', err);
     res.status(500).send('Server error');
   }
 }; 

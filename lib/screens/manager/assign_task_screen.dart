@@ -82,7 +82,6 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
 
             if (employeeRes.statusCode == 200) {
               final data = jsonDecode(employeeRes.body);
-              print('Team attendance API response: $data'); // Debug log
               List<Map<String, dynamic>> employeeList = [];
 
               // Extract employees from team data (same structure as team attendance)
@@ -126,7 +125,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                 _employees = [];
                 _loading = false;
                 _error =
-                    'Failed to load employees (Status: ${employeeRes.statusCode}). Please try again.';
+                    'Failed to load employees (Status: ${employeeRes.statusCode}). Response: ${employeeRes.body}';
               });
             }
           } catch (e) {
@@ -227,6 +226,14 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             _submitting = false;
           });
 
+          // Log error details for debugging
+          print('Task assignment failed:');
+          print('Status Code: ${res.statusCode}');
+          print('Response Body: ${res.body}');
+          print(
+            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline, priority: $_priority}',
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -235,7 +242,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Failed to assign task (Status: ${res.statusCode})',
+                      'Failed to assign task (Status: ${res.statusCode})\nResponse: ${res.body}',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -247,14 +254,6 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-          );
-
-          // Log error details for debugging
-          print('Task assignment failed:');
-          print('Status Code: ${res.statusCode}');
-          print('Response Body: ${res.body}');
-          print(
-            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline, priority: $_priority}',
           );
         }
       } catch (e) {
