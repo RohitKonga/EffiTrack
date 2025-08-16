@@ -77,13 +77,14 @@ class _AnnouncementsManagementScreenState
         });
       } else {
         setState(() {
-          _error = 'Failed to load announcements';
+          _error =
+              'Failed to load announcements (Status: ${res.statusCode})\nResponse: ${res.body}';
           _loading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error';
+        _error = 'Network error: $e';
         _loading = false;
       });
     }
@@ -139,7 +140,7 @@ class _AnnouncementsManagementScreenState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Failed to add announcement',
+                      'Failed to add announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -270,7 +271,7 @@ class _AnnouncementsManagementScreenState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Failed to delete announcement',
+                    'Failed to delete announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
                     style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),

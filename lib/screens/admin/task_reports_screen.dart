@@ -93,13 +93,14 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
         });
       } else {
         setState(() {
-          _error = 'Failed to load task reports';
+          _error =
+              'Failed to load task reports (Status: ${res.statusCode})\nResponse: ${res.body}';
           _loading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error';
+        _error = 'Network error: $e';
         _loading = false;
       });
     }
