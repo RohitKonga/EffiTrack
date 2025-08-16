@@ -27,6 +27,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
   @override
   void initState() {
     super.initState();
+    _priority = 'Medium'; // Set default priority
     _fetchEmployees();
 
     _fadeController = AnimationController(
@@ -817,6 +818,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
     return DropdownButtonFormField<String>(
       initialValue: _priority,
       isExpanded: true,
+      onSaved: (value) => _priority = value,
       decoration: InputDecoration(
         hintText: 'Select priority',
         border: OutlineInputBorder(
