@@ -1,6 +1,10 @@
 const Leave = require('../models/Leave');
 const User = require('../models/User');
 
+// Debug: Log when controller is loaded
+console.log('LeaveController loaded successfully');
+console.log('Available methods:', Object.keys(exports));
+
 // Request leave (Employee)
 exports.requestLeave = async (req, res) => {
   try {
@@ -60,12 +64,14 @@ exports.getLeavesByDepartment = async (req, res) => {
     const { department } = req.params;
     console.log('Fetching leaves for department:', department);
     
-    // First get all users in the department
-    const users = await User.find({ department }).select('_id');
+    // First get all users in the department (case-insensitive)
+    const users = await User.find({ 
+      department: { $regex: new RegExp(department, 'i') } 
+    }).select('_id');
     console.log('Users found in department:', users.length);
-    console.log('User IDs:', userIds);
     
     const userIds = users.map(user => user._id);
+    console.log('User IDs:', userIds);
     
     // Then get all leaves requested by these users
     const leaves = await Leave.find({ user: { $in: userIds } })

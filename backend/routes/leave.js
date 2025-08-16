@@ -18,6 +18,48 @@ router.get('/test', (req, res) => {
   });
 });
 
+// Simple test endpoint to verify route is accessible
+router.get('/ping', (req, res) => {
+  res.json({ 
+    message: 'Leave routes are accessible!', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
+// Test department endpoint without auth for debugging
+router.get('/test-department/:department', async (req, res) => {
+  try {
+    const { department } = req.params;
+    const User = require('../models/User');
+    const Leave = require('../models/Leave');
+    
+    // Find users in department
+    const users = await User.find({ 
+      department: { $regex: new RegExp(department, 'i') } 
+    }).select('_id name email department role');
+    
+    // Find leaves for these users
+    const userIds = users.map(user => user._id);
+    const leaves = await Leave.find({ user: { $in: userIds } })
+      .populate('user', 'name email department')
+      .sort({ startDate: -1 });
+    
+    res.json({
+      department: department,
+      usersFound: users.length,
+      users: users,
+      leavesFound: leaves.length,
+      leaves: leaves,
+      message: 'Department test successful'
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      error: err.message,
+      stack: err.stack 
+    });
+  }
+});
+
 // Debug endpoint to check database status (no auth required for testing)
 router.get('/debug', async (req, res) => {
   try {
