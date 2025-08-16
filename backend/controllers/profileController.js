@@ -63,15 +63,14 @@ exports.getUsersByDepartment = async (req, res) => {
       return res.status(400).json({ msg: 'Department parameter is required' });
     }
     
-    // Use case-insensitive search for department
+    // Get employees from the specified department
     const users = await User.find({ 
-      department: { $regex: new RegExp(department, 'i') },
-      role: 'Employee' // Only get employees, not managers
+      department: department,
+      role: 'Employee'
     }).select('-password');
     
     res.json(users);
   } catch (err) {
-    console.error('Error fetching users by department:', err);
     res.status(500).send('Server error');
   }
 }; 

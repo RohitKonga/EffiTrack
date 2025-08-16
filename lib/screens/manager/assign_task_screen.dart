@@ -104,44 +104,44 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   _employees = [];
                   _loading = false;
                   _error =
-                      'No employees found in your department ($department)';
+                      'No employees found in your department ($department). Please contact admin to add employees.';
                 });
               }
             } else {
               setState(() {
                 _employees = [];
                 _loading = false;
-                _error =
-                    'Failed to load employees: ${employeeRes.statusCode} - ${employeeRes.body}';
+                _error = 'Failed to load employees. Please try again.';
               });
             }
           } catch (e) {
             setState(() {
               _employees = [];
               _loading = false;
-              _error = 'Network error loading employees: $e';
+              _error =
+                  'Network error. Please check your connection and try again.';
             });
           }
         } else {
           setState(() {
             _employees = [];
             _loading = false;
-            _error = 'Your department is not set. Please contact admin.';
+            _error =
+                'Your department is not set. Please contact admin to set your department.';
           });
         }
       } else {
         setState(() {
           _employees = [];
           _loading = false;
-          _error =
-              'Failed to load profile: ${profileRes.statusCode} - ${profileRes.body}';
+          _error = 'Failed to load your profile. Please try again.';
         });
       }
     } catch (e) {
       setState(() {
         _employees = [];
         _loading = false;
-        _error = 'Network error: $e';
+        _error = 'Network error. Please check your connection and try again.';
       });
     }
   }
@@ -343,10 +343,14 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                 ),
                               ),
                               Text(
-                                'Delegate tasks to your team members',
+                                _employees.isEmpty
+                                    ? 'No employees available in your department'
+                                    : 'Delegate tasks to your team members',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
-                                  color: Colors.grey.shade600,
+                                  color: _employees.isEmpty
+                                      ? Colors.orange.shade600
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                             ],
@@ -523,7 +527,9 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                               width: double.infinity,
                               height: 56,
                               child: ElevatedButton.icon(
-                                onPressed: _submitting ? null : _assignTask,
+                                onPressed: (_submitting || _employees.isEmpty)
+                                    ? null
+                                    : _assignTask,
                                 icon: _submitting
                                     ? SizedBox(
                                         height: 20,
@@ -545,13 +551,21 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple.shade600,
+                                  backgroundColor:
+                                      (_submitting || _employees.isEmpty)
+                                      ? Colors.grey.shade400
+                                      : Colors.purple.shade600,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  elevation: 4,
-                                  shadowColor: Colors.purple.shade300,
+                                  elevation: (_submitting || _employees.isEmpty)
+                                      ? 0
+                                      : 4,
+                                  shadowColor:
+                                      (_submitting || _employees.isEmpty)
+                                      ? Colors.transparent
+                                      : Colors.purple.shade300,
                                 ),
                               ),
                             ),
@@ -622,21 +636,35 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Colors.orange.shade50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: Colors.orange.shade200),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.info_outline, color: Colors.grey.shade600),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'No employees available. Please refresh or check your department.',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
+            Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.orange.shade600),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'No Employees Available',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'There are no employees in your department to assign tasks to. Please contact the admin to add employees to your department.',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.orange.shade600,
               ),
             ),
           ],

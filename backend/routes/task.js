@@ -3,7 +3,8 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const { assignTask, getMyTasks, updateStatus, getAllTasks, getTasksByDepartment } = require('../controllers/taskController');
 
-// Assign a task (Manager)
+// Assign a task (Manager) - both routes for compatibility
+router.post('/', auth, assignTask);
 router.post('/assign', auth, assignTask);
 // List tasks for logged-in user (Employee)
 router.get('/my', auth, getMyTasks);

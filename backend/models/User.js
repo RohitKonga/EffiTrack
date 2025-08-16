@@ -8,7 +8,6 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String },
   department: { 
     type: String, 
-    enum: ['Design', 'Development', 'Marketing', 'Sales', 'HR'],
     required: true 
   },
 }, { timestamps: true });
