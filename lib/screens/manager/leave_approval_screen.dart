@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/api_service.dart';
+import 'dart:convert';
 
 class LeaveApprovalScreen extends StatefulWidget {
   const LeaveApprovalScreen({super.key});
@@ -10,35 +12,16 @@ class LeaveApprovalScreen extends StatefulWidget {
 
 class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
     with TickerProviderStateMixin {
-  List<Map<String, dynamic>> leaveRequests = [
-    {
-      'employee': 'Alice Johnson',
-      'type': 'Sick Leave',
-      'dates': '2024-07-10 to 2024-07-12',
-      'status': 'Pending',
-      'reason': 'Not feeling well, need rest',
-      'days': 3,
-      'id': '1',
-    },
-    {
-      'employee': 'Bob Smith',
-      'type': 'Casual Leave',
-      'dates': '2024-06-20 to 2024-06-21',
-      'status': 'Pending',
-      'reason': 'Personal work at home',
-      'days': 2,
-      'id': '2',
-    },
-    {
-      'employee': 'Charlie Brown',
-      'type': 'Annual Leave',
-      'dates': '2024-08-15 to 2024-08-20',
-      'status': 'Approved',
-      'reason': 'Family vacation',
-      'days': 6,
-      'id': '3',
-    },
-  ];
+  List<Map<String, dynamic>> leaveRequests = [];
+  bool _loading = true;
+  String? _error;
+  String? _managerDepartment;
+  Map<String, dynamic> _summary = {
+    'total': 0,
+    'pending': 0,
+    'approved': 0,
+    'rejected': 0,
+  };
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -48,6 +31,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
   @override
   void initState() {
     super.initState();
+    _fetchManagerInfo();
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -79,35 +63,195 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
     super.dispose();
   }
 
-  void _updateStatus(int index, String newStatus) {
+  Future<void> _fetchManagerInfo() async {
+    try {
+      final res = await apiService.get('/profile');
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        setState(() {
+          _managerDepartment = data['department'];
+        });
+        _fetchLeaveRequests();
+      } else {
+        setState(() {
+          _error = 'Failed to load manager info';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Network error: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchLeaveRequests() async {
+    if (_managerDepartment == null) return;
+
     setState(() {
-      leaveRequests[index]['status'] = newStatus;
+      _loading = true;
+      _error = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              newStatus == 'Approved' ? Icons.check_circle : Icons.cancel,
-              color: Colors.white,
+    try {
+      final res = await apiService.get(
+        '/leaves/department/$_managerDepartment',
+      );
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
+        final List<Map<String, dynamic>> leaveList = data
+            .cast<Map<String, dynamic>>();
+
+        // Calculate summary
+        int pending = 0;
+        int approved = 0;
+        int rejected = 0;
+
+        for (var leave in leaveList) {
+          switch (leave['status']) {
+            case 'Pending':
+              pending++;
+              break;
+            case 'Approved':
+              approved++;
+              break;
+            case 'Rejected':
+              rejected++;
+              break;
+          }
+        }
+
+        setState(() {
+          leaveRequests = leaveList;
+          _summary = {
+            'total': leaveList.length,
+            'pending': pending,
+            'approved': approved,
+            'rejected': rejected,
+          };
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load leave requests';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Network error: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _updateStatus(int index, String newStatus) async {
+    try {
+      final leaveId = leaveRequests[index]['_id'];
+      final res = await apiService.put('/leaves/$leaveId/status', {
+        'status': newStatus,
+      });
+
+      if (res.statusCode == 200) {
+        await _fetchLeaveRequests(); // Refresh the list
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  newStatus == 'Approved' ? Icons.check_circle : Icons.cancel,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Leave request ${newStatus.toLowerCase()} for ${leaveRequests[index]['user']?['name'] ?? 'Employee'}',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Leave request ${newStatus.toLowerCase()} for ${leaveRequests[index]['employee']}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+            backgroundColor: newStatus == 'Approved'
+                ? Colors.green.shade600
+                : Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to update leave status',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Network error while updating status',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        backgroundColor: newStatus == 'Approved'
-            ? Colors.green.shade600
-            : Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+      );
+    }
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return 'No date';
+    try {
+      if (date is String) {
+        final parsed = DateTime.parse(date);
+        return '${parsed.day}/${parsed.month}/${parsed.year}';
+      }
+      return 'Invalid date';
+    } catch (e) {
+      return 'Invalid date';
+    }
+  }
+
+  String _calculateDays(String? startDate, String? endDate) {
+    if (startDate == null || endDate == null) return '0';
+    try {
+      final start = DateTime.parse(startDate);
+      final end = DateTime.parse(endDate);
+      final difference = end.difference(start).inDays + 1;
+      return difference.toString();
+    } catch (e) {
+      return '0';
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -140,15 +284,9 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
 
   @override
   Widget build(BuildContext context) {
-    final pendingCount = leaveRequests
-        .where((req) => req['status'] == 'Pending')
-        .length;
-    final approvedCount = leaveRequests
-        .where((req) => req['status'] == 'Approved')
-        .length;
-    final rejectedCount = leaveRequests
-        .where((req) => req['status'] == 'Rejected')
-        .length;
+    final pendingCount = _summary['pending'] ?? 0;
+    final approvedCount = _summary['approved'] ?? 0;
+    final rejectedCount = _summary['rejected'] ?? 0;
 
     return Scaffold(
       body: Container(
@@ -205,13 +343,28 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                                 ),
                               ),
                               Text(
-                                'Review and manage leave requests',
+                                '${_managerDepartment ?? 'Department'} - Review and approve leave requests',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple.shade200),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.refresh,
+                              color: Colors.purple.shade600,
+                              size: 20,
+                            ),
+                            onPressed: _fetchLeaveRequests,
                           ),
                         ),
                       ],
@@ -272,7 +425,28 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                           ),
                           const SizedBox(height: 16),
 
-                          if (leaveRequests.isEmpty) ...[
+                          if (_loading) ...[
+                            Expanded(
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.purple.shade600,
+                                ),
+                              ),
+                            ),
+                          ] else if (_error != null) ...[
+                            Expanded(
+                              child: Center(
+                                child: Text(
+                                  _error!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.red.shade600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ] else if (leaveRequests.isEmpty) ...[
                             Expanded(
                               child: Center(
                                 child: Container(
@@ -332,12 +506,16 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                             ),
                           ] else ...[
                             Expanded(
-                              child: ListView.builder(
-                                itemCount: leaveRequests.length,
-                                itemBuilder: (context, index) {
-                                  final req = leaveRequests[index];
-                                  return _buildLeaveRequestCard(req, index);
-                                },
+                              child: RefreshIndicator(
+                                onRefresh: _fetchLeaveRequests,
+                                color: Colors.purple.shade600,
+                                child: ListView.builder(
+                                  itemCount: leaveRequests.length,
+                                  itemBuilder: (context, index) {
+                                    final req = leaveRequests[index];
+                                    return _buildLeaveRequestCard(req, index);
+                                  },
+                                ),
                               ),
                             ),
                           ],
@@ -443,7 +621,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      req['employee'] ?? 'Unknown',
+                      req['user']?['name'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -512,7 +690,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
               Expanded(
                 child: _buildDetailItem(
                   'Dates',
-                  req['dates'] ?? 'N/A',
+                  '${_formatDate(req['startDate'])} to ${_formatDate(req['endDate'])}',
                   Icons.calendar_today,
                   Colors.blue,
                 ),
@@ -520,7 +698,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
               Expanded(
                 child: _buildDetailItem(
                   'Days',
-                  '${req['days'] ?? 0} days',
+                  _calculateDays(req['startDate'], req['endDate']),
                   Icons.schedule,
                   Colors.green,
                 ),

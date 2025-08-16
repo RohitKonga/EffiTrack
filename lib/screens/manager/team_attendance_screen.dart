@@ -566,14 +566,14 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                   ),
                                   const SizedBox(height: 16),
 
-                                  if (teamData?['members'] != null &&
-                                      (teamData!['members'] as List)
+                                  if (teamData?['teamMembers'] != null &&
+                                      (teamData!['teamMembers'] as List)
                                           .isNotEmpty) ...[
                                     ...List.generate(
-                                      (teamData!['members'] as List).length,
+                                      (teamData!['teamMembers'] as List).length,
                                       (index) {
                                         final member =
-                                            teamData!['members'][index];
+                                            teamData!['teamMembers'][index];
                                         return _buildMemberCard(member, index);
                                       },
                                     ),
@@ -689,14 +689,6 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.purple.shade700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'ID: ${member['employeeId'] ?? 'N/A'}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
                   ),
                 ),
                 const SizedBox(height: 8),
