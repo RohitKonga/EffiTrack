@@ -18,7 +18,6 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
   bool _loading = true;
   String? _error;
   bool _submitting = false;
-  String? _managerDepartment;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -71,28 +70,39 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       final profileRes = await apiService.get('/profile');
       if (profileRes.statusCode == 200) {
         final profile = jsonDecode(profileRes.body);
-        _managerDepartment = profile['department'];
+        final managerDepartment = profile['department'];
 
-        if (_managerDepartment != null) {
+        if (managerDepartment != null) {
           // Use the same working endpoint as team attendance
           try {
             final employeeRes = await apiService.get(
-              '/attendance/team/$_managerDepartment',
+              '/attendance/team/$managerDepartment',
             );
 
             if (employeeRes.statusCode == 200) {
               final data = jsonDecode(employeeRes.body);
-              final List<Map<String, dynamic>> employeeList = [];
+              List<Map<String, dynamic>> employeeList = [];
 
               // Extract employees from team data (same structure as team attendance)
               if (data['teamMembers'] != null) {
                 for (var emp in data['teamMembers']) {
-                  employeeList.add({
-                    'id': emp['employeeId'],
-                    'name': emp['name'],
-                    'email': emp['email'],
-                  });
+                  // Only add employees with valid required fields
+                  if (emp['id'] != null && emp['name'] != null) {
+                    employeeList.add({
+                      'id': emp['id'].toString(),
+                      'name': emp['name'].toString(),
+                      'email': emp['email']?.toString() ?? 'No Email',
+                    });
+                  }
                 }
+
+                // Filter out any invalid entries and ensure unique IDs
+                employeeList = employeeList
+                    .where(
+                      (emp) =>
+                          emp['id'] != null && emp['id'].toString().isNotEmpty,
+                    )
+                    .toList();
               }
 
               if (employeeList.isNotEmpty) {
@@ -106,7 +116,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   _employees = [];
                   _loading = false;
                   _error =
-                      'No employees found in your department ($_managerDepartment). Please contact admin to add employees.';
+                      'No employees found in your department ($managerDepartment). Please contact admin to add employees.';
                 });
               }
             } else {
@@ -149,7 +159,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
     }
   }
 
-  Future<void> _refreshManagerInfo() async {
+  Future<void> _refreshEmployees() async {
     await _fetchEmployees();
   }
 
@@ -375,7 +385,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                               color: Colors.purple.shade600,
                               size: 20,
                             ),
-                            onPressed: _refreshManagerInfo,
+                            onPressed: _refreshEmployees,
                             tooltip: 'Refresh Employees',
                           ),
                         ),
@@ -392,62 +402,6 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Debug Information
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.blue.shade200),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.info_outline,
-                                        color: Colors.blue.shade600,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Department Information',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.blue.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Your Department: ${_managerDepartment ?? 'Loading...'}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.blue.shade600,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Employees Found: ${_employees.length}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.blue.shade600,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Using Endpoint: /attendance/team/$_managerDepartment',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.blue.shade500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
                             // Error Display
                             if (_error != null) ...[
                               Container(
@@ -485,7 +439,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                       children: [
                                         Expanded(
                                           child: ElevatedButton.icon(
-                                            onPressed: _refreshManagerInfo,
+                                            onPressed: _refreshEmployees,
                                             icon: Icon(Icons.refresh, size: 16),
                                             label: Text('Refresh'),
                                             style: ElevatedButton.styleFrom(
@@ -762,9 +716,9 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       items: _employees
           .map(
             (e) => DropdownMenuItem<String>(
-              value: e['id'] as String,
+              value: e['id']?.toString() ?? '',
               child: Text(
-                '${e['name']} (${e['email']})',
+                '${e['name'] ?? 'Unknown'} (${e['email'] ?? 'No Email'})',
                 style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
               ),
             ),
