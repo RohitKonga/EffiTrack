@@ -531,8 +531,11 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             itemCount: policies.length,
                             itemBuilder: (context, index) {
-                              final type = policies[index]['type'] as String;
-                              final days = policies[index]['days'] as int;
+                              final type =
+                                  policies[index]['leaveType']?.toString() ??
+                                  'Unknown';
+                              final days =
+                                  policies[index]['days']?.toInt() ?? 0;
                               final color = _getLeaveTypeColor(type);
 
                               return Container(

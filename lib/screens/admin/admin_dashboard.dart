@@ -449,7 +449,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                           ),
                           _buildMenuCard(
                             context,
-                            'Attendance Reports',
+                            'Attend Reports',
                             Icons.assessment,
                             Colors.green,
                             'View attendance data',

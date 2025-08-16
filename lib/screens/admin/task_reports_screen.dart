@@ -162,6 +162,39 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
     }
   }
 
+  String _getAssignedToText(dynamic assignedTo) {
+    if (assignedTo == null) {
+      return 'Unassigned';
+    }
+
+    // Handle different possible structures
+    if (assignedTo is Map<String, dynamic>) {
+      // If it's a populated user object
+      if (assignedTo.containsKey('name')) {
+        return assignedTo['name'] ?? 'Unknown User';
+      }
+      // If it's a populated user object with firstName/lastName
+      if (assignedTo.containsKey('firstName')) {
+        final firstName = assignedTo['firstName'] ?? '';
+        final lastName = assignedTo['lastName'] ?? '';
+        return '${firstName} ${lastName}'.trim().isEmpty
+            ? 'Unknown User'
+            : '${firstName} ${lastName}'.trim();
+      }
+      // If it's a populated user object with email
+      if (assignedTo.containsKey('email')) {
+        return assignedTo['email'] ?? 'Unknown User';
+      }
+    }
+
+    // If it's a string (user ID), return as is
+    if (assignedTo is String) {
+      return 'User ID: $assignedTo';
+    }
+
+    return 'Unknown User';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -493,8 +526,9 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                                 ),
                                                           ),
                                                           child: Text(
-                                                            task['assignedTo'] ??
-                                                                'Unassigned',
+                                                            _getAssignedToText(
+                                                              task['assignedTo'],
+                                                            ),
                                                             style:
                                                                 GoogleFonts.poppins(
                                                                   fontSize: 12,
@@ -575,7 +609,8 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                   ),
                                                   child: Text(
                                                     task['description']
-                                                        .toString(),
+                                                            ?.toString() ??
+                                                        '',
                                                     style: GoogleFonts.poppins(
                                                       fontSize: 14,
                                                       color:

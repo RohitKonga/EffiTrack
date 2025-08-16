@@ -706,7 +706,7 @@ class _AnnouncementsManagementScreenState
                                     itemBuilder: (context, index) {
                                       final ann = announcements[index];
                                       final priorityColor = _getPriorityColor(
-                                        ann['priority'],
+                                        ann['priority']?.toString() ?? 'Medium',
                                       );
 
                                       return Container(
@@ -764,7 +764,9 @@ class _AnnouncementsManagementScreenState
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          ann['title'],
+                                                          ann['title']
+                                                                  ?.toString() ??
+                                                              'Untitled',
                                                           style:
                                                               GoogleFonts.poppins(
                                                                 fontSize: 16,
@@ -807,7 +809,9 @@ class _AnnouncementsManagementScreenState
                                                                 ),
                                                               ),
                                                               child: Text(
-                                                                ann['priority'],
+                                                                ann['priority']
+                                                                        ?.toString() ??
+                                                                    'Medium',
                                                                 style: GoogleFonts.poppins(
                                                                   fontSize: 10,
                                                                   fontWeight:
@@ -822,9 +826,9 @@ class _AnnouncementsManagementScreenState
                                                               width: 8,
                                                             ),
                                                             Text(
-                                                              '${ann['date']} • ${ann['time']}',
+                                                              '${ann['date']?.toString() ?? 'No Date'} • ${ann['time']?.toString() ?? 'No Time'}',
                                                               style: GoogleFonts.poppins(
-                                                                fontSize: 10,
+                                                                fontSize: 12,
                                                                 color: Colors
                                                                     .grey
                                                                     .shade600,
@@ -844,7 +848,9 @@ class _AnnouncementsManagementScreenState
                                                     ),
                                                     onPressed: () =>
                                                         _deleteAnnouncement(
-                                                          ann['id'],
+                                                          ann['id']
+                                                                  ?.toString() ??
+                                                              '',
                                                         ),
                                                   ),
                                                 ],
@@ -854,7 +860,8 @@ class _AnnouncementsManagementScreenState
 
                                               // Message
                                               Text(
-                                                ann['message'],
+                                                ann['message']?.toString() ??
+                                                    'No message content',
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 14,
                                                   color: Colors.grey.shade700,
