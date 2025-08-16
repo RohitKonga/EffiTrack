@@ -755,7 +755,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               Expanded(
                 child: _buildDetailItem(
                   'Status',
-                  task['status'] ?? 'Unknown',
+                  status,
                   Icons.info,
                   statusColor,
                 ),

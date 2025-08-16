@@ -544,7 +544,6 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
                                           (dept) =>
                                               dept as Map<String, dynamic>,
                                         )
-                                        .where((dept) => dept != null)
                                         .cast<Map<String, dynamic>>()
                                         .map((dept) {
                                           final deptName = dept['name'];
