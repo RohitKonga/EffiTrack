@@ -72,6 +72,7 @@ class _AnnouncementsManagementScreenState
       final response = await apiService.get('/announcements');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print('Fetched announcements data: $data'); // Temporary debug
         setState(() {
           announcements = data.cast<Map<String, dynamic>>();
           _loading = false;
@@ -219,15 +220,18 @@ class _AnnouncementsManagementScreenState
               Navigator.of(context).pop();
 
               try {
-                print('Attempting to delete announcement with ID: $id');
+                print('Calling delete API with ID: $id'); // Temporary debug
                 final res = await apiService.delete('/announcements/$id');
-                print('Delete response status: ${res.statusCode}');
-                print('Delete response body: ${res.body}');
+                print(
+                  'Delete API response: ${res.statusCode} - ${res.body}',
+                ); // Temporary debug
 
                 if (res.statusCode == 200 || res.statusCode == 204) {
                   // Remove from local list
                   setState(() {
-                    announcements.removeWhere((ann) => ann['id'] == id);
+                    announcements.removeWhere(
+                      (ann) => ann['id'] == id || ann['_id'] == id,
+                    );
                   });
 
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -259,7 +263,7 @@ class _AnnouncementsManagementScreenState
                           Icon(Icons.error_outline, color: Colors.white),
                           const SizedBox(width: 12),
                           Text(
-                            'Failed to delete announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
+                            'Failed to delete announcement',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w500,
                             ),
@@ -282,7 +286,7 @@ class _AnnouncementsManagementScreenState
                         Icon(Icons.error_outline, color: Colors.white),
                         const SizedBox(width: 12),
                         Text(
-                          'Network error while deleting announcement: $e',
+                          'Network error while deleting announcement',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
                           ),
@@ -1018,17 +1022,17 @@ class _AnnouncementsManagementScreenState
             children: [
               TextButton.icon(
                 onPressed: () {
-                  print('Announcement data: $ann');
-                  print('Announcement ID field: ${ann['id']}');
-                  print('Announcement _id field: ${ann['_id']}');
-
+                  print(
+                    'Delete button pressed for announcement: $ann',
+                  ); // Temporary debug
                   final announcementId =
                       ann['id']?.toString() ?? ann['_id']?.toString();
+                  print(
+                    'Resolved announcement ID: $announcementId',
+                  ); // Temporary debug
                   if (announcementId != null && announcementId.isNotEmpty) {
-                    print('Using announcement ID: $announcementId');
                     _deleteAnnouncement(announcementId);
                   } else {
-                    print('No valid announcement ID found');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
