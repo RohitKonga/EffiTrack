@@ -173,7 +173,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       });
 
       try {
-        final res = await apiService.post('/tasks', {
+        final res = await apiService.post('/tasks/create', {
           'title': _title,
           'description': _desc,
           'assignedTo': _employee, // Now _employee contains the ID directly
