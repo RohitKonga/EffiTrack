@@ -13,7 +13,7 @@ class AssignTaskScreen extends StatefulWidget {
 class _AssignTaskScreenState extends State<AssignTaskScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  String? _employee, _title, _desc, _deadline;
+  String? _employee, _title, _desc, _deadline, _priority;
   List<Map<String, dynamic>> _employees = [];
   bool _loading = true;
   String? _error;
@@ -177,7 +177,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
           'description': _desc,
           'assignedTo': _employee, // Now _employee contains the ID directly
           'dueDate': _deadline,
-          'priority': 'Medium',
+          'priority': _priority ?? 'Medium',
           'status': 'To Do',
         });
 
@@ -215,6 +215,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             _title = null;
             _desc = null;
             _deadline = null;
+            _priority = null;
             _submitting = false;
             _error = null; // Clear any previous errors
           });
@@ -251,7 +252,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
           print('Status Code: ${res.statusCode}');
           print('Response Body: ${res.body}');
           print(
-            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline}',
+            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline, priority: $_priority}',
           );
         }
       } catch (e) {
@@ -538,6 +539,15 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
 
                             const SizedBox(height: 24),
 
+                            // Task Priority
+                            _buildFormSection(
+                              'Task Priority',
+                              Icons.priority_high,
+                              _buildPriorityDropdown(),
+                            ),
+
+                            const SizedBox(height: 24),
+
                             // Deadline
                             _buildFormSection(
                               'Deadline',
@@ -800,6 +810,46 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
       ),
       style: GoogleFonts.poppins(fontSize: 16),
+    );
+  }
+
+  Widget _buildPriorityDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _priority,
+      isExpanded: true,
+      decoration: InputDecoration(
+        hintText: 'Select priority',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'Low', child: Text('Low')),
+        DropdownMenuItem(value: 'Medium', child: Text('Medium')),
+        DropdownMenuItem(value: 'High', child: Text('High')),
+        DropdownMenuItem(value: 'Urgent', child: Text('Urgent')),
+      ],
+      onChanged: (value) => setState(() => _priority = value),
+      validator: (value) => value == null ? 'Please select a priority' : null,
+      icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
+      dropdownColor: Colors.white,
+      menuMaxHeight: 320,
+      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
     );
   }
 
