@@ -58,15 +58,22 @@ exports.updateLeaveStatus = async (req, res) => {
 exports.getLeavesByDepartment = async (req, res) => {
   try {
     const { department } = req.params;
+    console.log('Fetching leaves for department:', department);
     
     // First get all users in the department
     const users = await User.find({ department }).select('_id');
+    console.log('Users found in department:', users.length);
+    console.log('User IDs:', userIds);
+    
     const userIds = users.map(user => user._id);
     
     // Then get all leaves requested by these users
     const leaves = await Leave.find({ user: { $in: userIds } })
       .populate('user', 'name email department')
       .sort({ startDate: -1 });
+    
+    console.log('Leaves found for department:', leaves.length);
+    console.log('Leaves:', leaves);
     
     res.json(leaves);
   } catch (err) {
