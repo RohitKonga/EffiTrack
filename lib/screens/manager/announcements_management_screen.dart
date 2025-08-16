@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/api_service.dart';
+import 'dart:convert';
 
 class AnnouncementsManagementScreen extends StatefulWidget {
   const AnnouncementsManagementScreen({super.key});
@@ -16,24 +18,9 @@ class _AnnouncementsManagementScreenState
   String? _title, _message;
   bool _showForm = false;
 
-  List<Map<String, dynamic>> announcements = [
-    {
-      'title': 'Holiday Notice',
-      'message': 'Office will be closed on 2024-07-30.',
-      'date': '2024-07-25',
-      'time': '10:00 AM',
-      'priority': 'High',
-      'id': '1',
-    },
-    {
-      'title': 'Team Meeting',
-      'message': 'Weekly team meeting scheduled for Friday at 2 PM.',
-      'date': '2024-07-24',
-      'time': '2:00 PM',
-      'priority': 'Medium',
-      'id': '2',
-    },
-  ];
+  List<Map<String, dynamic>> announcements = [];
+  bool _loading = true;
+  String? _error;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -43,6 +30,7 @@ class _AnnouncementsManagementScreenState
   @override
   void initState() {
     super.initState();
+    _fetchAnnouncements();
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -74,46 +62,124 @@ class _AnnouncementsManagementScreenState
     super.dispose();
   }
 
-  void _addAnnouncement() {
+  Future<void> _fetchAnnouncements() async {
+    try {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+
+      final response = await apiService.get('/announcements');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          announcements = data.cast<Map<String, dynamic>>();
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _error =
+              'Failed to fetch announcements (Status: ${response.statusCode})';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to fetch announcements: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _addAnnouncement() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      setState(() {
-        announcements.insert(0, {
-          'title': _title!,
-          'message': _message!,
-          'date': DateTime.now().toString().split(' ')[0],
-          'time':
-              '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
-          'priority': 'Medium',
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        });
-        _title = null;
-        _message = null;
-        _showForm = false;
-      });
-      _formKey.currentState!.reset();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Announcement added successfully!',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
+      try {
+        final res = await apiService.post('/announcements', {
+          'title': _title,
+          'message': _message,
+          'priority': 'Medium',
+        });
+
+        if (res.statusCode == 200 || res.statusCode == 201) {
+          // Refresh announcements from backend
+          await _fetchAnnouncements();
+
+          setState(() {
+            _title = null;
+            _message = null;
+            _showForm = false;
+          });
+          _formKey.currentState!.reset();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Announcement added successfully!',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
               ),
-            ],
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to add announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Network error while adding announcement: $e',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -261,13 +327,20 @@ class _AnnouncementsManagementScreenState
                                 ),
                               ),
                               Text(
-                                'Manage team communications',
+                                'Stay updated with company announcements',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _fetchAnnouncements,
+                          icon: Icon(
+                            Icons.refresh,
+                            color: Colors.purple.shade600,
                           ),
                         ),
                         Container(
@@ -484,11 +557,12 @@ class _AnnouncementsManagementScreenState
                           ),
                           const SizedBox(height: 16),
 
-                          if (announcements.isEmpty) ...[
-                            Expanded(
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(40),
+                          _showForm
+                              ? Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
@@ -502,57 +576,262 @@ class _AnnouncementsManagementScreenState
                                       ),
                                     ],
                                   ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(20),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.purple.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                Icons.add_circle,
+                                                color: Colors.purple.shade600,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Add New Announcement',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.purple.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 20),
+
+                                        // Title Field
+                                        TextFormField(
+                                          onSaved: (value) => _title = value,
+                                          validator: (value) =>
+                                              value == null || value.isEmpty
+                                              ? 'Please enter a title'
+                                              : null,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                'Enter announcement title',
+                                            prefixIcon: Icon(
+                                              Icons.title,
+                                              color: Colors.purple.shade600,
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.purple.shade600,
+                                                width: 2,
+                                              ),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey.shade50,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 16,
+                                                ),
+                                          ),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
                                           ),
                                         ),
-                                        child: Icon(
-                                          Icons.announcement_outlined,
-                                          size: 48,
-                                          color: Colors.grey.shade400,
+
+                                        const SizedBox(height: 16),
+
+                                        // Message Field
+                                        TextFormField(
+                                          onSaved: (value) => _message = value,
+                                          validator: (value) =>
+                                              value == null || value.isEmpty
+                                              ? 'Please enter a message'
+                                              : null,
+                                          maxLines: 4,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                'Enter announcement message',
+                                            prefixIcon: Icon(
+                                              Icons.message,
+                                              color: Colors.purple.shade600,
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.purple.shade600,
+                                                width: 2,
+                                              ),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey.shade50,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 16,
+                                                ),
+                                          ),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No Announcements',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey.shade700,
+
+                                        const SizedBox(height: 20),
+
+                                        // Action Buttons
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: _addAnnouncement,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.purple.shade600,
+                                                  foregroundColor: Colors.white,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 16,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Add Announcement',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: OutlinedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _showForm = false;
+                                                    _title = null;
+                                                    _message = null;
+                                                  });
+                                                  _formKey.currentState!
+                                                      .reset();
+                                                },
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor:
+                                                      Colors.grey.shade600,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 16,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  side: BorderSide(
+                                                    color: Colors.grey.shade300,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Cancel',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Create your first announcement to get started',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                )
+                              : RefreshIndicator(
+                                  onRefresh: _fetchAnnouncements,
+                                  child: _loading
+                                      ? Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.purple.shade600,
+                                          ),
+                                        )
+                                      : _error != null
+                                      ? Center(
+                                          child: Text(
+                                            _error!,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: Colors.red.shade600,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        )
+                                      : announcements.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'No announcements yet',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                          ),
+                                          itemCount: announcements.length,
+                                          itemBuilder: (context, index) {
+                                            final ann = announcements[index];
+                                            final priorityColor =
+                                                _getPriorityColor(
+                                                  ann['priority']?.toString() ??
+                                                      'Medium',
+                                                );
+                                            return _buildAnnouncementCard(ann);
+                                          },
+                                        ),
                                 ),
-                              ),
-                            ),
-                          ] else ...[
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: announcements.length,
-                                itemBuilder: (context, index) {
-                                  final ann = announcements[index];
-                                  return _buildAnnouncementCard(ann);
-                                },
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -567,7 +846,9 @@ class _AnnouncementsManagementScreenState
   }
 
   Widget _buildAnnouncementCard(Map<String, dynamic> ann) {
-    final priorityColor = _getPriorityColor(ann['priority'] ?? 'Medium');
+    final priorityColor = _getPriorityColor(
+      ann['priority']?.toString() ?? 'Medium',
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

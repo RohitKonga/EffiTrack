@@ -101,7 +101,7 @@ class _AnnouncementsManagementScreenState
           'priority': 'Medium',
         });
 
-        if (res.statusCode == 201) {
+        if (res.statusCode == 200 || res.statusCode == 201) {
           await _fetchAnnouncements();
           setState(() {
             _title = null;
@@ -132,6 +132,12 @@ class _AnnouncementsManagementScreenState
             ),
           );
         } else {
+          // Log the actual response for debugging
+          print('Add announcement failed:');
+          print('Status Code: ${res.statusCode}');
+          print('Response Body: ${res.body}');
+          print('Request Data: {title: $_title, message: $_message}');
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -263,6 +269,12 @@ class _AnnouncementsManagementScreenState
           ),
         );
       } else {
+        // Log the actual response for debugging
+        print('Delete announcement failed:');
+        print('Status Code: ${res.statusCode}');
+        print('Response Body: ${res.body}');
+        print('Announcement ID: $id');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

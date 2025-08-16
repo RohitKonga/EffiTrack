@@ -26,4 +26,24 @@ exports.getAnnouncements = async (req, res) => {
   } catch (err) {
     res.status(500).send('Server error');
   }
+};
+
+// Delete an announcement (Admin/Manager)
+exports.deleteAnnouncement = async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) {
+      return res.status(404).json({ msg: 'Announcement not found' });
+    }
+    
+    // Check if user has permission to delete (Admin or Manager)
+    if (req.user.role !== 'Admin' && req.user.role !== 'Manager') {
+      return res.status(403).json({ msg: 'Not authorized to delete announcements' });
+    }
+    
+    await Announcement.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'Announcement deleted successfully' });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
 }; 
