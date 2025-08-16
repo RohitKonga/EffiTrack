@@ -25,7 +25,7 @@ app.use('/api/attendance', require('./routes/attendance'));
 console.log('Loading task routes...');
 const taskRoutes = require('./routes/task');
 console.log('Task routes loaded:', taskRoutes);
-app.use('/api/task', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.use('/api/leaves', require('./routes/leave'));
 app.use('/api/announcements', require('./routes/announcement'));
