@@ -1018,10 +1018,17 @@ class _AnnouncementsManagementScreenState
             children: [
               TextButton.icon(
                 onPressed: () {
-                  final announcementId = ann['id']?.toString();
+                  print('Announcement data: $ann');
+                  print('Announcement ID field: ${ann['id']}');
+                  print('Announcement _id field: ${ann['_id']}');
+
+                  final announcementId =
+                      ann['id']?.toString() ?? ann['_id']?.toString();
                   if (announcementId != null && announcementId.isNotEmpty) {
+                    print('Using announcement ID: $announcementId');
                     _deleteAnnouncement(announcementId);
                   } else {
+                    print('No valid announcement ID found');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
