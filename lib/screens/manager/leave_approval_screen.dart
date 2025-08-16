@@ -101,21 +101,14 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
     });
 
     try {
-      print('Fetching leaves for department: $_managerDepartment'); // Debug log
       final res = await apiService.get(
         '/leaves/department/$_managerDepartment',
       );
-
-      print('Response status: ${res.statusCode}'); // Debug log
-      print('Response body: ${res.body}'); // Debug log
 
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
         final List<Map<String, dynamic>> leaveList = data
             .cast<Map<String, dynamic>>();
-
-        print('Leave list length: ${leaveList.length}'); // Debug log
-        print('Leave list: $leaveList'); // Debug log
 
         // Calculate summary
         int pending = 0;
@@ -154,7 +147,6 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
         });
       }
     } catch (e) {
-      print('Error fetching leaves: $e'); // Debug log
       setState(() {
         _error = 'Network error: $e';
         _loading = false;
@@ -165,16 +157,10 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
   Future<void> _updateStatus(int index, String newStatus) async {
     try {
       final leaveId = leaveRequests[index]['_id'];
-      print(
-        'Updating leave status for ID: $leaveId to: $newStatus',
-      ); // Debug log
 
       final res = await apiService.put('/leaves/$leaveId/status', {
         'status': newStatus,
       });
-
-      print('Update response status: ${res.statusCode}'); // Debug log
-      print('Update response body: ${res.body}'); // Debug log
 
       if (res.statusCode == 200) {
         await _fetchLeaveRequests(); // Refresh the list
@@ -228,7 +214,6 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
         );
       }
     } catch (e) {
-      print('Error updating leave status: $e'); // Debug log
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -275,43 +260,6 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
       return difference.toString();
     } catch (e) {
       return '0';
-    }
-  }
-
-  Future<void> _testAPI() async {
-    try {
-      print('Testing API endpoints...');
-
-      // Test leave routes
-      final testRes = await apiService.get('/leaves/test');
-      print('Test endpoint response: ${testRes.statusCode} - ${testRes.body}');
-
-      // Test debug endpoint
-      final debugRes = await apiService.get('/leaves/debug');
-      print(
-        'Debug endpoint response: ${debugRes.statusCode} - ${debugRes.body}',
-      );
-
-      // Test profile endpoint
-      final profileRes = await apiService.get('/profile');
-      print(
-        'Profile endpoint response: ${profileRes.statusCode} - ${profileRes.body}',
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('API test completed. Check console for details.'),
-          backgroundColor: Colors.blue.shade600,
-        ),
-      );
-    } catch (e) {
-      print('API test error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('API test failed: $e'),
-          backgroundColor: Colors.red.shade600,
-        ),
-      );
     }
   }
 
@@ -429,22 +377,6 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue.shade200),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.bug_report,
-                              color: Colors.blue.shade600,
-                              size: 20,
-                            ),
-                            onPressed: _testAPI,
-                            tooltip: 'Test API',
-                          ),
-                        ),
                       ],
                     ),
                   ),

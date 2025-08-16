@@ -14,7 +14,6 @@ app.use(express.json());
 
 // Basic route
 app.get('/', (req, res) => res.send('API Running'));
-app.get('/test', (req, res) => res.json({ message: 'Server is running!', timestamp: new Date().toISOString() }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/tasks', require('./routes/task'));

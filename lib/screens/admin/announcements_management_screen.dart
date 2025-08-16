@@ -92,14 +92,14 @@ class _AnnouncementsManagementScreenState
   Future<void> _addAnnouncement() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      
+
       try {
         final res = await apiService.post('/announcements', {
           'title': _title,
           'message': _message,
           'priority': 'Medium',
         });
-        
+
         if (res.statusCode == 201) {
           await _fetchAnnouncements();
           setState(() {
@@ -108,7 +108,7 @@ class _AnnouncementsManagementScreenState
             _showForm = false;
           });
           _formKey.currentState!.reset();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(

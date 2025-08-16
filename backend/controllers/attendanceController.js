@@ -72,25 +72,17 @@ exports.getAttendanceReports = async (req, res) => {
     const nextDay = new Date(targetDate);
     nextDay.setDate(nextDay.getDate() + 1);
     
-    console.log('Fetching attendance for date:', targetDate.toISOString().split('T')[0]);
-    
     // Get all users with their departments
     const users = await User.find().select('name department role');
-    console.log('Total users found:', users.length);
     
     // Get attendance records for the selected date
     const attendanceRecords = await Attendance.find({
       checkIn: { $gte: targetDate, $lt: nextDay }
     }).populate('user', 'name department role');
     
-    console.log('Attendance records for selected date:', attendanceRecords.length);
-    console.log('Date range:', targetDate.toISOString(), 'to', nextDay.toISOString());
-    
     // Separate users by role
     const employees = users.filter(user => user.role === 'Employee');
     const managers = users.filter(user => user.role === 'Manager');
-    
-    console.log('Employees:', employees.length, 'Managers:', managers.length);
     
     // Group by department for employees
     const employeeDepartmentStats = {};
@@ -197,11 +189,6 @@ exports.getAttendanceReports = async (req, res) => {
       hasData: attendanceRecords.length > 0
     };
     
-    console.log('Response for date:', targetDate.toISOString().split('T')[0]);
-    console.log('Has attendance data:', attendanceRecords.length > 0);
-    console.log('Employee reports:', employeeReports.length);
-    console.log('Manager reports:', managerReports.length);
-    
     res.json(response);
   } catch (err) {
     console.error('Attendance reports error:', err);
@@ -213,82 +200,55 @@ exports.getAttendanceReports = async (req, res) => {
 exports.getTeamAttendance = async (req, res) => {
   try {
     const { department } = req.params;
-    const { date } = req.query;
-    
-    // Get date from query parameter or use today
-    let targetDate;
-    if (date) {
-      targetDate = new Date(date);
-      targetDate.setHours(0, 0, 0, 0);
-    } else {
-      targetDate = new Date();
-      targetDate.setHours(0, 0, 0, 0);
-    }
+    const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
     
     const nextDay = new Date(targetDate);
     nextDay.setDate(nextDay.getDate() + 1);
     
-    console.log('Fetching team attendance for department:', department, 'on date:', targetDate.toISOString().split('T')[0]);
-    
-    // Get all employees in the specified department
+    // Get team members (employees) in the department
     const teamMembers = await User.find({ 
-      department: department,
-      role: 'Employee'
-    }).select('name email department role');
-    
-    console.log('Team members found:', teamMembers.length);
+      department: department, 
+      role: 'Employee' 
+    }).select('name email department');
     
     // Get attendance records for the selected date
     const attendanceRecords = await Attendance.find({
+      user: { $in: teamMembers.map(member => member._id) },
       checkIn: { $gte: targetDate, $lt: nextDay }
-    }).populate('user', 'name email department role');
+    }).populate('user', 'name email department');
     
-    console.log('Attendance records found:', attendanceRecords.length);
+    // Calculate present members
+    const presentMembers = attendanceRecords.length;
+    const totalMembers = teamMembers.length;
     
-    // Create team attendance data
-    const teamAttendance = teamMembers.map(member => {
+    // Create response with team member details
+    const teamMembersWithAttendance = teamMembers.map(member => {
       const attendance = attendanceRecords.find(record => 
-        record.user && record.user._id.toString() === member._id.toString()
+        record.user._id.toString() === member._id.toString()
       );
       
       return {
-        id: member._id,
+        employeeId: member._id,
         name: member.name,
         email: member.email,
         department: member.department,
-        status: attendance ? 'Present' : 'Absent',
-        checkInTime: attendance ? attendance.checkIn : null,
-        checkOutTime: attendance ? attendance.checkOut : null,
-        workingHours: attendance ? attendance.workingHours : null,
+        checkIn: attendance?.checkIn || null,
+        checkOut: attendance?.checkOut || null,
+        workingHours: attendance?.checkOut && attendance?.checkIn 
+          ? ((new Date(attendance.checkOut) - new Date(attendance.checkIn)) / (1000 * 60 * 60)).toFixed(2)
+          : null
       };
     });
     
-    // Calculate statistics
-    const presentCount = teamAttendance.filter(member => member.status === 'Present').length;
-    const absentCount = teamAttendance.filter(member => member.status === 'Absent').length;
-    const totalCount = teamAttendance.length;
-    const attendanceRate = totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(1) : '0.0';
-    
     const response = {
+      hasData: attendanceRecords.length > 0,
       department: department,
       date: targetDate.toISOString().split('T')[0],
-      teamMembers: teamAttendance,
-      statistics: {
-        present: presentCount,
-        absent: absentCount,
-        total: totalCount,
-        attendanceRate: attendanceRate
-      }
+      totalMembers: totalMembers,
+      presentMembers: presentMembers,
+      teamMembers: teamMembersWithAttendance
     };
-    
-    console.log('Team attendance response:', {
-      department,
-      date: targetDate.toISOString().split('T')[0],
-      totalMembers: totalCount,
-      present: presentCount,
-      absent: absentCount,
-      rate: attendanceRate
-    });
     
     res.json(response);
   } catch (err) {
