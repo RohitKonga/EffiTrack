@@ -269,12 +269,6 @@ class _AnnouncementsManagementScreenState
           ),
         );
       } else {
-        // Log the actual response for debugging
-        print('Delete announcement failed:');
-        print('Status Code: ${res.statusCode}');
-        print('Response Body: ${res.body}');
-        print('Announcement ID: $id');
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -283,7 +277,7 @@ class _AnnouncementsManagementScreenState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Failed to delete announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
+                    'Failed to delete announcement',
                     style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),
@@ -860,7 +854,7 @@ class _AnnouncementsManagementScreenState
                                                     ),
                                                     onPressed: () =>
                                                         _deleteAnnouncement(
-                                                          ann['id']
+                                                          ann['_id']
                                                                   ?.toString() ??
                                                               '',
                                                         ),

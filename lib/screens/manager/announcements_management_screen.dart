@@ -72,7 +72,6 @@ class _AnnouncementsManagementScreenState
       final response = await apiService.get('/announcements');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        print('Fetched announcements data: $data'); // Temporary debug
         setState(() {
           announcements = data.cast<Map<String, dynamic>>();
           _loading = false;
@@ -220,11 +219,7 @@ class _AnnouncementsManagementScreenState
               Navigator.of(context).pop();
 
               try {
-                print('Calling delete API with ID: $id'); // Temporary debug
                 final res = await apiService.delete('/announcements/$id');
-                print(
-                  'Delete API response: ${res.statusCode} - ${res.body}',
-                ); // Temporary debug
 
                 if (res.statusCode == 200 || res.statusCode == 204) {
                   // Remove from local list
@@ -1020,14 +1015,8 @@ class _AnnouncementsManagementScreenState
             children: [
               TextButton.icon(
                 onPressed: () {
-                  print(
-                    'Delete button pressed for announcement: $ann',
-                  ); // Temporary debug
                   // MongoDB uses _id field, not id
                   final announcementId = ann['_id']?.toString();
-                  print(
-                    'Resolved announcement ID: $announcementId',
-                  ); // Temporary debug
                   if (announcementId != null && announcementId.isNotEmpty) {
                     _deleteAnnouncement(announcementId);
                   } else {
