@@ -82,15 +82,16 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
 
             if (employeeRes.statusCode == 200) {
               final data = jsonDecode(employeeRes.body);
+              print('Team attendance API response: $data'); // Debug log
               List<Map<String, dynamic>> employeeList = [];
 
               // Extract employees from team data (same structure as team attendance)
               if (data['teamMembers'] != null) {
                 for (var emp in data['teamMembers']) {
                   // Only add employees with valid required fields
-                  if (emp['id'] != null && emp['name'] != null) {
+                  if (emp['employeeId'] != null && emp['name'] != null) {
                     employeeList.add({
-                      'id': emp['id'].toString(),
+                      'id': emp['employeeId'].toString(),
                       'name': emp['name'].toString(),
                       'email': emp['email']?.toString() ?? 'No Email',
                     });
