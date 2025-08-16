@@ -155,6 +155,8 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
       if (date is String) {
         final parsed = DateTime.parse(date);
         return '${parsed.day}/${parsed.month}/${parsed.year}';
+      } else if (date is DateTime) {
+        return '${date.day}/${date.month}/${date.year}';
       }
       return 'Invalid date';
     } catch (e) {
@@ -580,7 +582,7 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
                                                     child: _buildStatCard(
                                                       title: 'Due Date',
                                                       value: _formatDate(
-                                                        task['dueDate'],
+                                                        task['deadline'],
                                                       ),
                                                       icon:
                                                           Icons.calendar_today,

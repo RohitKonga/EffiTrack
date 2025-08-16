@@ -16,11 +16,11 @@ class _AnnouncementsManagementScreenState
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   String? _title, _message;
-  bool _showForm = false;
-
   List<Map<String, dynamic>> announcements = [];
   bool _loading = true;
   String? _error;
+  bool _showForm = false;
+  String? _managerDepartment;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -30,6 +30,7 @@ class _AnnouncementsManagementScreenState
   @override
   void initState() {
     super.initState();
+    _fetchManagerProfile();
     _fetchAnnouncements();
 
     _fadeController = AnimationController(
@@ -62,16 +63,30 @@ class _AnnouncementsManagementScreenState
     super.dispose();
   }
 
-  Future<void> _fetchAnnouncements() async {
+  Future<void> _fetchManagerProfile() async {
     try {
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
-
-      final response = await apiService.get('/announcements');
+      final response = await apiService.get('/profile');
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+        final profile = jsonDecode(response.body);
+        setState(() {
+          _managerDepartment = profile['department'];
+        });
+      }
+    } catch (e) {
+      print('Error fetching manager profile: $e');
+    }
+  }
+
+  Future<void> _fetchAnnouncements() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final res = await apiService.get('/announcements');
+      if (res.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(res.body);
         setState(() {
           announcements = data.cast<Map<String, dynamic>>();
           _loading = false;
@@ -79,13 +94,13 @@ class _AnnouncementsManagementScreenState
       } else {
         setState(() {
           _error =
-              'Failed to fetch announcements (Status: ${response.statusCode})';
+              'Failed to load announcements (Status: ${res.statusCode})\nResponse: ${res.body}';
           _loading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Failed to fetch announcements: $e';
+        _error = 'Network error: $e';
         _loading = false;
       });
     }
@@ -99,13 +114,12 @@ class _AnnouncementsManagementScreenState
         final res = await apiService.post('/announcements', {
           'title': _title,
           'message': _message,
-          'priority': 'Medium',
+          'targetRoles': ['Employee'],
+          'targetDepartment': _managerDepartment,
         });
 
         if (res.statusCode == 200 || res.statusCode == 201) {
-          // Refresh announcements from backend
           await _fetchAnnouncements();
-
           setState(() {
             _title = null;
             _message = null;
@@ -121,7 +135,7 @@ class _AnnouncementsManagementScreenState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Announcement added successfully!',
+                      'Department announcement posted successfully!',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -143,7 +157,7 @@ class _AnnouncementsManagementScreenState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Failed to add announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
+                      'Failed to post announcement',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -166,7 +180,7 @@ class _AnnouncementsManagementScreenState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Network error while adding announcement: $e',
+                    'Network error while posting announcement',
                     style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),
@@ -184,117 +198,44 @@ class _AnnouncementsManagementScreenState
   }
 
   Future<void> _deleteAnnouncement(String id) async {
-    showDialog(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.warning, color: Colors.orange.shade600),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.red.shade600,
+              size: 28,
+            ),
             const SizedBox(width: 12),
             Text(
               'Delete Announcement',
               style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: Colors.red.shade700,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
         content: Text(
-          'Are you sure you want to delete this announcement?',
+          'Are you sure you want to delete this announcement? This action cannot be undone.',
           style: GoogleFonts.poppins(fontSize: 16),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(false),
             child: Text(
               'Cancel',
-              style: GoogleFonts.poppins(color: Colors.grey.shade600),
+              style: GoogleFonts.poppins(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-
-              try {
-                final res = await apiService.delete('/announcements/$id');
-
-                if (res.statusCode == 200 || res.statusCode == 204) {
-                  // Remove from local list
-                  setState(() {
-                    announcements.removeWhere((ann) => ann['_id'] == id);
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Announcement deleted successfully',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green.shade600,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.white),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Failed to delete announcement',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.red.shade600,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.white),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Network error while deleting announcement',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.red.shade600,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                );
-              }
-            },
+            onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
               foregroundColor: Colors.white,
@@ -304,21 +245,95 @@ class _AnnouncementsManagementScreenState
             ),
             child: Text(
               'Delete',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),
         ],
       ),
     );
+
+    if (confirmed != true) return;
+
+    try {
+      final res = await apiService.delete('/announcements/$id');
+      if (res.statusCode == 200) {
+        await _fetchAnnouncements();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Announcement deleted successfully!',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to delete announcement',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Network error while deleting announcement',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   Color _getPriorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'high':
+    switch (priority) {
+      case 'High':
         return Colors.red;
-      case 'medium':
+      case 'Medium':
         return Colors.orange;
-      case 'low':
+      case 'Low':
         return Colors.green;
       default:
         return Colors.grey;
@@ -382,20 +397,13 @@ class _AnnouncementsManagementScreenState
                                 ),
                               ),
                               Text(
-                                'Stay updated with company announcements',
+                                'View global announcements and post department-specific ones',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: _fetchAnnouncements,
-                          icon: Icon(
-                            Icons.refresh,
-                            color: Colors.purple.shade600,
                           ),
                         ),
                         Container(
@@ -463,7 +471,7 @@ class _AnnouncementsManagementScreenState
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Add New Announcement',
+                                  'Post Department Announcement',
                                   style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -563,6 +571,35 @@ class _AnnouncementsManagementScreenState
 
                             const SizedBox(height: 20),
 
+                            // Department Info
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.business,
+                                    color: Colors.blue.shade600,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'This announcement will be visible to ${_managerDepartment ?? 'your department'} employees only',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
                             // Submit Button
                             SizedBox(
                               width: double.infinity,
@@ -571,7 +608,7 @@ class _AnnouncementsManagementScreenState
                                 onPressed: _addAnnouncement,
                                 icon: Icon(Icons.send, size: 20),
                                 label: Text(
-                                  'Add Announcement',
+                                  'Post Department Announcement',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -597,26 +634,77 @@ class _AnnouncementsManagementScreenState
 
                   // Announcements List
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Recent Announcements',
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple.shade700,
+                    child: _loading
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.purple.shade600,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          _showForm
-                              ? Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 24,
+                          )
+                        : _error != null
+                        ? Center(
+                            child: Text(
+                              _error!,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.red.shade600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : announcements.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
+                                  child: Icon(
+                                    Icons.announcement_outlined,
+                                    size: 48,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No announcements yet',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Post your first department announcement to get started',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _fetchAnnouncements,
+                            color: Colors.purple.shade600,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              itemCount: announcements.length,
+                              itemBuilder: (context, index) {
+                                final ann = announcements[index];
+                                final isGlobal = ann['isGlobal'] ?? false;
+                                final isOwnAnnouncement =
+                                    ann['createdBy'] == _managerDepartment;
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
                                   padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
@@ -631,426 +719,146 @@ class _AnnouncementsManagementScreenState
                                       ),
                                     ],
                                   ),
-                                  child: Form(
-                                    key: _formKey,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.purple.shade50,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Icon(
-                                                Icons.add_circle,
-                                                color: Colors.purple.shade600,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: isGlobal
+                                                  ? Colors.purple.shade50
+                                                  : Colors.blue.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Icon(
+                                              isGlobal
+                                                  ? Icons.announcement
+                                                  : Icons.business,
+                                              color: isGlobal
+                                                  ? Colors.purple.shade600
+                                                  : Colors.blue.shade600,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      ann['title'] ?? '',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: Colors
+                                                                .purple
+                                                                .shade700,
+                                                          ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: isGlobal
+                                                            ? Colors
+                                                                  .purple
+                                                                  .shade100
+                                                            : Colors
+                                                                  .blue
+                                                                  .shade100,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: isGlobal
+                                                              ? Colors
+                                                                    .purple
+                                                                    .shade300
+                                                              : Colors
+                                                                    .blue
+                                                                    .shade300,
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        isGlobal
+                                                            ? 'Global'
+                                                            : 'Department',
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: isGlobal
+                                                              ? Colors
+                                                                    .purple
+                                                                    .shade700
+                                                              : Colors
+                                                                    .blue
+                                                                    .shade700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${ann['date'] ?? ''} • ${ann['time'] ?? ''}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (isOwnAnnouncement)
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete_outline,
+                                                color: Colors.red.shade600,
                                                 size: 20,
                                               ),
+                                              onPressed: () =>
+                                                  _deleteAnnouncement(
+                                                    ann['_id'],
+                                                  ),
                                             ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              'Add New Announcement',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.purple.shade700,
-                                              ),
-                                            ),
-                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        ann['message'] ?? '',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                          height: 1.4,
                                         ),
-                                        const SizedBox(height: 20),
-
-                                        // Title Field
-                                        TextFormField(
-                                          onSaved: (value) => _title = value,
-                                          validator: (value) =>
-                                              value == null || value.isEmpty
-                                              ? 'Please enter a title'
-                                              : null,
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                'Enter announcement title',
-                                            prefixIcon: Icon(
-                                              Icons.title,
-                                              color: Colors.purple.shade600,
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.purple.shade600,
-                                                width: 2,
-                                              ),
-                                            ),
-                                            filled: true,
-                                            fillColor: Colors.grey.shade50,
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 16,
-                                                ),
-                                          ),
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 16),
-
-                                        // Message Field
-                                        TextFormField(
-                                          onSaved: (value) => _message = value,
-                                          validator: (value) =>
-                                              value == null || value.isEmpty
-                                              ? 'Please enter a message'
-                                              : null,
-                                          maxLines: 4,
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                'Enter announcement message',
-                                            prefixIcon: Icon(
-                                              Icons.message,
-                                              color: Colors.purple.shade600,
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide(
-                                                color: Colors.purple.shade600,
-                                                width: 2,
-                                              ),
-                                            ),
-                                            filled: true,
-                                            fillColor: Colors.grey.shade50,
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 16,
-                                                ),
-                                          ),
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 20),
-
-                                        // Action Buttons
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: _addAnnouncement,
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.purple.shade600,
-                                                  foregroundColor: Colors.white,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 16,
-                                                      ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  'Add Announcement',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: OutlinedButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _showForm = false;
-                                                    _title = null;
-                                                    _message = null;
-                                                  });
-                                                  _formKey.currentState!
-                                                      .reset();
-                                                },
-                                                style: OutlinedButton.styleFrom(
-                                                  foregroundColor:
-                                                      Colors.grey.shade600,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 16,
-                                                      ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  side: BorderSide(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  'Cancel',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                )
-                              : RefreshIndicator(
-                                  onRefresh: _fetchAnnouncements,
-                                  child: _loading
-                                      ? Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.purple.shade600,
-                                          ),
-                                        )
-                                      : _error != null
-                                      ? Center(
-                                          child: Text(
-                                            _error!,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              color: Colors.red.shade600,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        )
-                                      : announcements.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            'No announcements yet',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        )
-                                      : ListView.builder(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                          ),
-                                          itemCount: announcements.length,
-                                          itemBuilder: (context, index) {
-                                            final ann = announcements[index];
-                                            final priorityColor =
-                                                _getPriorityColor(
-                                                  ann['priority']?.toString() ??
-                                                      'Medium',
-                                                );
-                                            return _buildAnnouncementCard(ann);
-                                          },
-                                        ),
-                                ),
-                        ],
-                      ),
-                    ),
+                                );
+                              },
+                            ),
+                          ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementCard(Map<String, dynamic> ann) {
-    final priorityColor = _getPriorityColor(
-      ann['priority']?.toString() ?? 'Medium',
-    );
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: priorityColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.announcement, color: priorityColor, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ann['title'] ?? '',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ann['date'] ?? '',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ann['time'] ?? '',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: priorityColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: priorityColor.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  ann['priority'] ?? 'Medium',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: priorityColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            ann['message'] ?? '',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey.shade700,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  // MongoDB uses _id field, not id
-                  final announcementId = ann['_id']?.toString();
-                  if (announcementId != null && announcementId.isNotEmpty) {
-                    _deleteAnnouncement(announcementId);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Cannot delete: Invalid announcement ID',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        backgroundColor: Colors.red.shade600,
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(Icons.delete, size: 18, color: Colors.red.shade600),
-                label: Text(
-                  'Delete',
-                  style: GoogleFonts.poppins(
-                    color: Colors.red.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

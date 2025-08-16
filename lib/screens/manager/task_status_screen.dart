@@ -707,7 +707,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               Expanded(
                 child: _buildDetailItem(
                   'Due Date',
-                  _formatDate(task['dueDate']),
+                  _formatDate(task['deadline']),
                   Icons.calendar_today,
                   Colors.blue,
                 ),

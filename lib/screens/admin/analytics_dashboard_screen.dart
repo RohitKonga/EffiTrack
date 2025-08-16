@@ -21,7 +21,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
     'pendingTasks': 0,
     'overdueTasks': 0,
     'avgTaskCompletion': 0.0,
-    'departmentStats': [],
+    'departmentStats': <Map<String, dynamic>>[],
   };
   bool _loading = true;
   String? _error;
@@ -97,9 +97,9 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
           }
 
           // Check if overdue
-          if (task['dueDate'] != null) {
+          if (task['deadline'] != null) {
             try {
-              final dueDate = DateTime.parse(task['dueDate']);
+              final dueDate = DateTime.parse(task['deadline']);
               if (dueDate.isBefore(DateTime.now()) &&
                   task['status'] != 'Completed') {
                 overdue++;
@@ -537,147 +537,158 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen>
                                   ),
                                   const SizedBox(height: 16),
 
-                                  ...(_stats['departmentStats']
-                                          as List<Map<String, dynamic>>)
-                                      .map((dept) {
-                                        final deptName = dept['name'];
-                                        final deptStats = dept;
+                                  if (_stats['departmentStats'] != null)
+                                    ...(_stats['departmentStats']
+                                            as List<dynamic>)
+                                        .map(
+                                          (dept) =>
+                                              dept as Map<String, dynamic>,
+                                        )
+                                        .where((dept) => dept != null)
+                                        .cast<Map<String, dynamic>>()
+                                        .map((dept) {
+                                          final deptName = dept['name'];
+                                          final deptStats = dept;
 
-                                        return Container(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 16,
-                                          ),
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
+                                          return Container(
+                                            margin: const EdgeInsets.only(
+                                              bottom: 16,
                                             ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.05,
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.05),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
                                                 ),
-                                                blurRadius: 10,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          Colors.purple.shade50,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
+                                              ],
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
                                                             8,
                                                           ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .purple
+                                                            .shade50,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.business,
+                                                        color: Colors
+                                                            .purple
+                                                            .shade600,
+                                                        size: 20,
+                                                      ),
                                                     ),
-                                                    child: Icon(
-                                                      Icons.business,
-                                                      color: Colors
-                                                          .purple
-                                                          .shade600,
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          deptName,
-                                                          style:
-                                                              GoogleFonts.poppins(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade800,
-                                                              ),
-                                                        ),
-                                                        Text(
-                                                          '${deptStats['totalTasks']} tasks',
-                                                          style:
-                                                              GoogleFonts.poppins(
-                                                                fontSize: 12,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade600,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: _getProgressColor(
-                                                        deptStats['completionRate'],
-                                                      ).withValues(alpha: 0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            deptName,
+                                                            style:
+                                                                GoogleFonts.poppins(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade800,
+                                                                ),
                                                           ),
-                                                      border: Border.all(
-                                                        color: _getProgressColor(
-                                                          deptStats['completionRate'],
-                                                        ).withValues(alpha: 0.3),
+                                                          Text(
+                                                            '${deptStats['totalTasks']} tasks',
+                                                            style:
+                                                                GoogleFonts.poppins(
+                                                                  fontSize: 12,
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade600,
+                                                                ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    child: Text(
-                                                      '${deptStats['completionRate']}%',
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w600,
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
+                                                      decoration: BoxDecoration(
                                                         color: _getProgressColor(
                                                           deptStats['completionRate'],
+                                                        ).withValues(alpha: 0.1),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        border: Border.all(
+                                                          color:
+                                                              _getProgressColor(
+                                                                deptStats['completionRate'],
+                                                              ).withValues(
+                                                                alpha: 0.3,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        '${deptStats['completionRate']}%',
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: _getProgressColor(
+                                                            deptStats['completionRate'],
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 12),
-                                              LinearProgressIndicator(
-                                                value:
-                                                    deptStats['completionRate'] /
-                                                    100,
-                                                backgroundColor:
-                                                    Colors.grey.shade200,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(
-                                                      _getProgressColor(
-                                                        deptStats['completionRate'],
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 12),
+                                                LinearProgressIndicator(
+                                                  value:
+                                                      deptStats['completionRate'] /
+                                                      100,
+                                                  backgroundColor:
+                                                      Colors.grey.shade200,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(
+                                                        _getProgressColor(
+                                                          deptStats['completionRate'],
+                                                        ),
                                                       ),
-                                                    ),
-                                                minHeight: 6,
-                                                borderRadius:
-                                                    BorderRadius.circular(3),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
+                                                  minHeight: 6,
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
 
                                   const SizedBox(height: 32),
 
