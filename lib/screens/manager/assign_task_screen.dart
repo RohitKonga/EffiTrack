@@ -74,20 +74,21 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         _managerDepartment = profile['department'];
 
         if (_managerDepartment != null) {
-          // Fetch employees from the same department
+          // Use the same working endpoint as team attendance
           try {
             final employeeRes = await apiService.get(
-              '/profile/department/$_managerDepartment',
+              '/attendance/team/$_managerDepartment',
             );
 
             if (employeeRes.statusCode == 200) {
-              final employees = jsonDecode(employeeRes.body);
+              final data = jsonDecode(employeeRes.body);
               final List<Map<String, dynamic>> employeeList = [];
 
-              for (var emp in employees) {
-                if (emp['role'] == 'Employee') {
+              // Extract employees from team data (same structure as team attendance)
+              if (data['teamMembers'] != null) {
+                for (var emp in data['teamMembers']) {
                   employeeList.add({
-                    'id': emp['_id'],
+                    'id': emp['employeeId'],
                     'name': emp['name'],
                     'email': emp['email'],
                   });
@@ -433,6 +434,13 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       color: Colors.blue.shade600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Using Endpoint: /attendance/team/$_managerDepartment',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade500,
                                     ),
                                   ),
                                 ],
