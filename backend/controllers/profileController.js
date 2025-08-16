@@ -63,9 +63,24 @@ exports.getUsersByDepartment = async (req, res) => {
       return res.status(400).json({ msg: 'Department parameter is required' });
     }
     
+    // Normalize department to match enum values exactly
+    const validDepartments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
+    let normalizedDepartment = department;
+    
+    // Try to find exact match first
+    if (!validDepartments.includes(department)) {
+      // If no exact match, try case-insensitive matching
+      const foundDepartment = validDepartments.find(
+        dept => dept.toLowerCase() === department.toLowerCase()
+      );
+      if (foundDepartment) {
+        normalizedDepartment = foundDepartment;
+      }
+    }
+    
     // Get employees from the specified department
     const users = await User.find({ 
-      department: department,
+      department: normalizedDepartment,
       role: 'Employee'
     }).select('-password');
     

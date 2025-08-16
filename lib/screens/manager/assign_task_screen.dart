@@ -18,6 +18,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
   bool _loading = true;
   String? _error;
   bool _submitting = false;
+  String? _managerDepartment;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -70,13 +71,13 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       final profileRes = await apiService.get('/profile');
       if (profileRes.statusCode == 200) {
         final profile = jsonDecode(profileRes.body);
-        final department = profile['department'];
+        _managerDepartment = profile['department'];
 
-        if (department != null) {
+        if (_managerDepartment != null) {
           // Fetch employees from the same department
           try {
             final employeeRes = await apiService.get(
-              '/profile/department/$department',
+              '/profile/department/$_managerDepartment',
             );
 
             if (employeeRes.statusCode == 200) {
@@ -104,22 +105,22 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   _employees = [];
                   _loading = false;
                   _error =
-                      'No employees found in your department ($department). Please contact admin to add employees.';
+                      'No employees found in your department ($_managerDepartment). Please contact admin to add employees.';
                 });
               }
             } else {
               setState(() {
                 _employees = [];
                 _loading = false;
-                _error = 'Failed to load employees. Please try again.';
+                _error =
+                    'Failed to load employees (Status: ${employeeRes.statusCode}). Please try again.';
               });
             }
           } catch (e) {
             setState(() {
               _employees = [];
               _loading = false;
-              _error =
-                  'Network error. Please check your connection and try again.';
+              _error = 'Network error loading employees: $e';
             });
           }
         } else {
@@ -134,16 +135,21 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         setState(() {
           _employees = [];
           _loading = false;
-          _error = 'Failed to load your profile. Please try again.';
+          _error =
+              'Failed to load profile (Status: ${profileRes.statusCode}). Please try again.';
         });
       }
     } catch (e) {
       setState(() {
         _employees = [];
         _loading = false;
-        _error = 'Network error. Please check your connection and try again.';
+        _error = 'Network error: $e';
       });
     }
+  }
+
+  Future<void> _refreshManagerInfo() async {
+    await _fetchEmployees();
   }
 
   Future<void> _assignTask() async {
@@ -368,7 +374,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                               color: Colors.purple.shade600,
                               size: 20,
                             ),
-                            onPressed: _fetchEmployees,
+                            onPressed: _refreshManagerInfo,
                             tooltip: 'Refresh Employees',
                           ),
                         ),
@@ -385,6 +391,55 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Debug Information
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        color: Colors.blue.shade600,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Department Information',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Your Department: ${_managerDepartment ?? 'Loading...'}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.blue.shade600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Employees Found: ${_employees.length}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.blue.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
                             // Error Display
                             if (_error != null) ...[
                               Container(
@@ -422,7 +477,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                       children: [
                                         Expanded(
                                           child: ElevatedButton.icon(
-                                            onPressed: _fetchEmployees,
+                                            onPressed: _refreshManagerInfo,
                                             icon: Icon(Icons.refresh, size: 16),
                                             label: Text('Refresh'),
                                             style: ElevatedButton.styleFrom(
