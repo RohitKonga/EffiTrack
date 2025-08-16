@@ -219,7 +219,11 @@ class _AnnouncementsManagementScreenState
               Navigator.of(context).pop();
 
               try {
+                print('Attempting to delete announcement with ID: $id');
                 final res = await apiService.delete('/announcements/$id');
+                print('Delete response status: ${res.statusCode}');
+                print('Delete response body: ${res.body}');
+
                 if (res.statusCode == 200 || res.statusCode == 204) {
                   // Remove from local list
                   setState(() {
@@ -1013,7 +1017,24 @@ class _AnnouncementsManagementScreenState
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton.icon(
-                onPressed: () => _deleteAnnouncement(ann['id']),
+                onPressed: () {
+                  final announcementId = ann['id']?.toString();
+                  if (announcementId != null && announcementId.isNotEmpty) {
+                    _deleteAnnouncement(announcementId);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Cannot delete: Invalid announcement ID',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        backgroundColor: Colors.red.shade600,
+                      ),
+                    );
+                  }
+                },
                 icon: Icon(Icons.delete, size: 18, color: Colors.red.shade600),
                 label: Text(
                   'Delete',
