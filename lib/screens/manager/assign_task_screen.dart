@@ -232,7 +232,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Failed to assign task',
+                      'Failed to assign task (Status: ${res.statusCode})',
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -244,6 +244,14 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
+          );
+
+          // Log error details for debugging
+          print('Task assignment failed:');
+          print('Status Code: ${res.statusCode}');
+          print('Response Body: ${res.body}');
+          print(
+            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline}',
           );
         }
       } catch (e) {

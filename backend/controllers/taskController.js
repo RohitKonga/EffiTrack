@@ -4,14 +4,33 @@ const User = require('../models/User');
 // Assign a new task (Manager)
 exports.assignTask = async (req, res) => {
   try {
-    const { title, description, deadline, assignedTo } = req.body;
+    const { title, description, dueDate, priority, status, assignedTo } = req.body;
     const assignedBy = req.user.id;
+    
+    // Validate required fields
+    if (!title || !assignedTo) {
+      return res.status(400).json({ msg: 'Title and assignedTo are required' });
+    }
+    
+    // Find the assigned user
     const user = await User.findById(assignedTo);
     if (!user) return res.status(404).json({ msg: 'Assigned user not found' });
-    const task = new Task({ title, description, deadline, assignedTo, assignedBy });
+    
+    // Create task with proper field mapping
+    const task = new Task({ 
+      title, 
+      description, 
+      deadline: dueDate, // Map dueDate to deadline
+      priority: priority || 'Medium',
+      status: status || 'To Do',
+      assignedTo, 
+      assignedBy 
+    });
+    
     await task.save();
-    res.json(task);
+    res.status(201).json(task);
   } catch (err) {
+    console.error('Task assignment error:', err);
     res.status(500).send('Server error');
   }
 };
