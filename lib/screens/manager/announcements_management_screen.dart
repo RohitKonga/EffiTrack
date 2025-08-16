@@ -183,7 +183,7 @@ class _AnnouncementsManagementScreenState
     }
   }
 
-  void _deleteAnnouncement(String id) {
+  Future<void> _deleteAnnouncement(String id) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -215,30 +215,84 @@ class _AnnouncementsManagementScreenState
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                announcements.removeWhere((ann) => ann['id'] == id);
-              });
+            onPressed: () async {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.white),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Announcement deleted',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+
+              try {
+                final res = await apiService.delete('/announcements/$id');
+                if (res.statusCode == 200 || res.statusCode == 204) {
+                  // Remove from local list
+                  setState(() {
+                    announcements.removeWhere((ann) => ann['id'] == id);
+                  });
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Announcement deleted successfully',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                      backgroundColor: Colors.green.shade600,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Failed to delete announcement (Status: ${res.statusCode})\nResponse: ${res.body}',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.red.shade600,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Network error while deleting announcement: $e',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red.shade600,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  backgroundColor: Colors.red.shade600,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              );
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
