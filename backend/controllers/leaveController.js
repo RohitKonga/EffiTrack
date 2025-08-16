@@ -1,10 +1,6 @@
 const Leave = require('../models/Leave');
 const User = require('../models/User');
 
-// Debug: Log when controller is loaded
-console.log('LeaveController loaded successfully');
-console.log('Available methods:', Object.keys(exports));
-
 // Request leave (Employee)
 exports.requestLeave = async (req, res) => {
   try {

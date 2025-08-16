@@ -1,9 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const { requestLeave, getMyLeaves, getAllLeaves, updateLeaveStatus, getLeavesByDepartment } = require('../controllers/leaveController');
 
-// Test endpoint (no auth required for debugging)
+// Add error handling for middleware and controller imports
+let auth, leaveController;
+try {
+  auth = require('../middleware/auth');
+  console.log('Auth middleware loaded successfully');
+} catch (error) {
+  console.error('Error loading auth middleware:', error);
+}
+
+try {
+  leaveController = require('../controllers/leaveController');
+  console.log('Leave controller loaded successfully');
+  console.log('Available methods:', Object.keys(leaveController));
+} catch (error) {
+  console.error('Error loading leave controller:', error);
+}
+
+// Super simple test route
+router.get('/', (req, res) => {
+  res.json({ message: 'Leave router is working!' });
+});
+
+// Basic test endpoint
+router.get('/ping', (req, res) => {
+  res.json({ message: 'Leave routes are working!', timestamp: new Date().toISOString() });
+});
+
+// Test endpoint
 router.get('/test', (req, res) => {
   res.json({ 
     message: 'Leave routes are working!', 
@@ -18,80 +43,25 @@ router.get('/test', (req, res) => {
   });
 });
 
-// Simple test endpoint to verify route is accessible
-router.get('/ping', (req, res) => {
-  res.json({ 
-    message: 'Leave routes are accessible!', 
-    timestamp: new Date().toISOString() 
-  });
-});
-
-// Test department endpoint without auth for debugging
-router.get('/test-department/:department', async (req, res) => {
-  try {
-    const { department } = req.params;
-    const User = require('../models/User');
-    const Leave = require('../models/Leave');
-    
-    // Find users in department
-    const users = await User.find({ 
-      department: { $regex: new RegExp(department, 'i') } 
-    }).select('_id name email department role');
-    
-    // Find leaves for these users
-    const userIds = users.map(user => user._id);
-    const leaves = await Leave.find({ user: { $in: userIds } })
-      .populate('user', 'name email department')
-      .sort({ startDate: -1 });
-    
-    res.json({
-      department: department,
-      usersFound: users.length,
-      users: users,
-      leavesFound: leaves.length,
-      leaves: leaves,
-      message: 'Department test successful'
-    });
-  } catch (err) {
-    res.status(500).json({ 
-      error: err.message,
-      stack: err.stack 
-    });
-  }
-});
-
-// Debug endpoint to check database status (no auth required for testing)
-router.get('/debug', async (req, res) => {
-  try {
-    const Leave = require('../models/Leave');
-    const User = require('../models/User');
-    
-    const leaveCount = await Leave.countDocuments();
-    const userCount = await User.countDocuments();
-    const users = await User.find().select('name email department role');
-    const leaves = await Leave.find().populate('user', 'name email department role');
-    
-    res.json({
-      totalLeaves: leaveCount,
-      totalUsers: userCount,
-      users: users,
-      leaves: leaves,
-      message: 'Database status check for leaves'
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Request leave (Employee)
-router.post('/request', auth, requestLeave);
+if (leaveController && leaveController.requestLeave) {
+  router.post('/request', auth, leaveController.requestLeave);
+}
 // List leaves for logged-in user (Employee)
-router.get('/my', auth, getMyLeaves);
+if (leaveController && leaveController.getMyLeaves) {
+  router.get('/my', auth, leaveController.getMyLeaves);
+}
 // List all leave requests (Manager/Admin)
-router.get('/all', auth, getAllLeaves);
+if (leaveController && leaveController.getAllLeaves) {
+  router.get('/all', auth, leaveController.getAllLeaves);
+}
 // List leaves by department (Manager)
-router.get('/department/:department', auth, getLeavesByDepartment);
+if (leaveController && leaveController.getLeavesByDepartment) {
+  router.get('/department/:department', auth, leaveController.getLeavesByDepartment);
+}
 // Approve or reject leave (Manager/Admin)
-router.put('/:id/status', auth, updateLeaveStatus);
+if (leaveController && leaveController.updateLeaveStatus) {
+  router.put('/:id/status', auth, leaveController.updateLeaveStatus);
+}
 
 module.exports = router; 
