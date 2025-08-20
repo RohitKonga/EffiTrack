@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 
 // Utility function to convert UTC time to local time for display
@@ -46,11 +47,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
   late Animation<Offset> _slideAnimation;
+  String _currentTime = '';
+  Timer? _timeTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchHistory();
+    _updateCurrentTime();
 
     // Initialize animations
     _pulseController = AnimationController(
@@ -72,12 +76,24 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         );
 
     _slideController.forward();
+
+    // Start timer to update current time every second
+    _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateCurrentTime();
+    });
+  }
+
+  void _updateCurrentTime() {
+    setState(() {
+      _currentTime = DateTime.now().toString().substring(11, 19);
+    });
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _slideController.dispose();
+    _timeTimer?.cancel();
     super.dispose();
   }
 
@@ -135,14 +151,28 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
     try {
       final now = DateTime.now(); // Device time
-      final deviceTimeString = now.toIso8601String(); // Send device time
+      final deviceTimeString = now
+          .toUtc()
+          .toIso8601String(); // Send UTC time for consistency
 
       final res = await apiService.post('/attendance/checkin', {
         "checkIn": deviceTimeString,
         "timezone": now.timeZoneName,
+        "deviceTime":
+            now.millisecondsSinceEpoch, // Additional timestamp for verification
       });
+
       if (res.statusCode == 200) {
         await _fetchHistory();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Check-in successful at ${_formatLocalTime(now.toIso8601String())}',
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
         final data = jsonDecode(res.body);
         setState(() {
@@ -151,7 +181,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error';
+        _error = 'Network error: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -167,14 +197,28 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
     try {
       final now = DateTime.now(); // Device time
-      final deviceTimeString = now.toIso8601String(); // Send device time
+      final deviceTimeString = now
+          .toUtc()
+          .toIso8601String(); // Send UTC time for consistency
 
       final res = await apiService.post('/attendance/checkout', {
         "checkOut": deviceTimeString,
         "timezone": now.timeZoneName,
+        "deviceTime":
+            now.millisecondsSinceEpoch, // Additional timestamp for verification
       });
+
       if (res.statusCode == 200) {
         await _fetchHistory();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Check-out successful at ${_formatLocalTime(now.toIso8601String())}',
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
         final data = jsonDecode(res.body);
         setState(() {
@@ -183,7 +227,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error';
+        _error = 'Network error: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -375,6 +419,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
+                                    'Current Time: $_currentTime',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
                                     checkedIn
                                         ? 'Checked in at ${checkInTime != null ? _formatLocalTime(checkInTime!.toIso8601String()) : '-'}'
                                         : 'Ready to start your day',
@@ -416,6 +470,41 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 icon: Icons.logout,
                                 color: Colors.red,
                                 isLoading: _loading && checkedIn,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Device Time Display (for debugging)
+                      Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Device Time: $_currentTime',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
                               ),
                             ),
                           ],

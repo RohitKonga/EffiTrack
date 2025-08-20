@@ -8,8 +8,21 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
 
-    // Use client-provided time if available, else fallback to server time
-    const deviceTime = req.body.checkIn ? new Date(req.body.checkIn) : new Date();
+    // Always use client-provided time, never fallback to server time
+    if (!req.body.checkIn) {
+      return res.status(400).json({ msg: 'Device time is required for check-in' });
+    }
+
+    const deviceTime = new Date(req.body.checkIn);
+    
+    // Validate that the time is reasonable (not too far in past/future)
+    const now = new Date();
+    const timeDiff = Math.abs(now - deviceTime);
+    const maxDiff = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    if (timeDiff > maxDiff) {
+      return res.status(400).json({ msg: 'Device time seems incorrect. Please check your device clock.' });
+    }
 
     const attendance = new Attendance({
       user: req.user.id,
@@ -32,8 +45,26 @@ exports.checkOut = async (req, res) => {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
 
-    // Use client-provided time if available
-    const deviceTime = req.body.checkOut ? new Date(req.body.checkOut) : new Date();
+    // Always use client-provided time, never fallback to server time
+    if (!req.body.checkOut) {
+      return res.status(400).json({ msg: 'Device time is required for check-out' });
+    }
+
+    const deviceTime = new Date(req.body.checkOut);
+    
+    // Validate that the time is reasonable (not too far in past/future)
+    const now = new Date();
+    const timeDiff = Math.abs(now - deviceTime);
+    const maxDiff = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    if (timeDiff > maxDiff) {
+      return res.status(400).json({ msg: 'Device time seems incorrect. Please check your device clock.' });
+    }
+
+    // Ensure check-out time is after check-in time
+    if (deviceTime <= attendance.checkIn) {
+      return res.status(400).json({ msg: 'Check-out time must be after check-in time' });
+    }
 
     attendance.checkOut = deviceTime;
     attendance.checkOutTimezone = req.body.timezone || 'UTC';
