@@ -114,7 +114,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       final h = (totalMinutes ~/ 60).toString().padLeft(2, '0');
       final m = (totalMinutes % 60).toString().padLeft(2, '0');
 
-      return '${h}:${m}';
+      return '$h:$m';
     } catch (e) {
       return '-';
     }
@@ -195,6 +195,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       _loading = true;
       _error = null;
     });
+
+    // Store ScaffoldMessenger reference before async operation to avoid BuildContext warning
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       final now = DateTime.now(); // Device time
       final deviceTimeString = now
@@ -210,15 +214,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
       if (res.statusCode == 200) {
         await _fetchHistory();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Check-in successful at ${_formatLocalTime(now.toIso8601String())}',
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                'Check-in successful at ${_formatLocalTime(now.toIso8601String())}',
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        }
       } else {
         final data = jsonDecode(res.body);
         setState(() {
@@ -241,6 +247,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       _loading = true;
       _error = null;
     });
+
+    // Store ScaffoldMessenger reference before async operation to avoid BuildContext warning
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       final now = DateTime.now(); // Device time
       final deviceTimeString = now
@@ -259,41 +269,43 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         await _fetchHistory();
 
         // Show success message with working hours feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Check-out successful!',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                if (data['additionalInfo'] != null) ...[
-                  const SizedBox(height: 4),
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    data['additionalInfo'],
+                    'Check-out successful!',
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
+                  if (data['additionalInfo'] != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      data['additionalInfo'],
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 5),
             ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+          );
+        }
 
         // Show "don't forget to check in tomorrow" message after a delay
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            scaffoldMessenger.showSnackBar(
               SnackBar(
                 content: Row(
                   children: [
