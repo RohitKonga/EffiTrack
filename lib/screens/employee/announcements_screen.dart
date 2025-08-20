@@ -84,19 +84,6 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
     }
   }
 
-  Color _getPriorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return Colors.red;
-      case 'medium':
-        return Colors.orange;
-      case 'low':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -344,14 +331,29 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
     );
   }
 
-  Widget _buildAnnouncementCard(Map<String, dynamic> ann) {
-    final priorityColor = _getPriorityColor(ann['priority'] ?? '');
-    final hasPriority =
-        ann['priority'] != null && ann['priority'].toString().isNotEmpty;
+  String _formatDate(String? dateString) {
+    if (dateString == null) return 'No Date';
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return 'No Date';
+    }
+  }
 
+  String _formatTime(String? dateString) {
+    if (dateString == null) return 'No Time';
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'No Time';
+    }
+  }
+
+  Widget _buildAnnouncementCard(Map<String, dynamic> ann) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -363,141 +365,66 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.announcement,
+                    color: Colors.blue.shade600,
+                    size: 20,
+                  ),
                 ),
-                child: Icon(
-                  Icons.announcement,
-                  color: Colors.blue.shade600,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ann['title'] ?? 'Announcement',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ann['title']?.toString() ?? 'Untitled',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_formatDate(ann['createdAt']?.toString())} • ${_formatTime(ann['createdAt']?.toString())}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
                           color: Colors.grey.shade600,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ann['date'] ?? 'Today',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        if (ann['time'] != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            ann['time'] ?? '',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (hasPriority) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: priorityColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: priorityColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    ann['priority'] ?? 'Medium',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: priorityColor,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Message Content
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.message, size: 16, color: Colors.grey.shade600),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Message',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  ann['message'] ?? 'No message content',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                    height: 1.4,
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            // Message
+            Text(
+              ann['message']?.toString() ?? 'No message content',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey.shade700,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -216,7 +216,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
   Future<void> _addUserDialog() async {
     final formKey = GlobalKey<FormState>();
     String? name, email, password, role, phone, department;
-    final roles = ['Employee', 'Manager', 'Admin'];
+    final roles = ['Employee', 'Manager'];
     final departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
     bool loading = false;
     String? error;
@@ -942,25 +942,58 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                                 ),
                                             ],
                                           ),
-                                          trailing: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.red.shade50,
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: Colors.red.shade200,
-                                              ),
-                                            ),
-                                            child: IconButton(
-                                              icon: Icon(
-                                                Icons.delete_outline,
-                                                color: Colors.red.shade600,
-                                                size: 20,
-                                              ),
-                                              onPressed: () =>
-                                                  _deleteUser(userId),
-                                            ),
-                                          ),
+                                          trailing: role == 'Admin'
+                                              ? Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    'Protected',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color:
+                                                          Colors.grey.shade600,
+                                                    ),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red.shade50,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          Colors.red.shade200,
+                                                    ),
+                                                  ),
+                                                  child: IconButton(
+                                                    icon: Icon(
+                                                      Icons.delete_outline,
+                                                      color:
+                                                          Colors.red.shade600,
+                                                      size: 20,
+                                                    ),
+                                                    onPressed: () =>
+                                                        _deleteUser(userId),
+                                                  ),
+                                                ),
                                         ),
                                       );
                                     },

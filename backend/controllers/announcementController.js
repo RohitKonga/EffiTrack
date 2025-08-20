@@ -3,11 +3,30 @@ const Announcement = require('../models/Announcement');
 // Create an announcement (Admin/Manager)
 exports.createAnnouncement = async (req, res) => {
   try {
-    const { title, message, targetRoles, targetDepartment } = req.body;
+    const { title, message, targetRoles, targetDepartment, deviceTime, timezone } = req.body;
     const createdBy = req.user.id;
     
     // Determine if this is a global announcement (admin) or department-specific (manager)
     const isGlobal = req.user.role === 'Admin';
+    
+    // Use device time if provided, otherwise use server time
+    let createdAt = new Date();
+    if (deviceTime && timezone) {
+      try {
+        // Parse device time and validate it's within reasonable range
+        const deviceDate = new Date(parseInt(deviceTime));
+        const now = new Date();
+        const diffHours = Math.abs(now.getTime() - deviceDate.getTime()) / (1000 * 60 * 60);
+        
+        // Only use device time if it's within 24 hours of server time
+        if (diffHours <= 24) {
+          createdAt = deviceDate;
+        }
+      } catch (e) {
+        // If parsing fails, use server time
+        console.log('Failed to parse device time, using server time');
+      }
+    }
     
     const announcement = new Announcement({ 
       title, 
@@ -15,7 +34,8 @@ exports.createAnnouncement = async (req, res) => {
       createdBy, 
       targetRoles,
       targetDepartment: isGlobal ? undefined : targetDepartment,
-      isGlobal
+      isGlobal,
+      createdAt
     });
     
     await announcement.save();

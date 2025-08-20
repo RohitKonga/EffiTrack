@@ -95,9 +95,12 @@ class _AnnouncementsManagementScreenState
       _formKey.currentState!.save();
 
       try {
+        final now = DateTime.now();
         final res = await apiService.post('/announcements', {
           'title': _title,
           'message': _message,
+          'deviceTime': now.millisecondsSinceEpoch.toString(),
+          'timezone': now.timeZoneName,
         });
 
         if (res.statusCode == 200 || res.statusCode == 201) {

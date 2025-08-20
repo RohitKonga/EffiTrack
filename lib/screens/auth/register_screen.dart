@@ -20,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       _selectedRole,
       _phone,
       _selectedDepartment;
-  final _roles = ['Employee', 'Manager', 'Admin'];
+  final _roles = ['Employee', 'Manager'];
   final _departments = ['Design', 'Development', 'Marketing', 'Sales', 'HR'];
   bool _loading = false;
   String? _error;

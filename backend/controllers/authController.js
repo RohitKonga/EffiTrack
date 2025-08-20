@@ -5,6 +5,12 @@ const jwt = require('jsonwebtoken');
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, phone, department } = req.body;
+    
+    // Prevent admin creation through registration
+    if (role === 'Admin') {
+      return res.status(403).json({ msg: 'Admin accounts cannot be created through registration' });
+    }
+    
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: 'User already exists' });
 

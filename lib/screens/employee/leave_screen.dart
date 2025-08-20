@@ -19,7 +19,6 @@ class _LeaveScreenState extends State<LeaveScreen>
     'Sick Leave',
     'Casual Leave',
     'Annual Leave',
-    'Maternity Leave',
     'Personal Leave',
   ];
   List<Map<String, dynamic>> leaveHistory = [];
@@ -159,8 +158,6 @@ class _LeaveScreenState extends State<LeaveScreen>
         return Colors.blue;
       case 'annual leave':
         return Colors.green;
-      case 'maternity leave':
-        return Colors.purple;
       case 'personal leave':
         return Colors.orange;
       default:

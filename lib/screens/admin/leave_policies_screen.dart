@@ -100,11 +100,6 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
               'description': 'Regular vacation leave',
             },
             {
-              'leaveType': 'Maternity Leave',
-              'days': 90,
-              'description': 'Maternity and parental leave',
-            },
-            {
               'leaveType': 'Personal Leave',
               'days': 5,
               'description': 'Personal and emergency leave',
@@ -121,8 +116,6 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
                   ? 15
                   : type == 'Annual Leave'
                   ? 20
-                  : type == 'Maternity Leave'
-                  ? 90
                   : type == 'Personal Leave'
                   ? 5
                   : 15,
@@ -152,11 +145,6 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
             'leaveType': 'Annual Leave',
             'days': 20,
             'description': 'Regular vacation leave',
-          },
-          {
-            'leaveType': 'Maternity Leave',
-            'days': 90,
-            'description': 'Maternity and parental leave',
           },
           {
             'leaveType': 'Personal Leave',
@@ -189,9 +177,9 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
           'description': 'Regular vacation leave',
         },
         {
-          'leaveType': 'Maternity Leave',
-          'days': 90,
-          'description': 'Maternity and parental leave',
+          'leaveType': 'Personal Leave',
+          'days': 5,
+          'description': 'Personal and emergency leave',
         },
       ];
 
@@ -282,8 +270,6 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
         return Colors.blue;
       case 'Annual Leave':
         return Colors.green;
-      case 'Maternity Leave':
-        return Colors.purple;
       case 'Personal Leave':
         return Colors.orange;
       default:
@@ -299,8 +285,6 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
         return Icons.beach_access;
       case 'Annual Leave':
         return Icons.work_off;
-      case 'Maternity Leave':
-        return Icons.family_restroom;
       case 'Personal Leave':
         return Icons.event_note;
       default:
