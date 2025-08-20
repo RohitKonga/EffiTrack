@@ -140,84 +140,6 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
     }
   }
 
-  Future<void> _updateTaskStatus(int index, String newStatus) async {
-    try {
-      final taskId = tasks[index]['_id'];
-      final res = await apiService.put('/tasks/$taskId/status', {
-        'status': newStatus,
-      });
-
-      if (res.statusCode == 200) {
-        await _fetchTasks(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Task status updated successfully!',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed to update task status',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Network error while updating status',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    }
-  }
-
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -350,7 +272,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Task Status',
+                                'Task Status (Read-only)',
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -358,7 +280,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                                 ),
                               ),
                               Text(
-                                'Monitor team task progress',
+                                'View team task status (real-time updates)',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
@@ -588,21 +510,6 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
     final priority = _getTaskPriority(task['priority']);
     final statusColor = _getStatusColor(status);
     final priorityColor = _getPriorityColor(priority);
-    // Calculate progress based on status
-    int progress = 0;
-    switch (status) {
-      case 'Completed':
-        progress = 100;
-        break;
-      case 'In Progress':
-        progress = 50;
-        break;
-      case 'To Do':
-        progress = 0;
-        break;
-      default:
-        progress = 0;
-    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -661,8 +568,9 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                         Text(
                           _getAssignedToName(task['assignedTo']),
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.purple.shade700,
                           ),
                         ),
                       ],
@@ -685,54 +593,6 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: priorityColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Progress Bar
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Progress',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  Text(
-                    '$progress%',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: progress / 100,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
                   ),
                 ),
               ),
@@ -765,7 +625,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
 
           const SizedBox(height: 16),
 
-          // Status Badge with Update Button
+          // Status Badge (Read-only)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -775,53 +635,15 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
               border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(_getStatusIcon(status), color: statusColor, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Status: $status',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (String newStatus) =>
-                      _updateTaskStatus(tasks.indexOf(task), newStatus),
-                  itemBuilder: (BuildContext context) => [
-                    if (status != 'To Do')
-                      PopupMenuItem(
-                        value: 'To Do',
-                        child: Text('Mark as To Do'),
-                      ),
-                    if (status != 'In Progress')
-                      PopupMenuItem(
-                        value: 'In Progress',
-                        child: Text('Mark as In Progress'),
-                      ),
-                    if (status != 'Completed')
-                      PopupMenuItem(
-                        value: 'Completed',
-                        child: Text('Mark as Completed'),
-                      ),
-                  ],
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      color: Colors.purple.shade600,
-                      size: 16,
-                    ),
+                Icon(_getStatusIcon(status), color: statusColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Status: $status',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
                   ),
                 ),
               ],

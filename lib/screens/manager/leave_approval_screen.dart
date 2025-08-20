@@ -147,7 +147,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
         });
       }
     } catch (e) {
-      setState(() {
+    setState(() {
         _error = 'Network error: $e';
         _loading = false;
       });
@@ -520,9 +520,9 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                                 onRefresh: _fetchLeaveRequests,
                                 color: Colors.purple.shade600,
                                 child: ListView.builder(
-                                  itemCount: leaveRequests.length,
-                                  itemBuilder: (context, index) {
-                                    final req = leaveRequests[index];
+        itemCount: leaveRequests.length,
+        itemBuilder: (context, index) {
+          final req = leaveRequests[index];
                                     return _buildLeaveRequestCard(req, index);
                                   },
                                 ),
@@ -562,7 +562,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
         ],
       ),
       child: Column(
-        children: [
+                      children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

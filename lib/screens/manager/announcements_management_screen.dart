@@ -120,9 +120,9 @@ class _AnnouncementsManagementScreenState
 
         if (res.statusCode == 200 || res.statusCode == 201) {
           await _fetchAnnouncements();
-          setState(() {
-            _title = null;
-            _message = null;
+      setState(() {
+        _title = null;
+        _message = null;
             _showForm = false;
           });
           _formKey.currentState!.reset();
@@ -348,8 +348,8 @@ class _AnnouncementsManagementScreenState
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Column(
-                children: [
+        child: Column(
+          children: [
                   // Header
                   Container(
                     padding: const EdgeInsets.all(24),
@@ -438,12 +438,12 @@ class _AnnouncementsManagementScreenState
                         ],
                       ),
                       child: Form(
-                        key: _formKey,
-                        child: Column(
+              key: _formKey,
+              child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              children: [
+                children: [
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
@@ -470,9 +470,9 @@ class _AnnouncementsManagementScreenState
                             const SizedBox(height: 20),
 
                             // Title Field
-                            TextFormField(
-                              onSaved: (value) => _title = value,
-                              validator: (value) =>
+                  TextFormField(
+                    onSaved: (value) => _title = value,
+                    validator: (value) =>
                                   value == null || value.isEmpty
                                   ? 'Please enter a title'
                                   : null,
@@ -514,9 +514,9 @@ class _AnnouncementsManagementScreenState
                             const SizedBox(height: 16),
 
                             // Message Field
-                            TextFormField(
-                              onSaved: (value) => _message = value,
-                              validator: (value) =>
+                  TextFormField(
+                    onSaved: (value) => _message = value,
+                    validator: (value) =>
                                   value == null || value.isEmpty
                                   ? 'Please enter a message'
                                   : null,
@@ -592,7 +592,7 @@ class _AnnouncementsManagementScreenState
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton.icon(
-                                onPressed: _addAnnouncement,
+                    onPressed: _addAnnouncement,
                                 icon: Icon(Icons.send, size: 20),
                                 label: Text(
                                   'Post Department Announcement',
@@ -614,9 +614,9 @@ class _AnnouncementsManagementScreenState
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+              ),
+            ),
+            const SizedBox(height: 24),
                   ],
 
                   // Announcements List
@@ -663,8 +663,8 @@ class _AnnouncementsManagementScreenState
                                     fontWeight: FontWeight.w500,
                                     color: Colors.grey.shade600,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
+            ),
+            const SizedBox(height: 8),
                                 Text(
                                   'Post your first department announcement to get started',
                                   style: GoogleFonts.poppins(
@@ -679,13 +679,13 @@ class _AnnouncementsManagementScreenState
                         : RefreshIndicator(
                             onRefresh: _fetchAnnouncements,
                             color: Colors.purple.shade600,
-                            child: ListView.builder(
+              child: ListView.builder(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
                               ),
-                              itemCount: announcements.length,
-                              itemBuilder: (context, index) {
-                                final ann = announcements[index];
+                itemCount: announcements.length,
+                itemBuilder: (context, index) {
+                  final ann = announcements[index];
                                 final isGlobal = ann['isGlobal'] ?? false;
                                 final isOwnAnnouncement =
                                     ann['createdBy'] == _managerDepartment;
@@ -835,13 +835,13 @@ class _AnnouncementsManagementScreenState
                                         ),
                                       ),
                                     ],
-                                  ),
-                                );
-                              },
+                    ),
+                  );
+                },
                             ),
-                          ),
-                  ),
-                ],
+              ),
+            ),
+          ],
               ),
             ),
           ),

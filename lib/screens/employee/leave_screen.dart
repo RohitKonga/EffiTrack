@@ -690,8 +690,8 @@ class _LeaveScreenState extends State<LeaveScreen>
   Widget _buildDateRangeField() {
     return InkWell(
       onTap: () async {
-        final picked = await showDateRangePicker(
-          context: context,
+                                final picked = await showDateRangePicker(
+                                  context: context,
           firstDate: DateTime.now(),
           lastDate: DateTime.now().add(const Duration(days: 365)),
           builder: (context, child) {
@@ -706,11 +706,11 @@ class _LeaveScreenState extends State<LeaveScreen>
               child: child!,
             );
           },
-        );
-        if (picked != null) {
-          setState(() => _dateRange = picked);
-        }
-      },
+                                );
+                                if (picked != null) {
+                                  setState(() => _dateRange = picked);
+                                }
+                              },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
@@ -837,7 +837,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             fontSize: 12,
                             color: Colors.grey.shade600,
                           ),
-                        ),
+                              ),
                       ],
                     ),
                   ],
@@ -895,7 +895,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey.shade700,
-                    ),
+                          ),
                   ),
                 ],
               ),

@@ -191,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                  children: [
                               Text(
                                 'My Profile',
                                 style: GoogleFonts.poppins(
@@ -386,9 +386,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         ),
                                         validator: (value) =>
                                             value == null || value.isEmpty
-                                            ? 'Please select a department'
-                                            : null,
-                                      ),
+                          ? 'Please select a department'
+                          : null,
+                    ),
                                     ],
                                   ),
 

@@ -160,7 +160,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
             ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
             children: [
               // Header
               Container(
@@ -233,9 +233,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                   border: Border.all(color: Colors.purple.shade200),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
                       'Update Status',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
@@ -270,8 +270,8 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                           vertical: 12,
                         ),
                       ),
-                      items: ['To Do', 'In Progress', 'Completed']
-                          .map(
+              items: ['To Do', 'In Progress', 'Completed']
+                  .map(
                             (status) => DropdownMenuItem(
                               value: status,
                               child: Text(
@@ -282,14 +282,14 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          _updateStatus(index, value);
-                          Navigator.pop(context);
-                        }
-                      },
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  _updateStatus(index, value);
+                  Navigator.pop(context);
+                }
+              },
                       icon: Icon(
                         Icons.keyboard_arrow_down,
                         color: Colors.purple.shade600,
@@ -300,9 +300,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                         fontSize: 16,
                         color: Colors.black87,
                       ),
-                    ),
-                  ],
-                ),
+            ),
+          ],
+        ),
               ),
 
               const SizedBox(height: 24),
@@ -312,7 +312,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey.shade100,
                     foregroundColor: Colors.grey.shade700,
@@ -329,9 +329,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-              ),
-            ],
           ),
+        ],
+      ),
         ),
       ),
     );
@@ -541,8 +541,8 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                               ],
                             ),
                           )
-                        : _error != null
-                        ? Center(
+          : _error != null
+          ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -671,9 +671,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                                   ] else ...[
                                     Expanded(
                                       child: ListView.builder(
-                                        itemCount: tasks.length,
-                                        itemBuilder: (context, index) {
-                                          final task = tasks[index];
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
                                           return _buildTaskCard(task, index);
                                         },
                                       ),
@@ -924,7 +924,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
             ],
           ),
         ],
-      ),
+            ),
     );
   }
 }
