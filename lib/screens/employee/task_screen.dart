@@ -408,9 +408,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
+              Colors.purple.shade50,
               Colors.white,
             ],
           ),

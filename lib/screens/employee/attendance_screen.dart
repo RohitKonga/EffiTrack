@@ -368,6 +368,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
+              Colors.blue.shade50,
               Colors.indigo.shade50,
               Colors.purple.shade50,
               Colors.white,
@@ -381,14 +382,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.indigo,
-                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                       ),
                       SizedBox(height: 16),
                       Text(
                         'Loading attendance...',
-                        style: TextStyle(fontSize: 16, color: Colors.indigo),
+                        style: TextStyle(fontSize: 16, color: Colors.blue),
                       ),
                     ],
                   ),
@@ -405,12 +404,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.indigo.withValues(alpha: 0.1),
+                                color: Colors.blue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
                                 Icons.access_time,
-                                color: Colors.indigo.shade600,
+                                color: Colors.blue.shade600,
                                 size: 24,
                               ),
                             ),
@@ -424,7 +423,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     style: GoogleFonts.poppins(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.indigo.shade700,
+                                      color: Colors.blue.shade700,
                                     ),
                                   ),
                                   Text(
@@ -682,7 +681,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                onPressed: (checkedIn || _hasCompletedTodaysSession()) ? null : _checkIn,
+                                onPressed:
+                                    (checkedIn || _hasCompletedTodaysSession())
+                                    ? null
+                                    : _checkIn,
                                 text: 'Check In',
                                 icon: Icons.login,
                                 color: Colors.green,
@@ -784,7 +786,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 children: [
                                   Icon(
                                     Icons.history,
-                                    color: Colors.indigo.shade600,
+                                    color: Colors.blue.shade600,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
@@ -793,7 +795,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     style: GoogleFonts.poppins(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.indigo.shade700,
+                                      color: Colors.blue.shade700,
                                     ),
                                   ),
                                 ],
@@ -940,7 +942,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               ),
               child: Icon(
                 isToday ? Icons.today : Icons.calendar_today,
-                color: isToday ? Colors.indigo.shade600 : Colors.grey.shade600,
+                color: isToday ? Colors.blue.shade600 : Colors.grey.shade600,
                 size: 20,
               ),
             ),
@@ -951,7 +953,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.indigo.shade700,
+                    color: Colors.blue.shade700,
                   ),
                 ),
                 if (isToday) ...[
@@ -962,7 +964,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.indigo.shade100,
+                      color: Colors.blue.shade100,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -970,7 +972,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo.shade600,
+                        color: Colors.blue.shade600,
                       ),
                     ),
                   ),

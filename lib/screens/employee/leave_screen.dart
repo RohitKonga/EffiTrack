@@ -200,9 +200,9 @@ class _LeaveScreenState extends State<LeaveScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
+              Colors.purple.shade50,
               Colors.white,
             ],
           ),
@@ -230,7 +230,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                           ),
                           child: Icon(
                             Icons.beach_access,
-                            color: Colors.purple.shade600,
+                            color: Colors.blue.shade600,
                             size: 24,
                           ),
                         ),
@@ -239,14 +239,14 @@ class _LeaveScreenState extends State<LeaveScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Leave Management',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                                              Text(
+                                  'Leave Management',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700,
+                                  ),
                                 ),
-                              ),
                               Text(
                                 'Request and track your leave',
                                 style: GoogleFonts.poppins(
@@ -259,14 +259,14 @@ class _LeaveScreenState extends State<LeaveScreen>
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.blue.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
+                            border: Border.all(color: Colors.blue.shade200),
                           ),
                           child: IconButton(
                             icon: Icon(
                               _showForm ? Icons.close : Icons.add,
-                              color: Colors.purple.shade600,
+                              color: Colors.blue.shade600,
                               size: 20,
                             ),
                             onPressed: () {

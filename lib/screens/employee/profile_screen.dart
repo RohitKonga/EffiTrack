@@ -153,9 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
+              Colors.purple.shade50,
               Colors.white,
             ],
           ),
@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                           child: Icon(
                             Icons.person,
-                            color: Colors.purple.shade600,
+                            color: Colors.blue.shade600,
                             size: 24,
                           ),
                         ),
@@ -197,7 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.blue.shade700,
                                 ),
                               ),
                               Text(
@@ -223,13 +223,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                               children: [
                                 CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.purple,
+                                    Colors.blue,
                                   ),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'Loading profile...',
-                                  style: TextStyle(color: Colors.purple),
+                                  style: TextStyle(color: Colors.blue),
                                 ),
                               ],
                             ),
@@ -297,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         Container(
                                           padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
-                                            color: Colors.purple.shade100,
+                                            color: Colors.blue.shade100,
                                             borderRadius: BorderRadius.circular(
                                               50,
                                             ),
@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           child: Icon(
                                             Icons.person,
                                             size: 60,
-                                            color: Colors.purple.shade600,
+                                            color: Colors.blue.shade600,
                                           ),
                                         ),
                                         const SizedBox(height: 16),
@@ -316,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           style: GoogleFonts.poppins(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.purple.shade700,
+                                            color: Colors.blue.shade700,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
@@ -421,7 +421,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.purple.shade600,
+                                        backgroundColor: Colors.blue.shade600,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
@@ -429,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           ),
                                         ),
                                         elevation: 4,
-                                        shadowColor: Colors.purple.shade300,
+                                        shadowColor: Colors.blue.shade300,
                                       ),
                                     ),
                                   ),

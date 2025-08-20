@@ -106,9 +106,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
+              Colors.purple.shade50,
               Colors.white,
             ],
           ),
@@ -136,7 +136,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           ),
                           child: Icon(
                             Icons.announcement,
-                            color: Colors.purple.shade600,
+                            color: Colors.blue.shade600,
                             size: 24,
                           ),
                         ),
@@ -202,8 +202,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                               ],
                             ),
                           )
-          : _error != null
-          ? Center(
+                        : _error != null
+                        ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -332,9 +332,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                                   ] else ...[
                                     Expanded(
                                       child: ListView.builder(
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final ann = announcements[index];
+                                        itemCount: announcements.length,
+                                        itemBuilder: (context, index) {
+                                          final ann = announcements[index];
                                           return _buildAnnouncementCard(ann);
                                         },
                                       ),
@@ -545,7 +545,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
             ],
           ),
         ],
-            ),
+      ),
     );
   }
 }
