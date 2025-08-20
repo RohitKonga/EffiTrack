@@ -133,6 +133,19 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
   }
 
+  bool _hasCompletedTodaysSession() {
+    if (history.isEmpty) return false;
+
+    final today = DateTime.now();
+    final todayDate =
+        '${today.day.toString().padLeft(2, '0')}/${today.month.toString().padLeft(2, '0')}/${today.year}';
+
+    return history.any((record) {
+      final recordDate = _formatDate(record['checkIn']?.toString());
+      return recordDate == todayDate && record['checkOut'] != null;
+    });
+  }
+
   @override
   void dispose() {
     _pulseController.dispose();
@@ -578,12 +591,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               child: Icon(
                                 checkedIn
                                     ? Icons.check_circle
-                                    : _hasCheckedInToday()
+                                    : _hasCompletedTodaysSession()
                                     ? Icons.done_all
                                     : Icons.info_outline,
                                 color: checkedIn
                                     ? Colors.green.shade600
-                                    : _hasCheckedInToday()
+                                    : _hasCompletedTodaysSession()
                                     ? Colors.blue.shade600
                                     : Colors.orange.shade600,
                                 size: 20,
@@ -608,7 +621,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   Text(
                                     checkedIn
                                         ? 'You are currently working today'
-                                        : _hasCheckedInToday()
+                                        : _hasCompletedTodaysSession()
                                         ? 'You have already completed today\'s session'
                                         : 'You have not checked in today',
                                     style: GoogleFonts.poppins(
@@ -627,18 +640,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               decoration: BoxDecoration(
                                 color: checkedIn
                                     ? Colors.green.shade100
+                                    : _hasCompletedTodaysSession()
+                                    ? Colors.blue.shade100
                                     : Colors.orange.shade100,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: checkedIn
                                       ? Colors.green.shade300
+                                      : _hasCompletedTodaysSession()
+                                      ? Colors.blue.shade300
                                       : Colors.orange.shade300,
                                 ),
                               ),
                               child: Text(
                                 checkedIn
                                     ? 'ACTIVE'
-                                    : _hasCheckedInToday()
+                                    : _hasCompletedTodaysSession()
                                     ? 'COMPLETED'
                                     : 'PENDING',
                                 style: GoogleFonts.poppins(
@@ -646,7 +663,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   fontWeight: FontWeight.bold,
                                   color: checkedIn
                                       ? Colors.green.shade700
-                                      : _hasCheckedInToday()
+                                      : _hasCompletedTodaysSession()
                                       ? Colors.blue.shade700
                                       : Colors.orange.shade700,
                                 ),
@@ -665,7 +682,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                onPressed: checkedIn ? null : _checkIn,
+                                onPressed: (checkedIn || _hasCompletedTodaysSession()) ? null : _checkIn,
                                 text: 'Check In',
                                 icon: Icons.login,
                                 color: Colors.green,
