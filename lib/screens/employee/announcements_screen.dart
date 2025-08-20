@@ -397,6 +397,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           fontWeight: FontWeight.w600,
                           color: Colors.grey.shade800,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -422,6 +424,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                 color: Colors.grey.shade700,
                 height: 1.4,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 5,
             ),
           ],
         ),

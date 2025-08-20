@@ -359,7 +359,7 @@ class _AnnouncementsManagementScreenState
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
+              Colors.teal.shade50,
               Colors.indigo.shade50,
               Colors.blue.shade50,
               Colors.white,
@@ -389,7 +389,7 @@ class _AnnouncementsManagementScreenState
                           ),
                           child: Icon(
                             Icons.announcement,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -403,7 +403,7 @@ class _AnnouncementsManagementScreenState
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                               Text(
@@ -418,14 +418,14 @@ class _AnnouncementsManagementScreenState
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
+                            border: Border.all(color: Colors.teal.shade200),
                           ),
                           child: IconButton(
                             icon: Icon(
                               _showForm ? Icons.close : Icons.add,
-                              color: Colors.purple.shade600,
+                              color: Colors.teal.shade600,
                               size: 20,
                             ),
                             onPressed: () {
@@ -470,12 +470,12 @@ class _AnnouncementsManagementScreenState
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.purple.shade50,
+                                    color: Colors.teal.shade50,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
                                     Icons.add_circle,
-                                    color: Colors.purple.shade600,
+                                    color: Colors.teal.shade600,
                                     size: 20,
                                   ),
                                 ),
@@ -485,7 +485,7 @@ class _AnnouncementsManagementScreenState
                                   style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.purple.shade700,
+                                    color: Colors.teal.shade700,
                                   ),
                                 ),
                               ],
@@ -503,7 +503,7 @@ class _AnnouncementsManagementScreenState
                                 hintText: 'Enter announcement title',
                                 prefixIcon: Icon(
                                   Icons.title,
-                                  color: Colors.purple.shade600,
+                                  color: Colors.teal.shade600,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -520,7 +520,7 @@ class _AnnouncementsManagementScreenState
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: Colors.purple.shade600,
+                                    color: Colors.teal.shade600,
                                     width: 2,
                                   ),
                                 ),
@@ -548,7 +548,7 @@ class _AnnouncementsManagementScreenState
                                 hintText: 'Enter announcement message',
                                 prefixIcon: Icon(
                                   Icons.message,
-                                  color: Colors.purple.shade600,
+                                  color: Colors.teal.shade600,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -565,7 +565,7 @@ class _AnnouncementsManagementScreenState
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: Colors.purple.shade600,
+                                    color: Colors.teal.shade600,
                                     width: 2,
                                   ),
                                 ),
@@ -597,11 +597,15 @@ class _AnnouncementsManagementScreenState
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'This announcement will be visible to ${_managerDepartment ?? 'your department'} employees only',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.blue.shade700,
+                                  Flexible(
+                                    child: Text(
+                                      'This announcement will be visible to ${_managerDepartment ?? 'your department'} employees only',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
                                     ),
                                   ),
                                 ],
@@ -625,13 +629,13 @@ class _AnnouncementsManagementScreenState
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple.shade600,
+                                  backgroundColor: Colors.teal.shade600,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   elevation: 4,
-                                  shadowColor: Colors.purple.shade300,
+                                  shadowColor: Colors.teal.shade300,
                                 ),
                               ),
                             ),
@@ -647,7 +651,7 @@ class _AnnouncementsManagementScreenState
                     child: _loading
                         ? Center(
                             child: CircularProgressIndicator(
-                              color: Colors.purple.shade600,
+                              color: Colors.teal.shade600,
                             ),
                           )
                         : _error != null
@@ -701,7 +705,7 @@ class _AnnouncementsManagementScreenState
                           )
                         : RefreshIndicator(
                             onRefresh: _fetchAnnouncements,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             child: ListView.builder(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -739,7 +743,7 @@ class _AnnouncementsManagementScreenState
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
                                               color: isGlobal
-                                                  ? Colors.purple.shade50
+                                                  ? Colors.teal.shade50
                                                   : Colors.blue.shade50,
                                               borderRadius:
                                                   BorderRadius.circular(8),
@@ -749,8 +753,8 @@ class _AnnouncementsManagementScreenState
                                                   ? Icons.announcement
                                                   : Icons.business,
                                               color: isGlobal
-                                                  ? Colors.purple.shade600
-                                                  : Colors.blue.shade600,
+                                                  ? Colors.teal.shade600
+                                                  : Colors.teal.shade600,
                                               size: 20,
                                             ),
                                           ),
@@ -760,68 +764,16 @@ class _AnnouncementsManagementScreenState
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      ann['title'] ?? '',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: Colors
-                                                                .purple
-                                                                .shade700,
-                                                          ),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 8,
-                                                            vertical: 4,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: isGlobal
-                                                            ? Colors
-                                                                  .purple
-                                                                  .shade100
-                                                            : Colors
-                                                                  .blue
-                                                                  .shade100,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              12,
-                                                            ),
-                                                        border: Border.all(
-                                                          color: isGlobal
-                                                              ? Colors
-                                                                    .purple
-                                                                    .shade300
-                                                              : Colors
-                                                                    .blue
-                                                                    .shade300,
-                                                        ),
-                                                      ),
-                                                      child: Text(
-                                                        isGlobal
-                                                            ? 'Global'
-                                                            : 'Department',
-                                                        style: GoogleFonts.poppins(
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color: isGlobal
-                                                              ? Colors
-                                                                    .purple
-                                                                    .shade700
-                                                              : Colors
-                                                                    .blue
-                                                                    .shade700,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
+                                                Text(
+                                                  ann['title'] ?? '',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.teal.shade700,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
@@ -856,6 +808,8 @@ class _AnnouncementsManagementScreenState
                                           color: Colors.grey.shade700,
                                           height: 1.4,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 5,
                                       ),
                                     ],
                                   ),
