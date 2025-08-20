@@ -47,16 +47,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   late AnimationController _slideController;
   late Animation<double> _pulseAnimation;
   late Animation<Offset> _slideAnimation;
-  String _currentTime = '';
   String _workingHours = '00:00:00';
-  Timer? _timeTimer;
   Timer? _workingHoursTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchHistory();
-    _updateCurrentTime();
     _updateWorkingHours();
 
     // Initialize animations
@@ -80,22 +77,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
     _slideController.forward();
 
-    // Start timer to update current time every second
-    _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _updateCurrentTime();
-    });
-
     // Start timer to update working hours every second when checked in
     _workingHoursTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (checkedIn) {
         _updateWorkingHours();
       }
-    });
-  }
-
-  void _updateCurrentTime() {
-    setState(() {
-      _currentTime = DateTime.now().toString().substring(11, 19);
     });
   }
 
@@ -134,11 +120,23 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
+  bool _hasCheckedInToday() {
+    if (history.isEmpty) return false;
+
+    final today = DateTime.now();
+    final todayDate =
+        '${today.day.toString().padLeft(2, '0')}/${today.month.toString().padLeft(2, '0')}/${today.year}';
+
+    return history.any((record) {
+      final recordDate = _formatDate(record['checkIn']?.toString());
+      return recordDate == todayDate;
+    });
+  }
+
   @override
   void dispose() {
     _pulseController.dispose();
     _slideController.dispose();
-    _timeTimer?.cancel();
     _workingHoursTimer?.cancel();
     super.dispose();
   }
@@ -257,16 +255,68 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
 
       if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
         await _fetchHistory();
+
+        // Show success message with working hours feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Check-out successful at ${_formatLocalTime(now.toIso8601String())}',
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Check-out successful!',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                if (data['additionalInfo'] != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    data['additionalInfo'],
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
           ),
         );
+
+        // Show "don't forget to check in tomorrow" message after a delay
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Don\'t forget to check in tomorrow! 🌅',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.blue.shade600,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        });
       } else {
         final data = jsonDecode(res.body);
         setState(() {
@@ -477,18 +527,117 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                       ),
                                     ),
                                   ),
-                                  if (checkedIn) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Working: $_workingHours',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
                                 ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Daily Status Indicator
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: checkedIn
+                                    ? Colors.green.shade100
+                                    : _hasCheckedInToday()
+                                    ? Colors.blue.shade100
+                                    : Colors.orange.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                checkedIn
+                                    ? Icons.check_circle
+                                    : _hasCheckedInToday()
+                                    ? Icons.done_all
+                                    : Icons.info_outline,
+                                color: checkedIn
+                                    ? Colors.green.shade600
+                                    : _hasCheckedInToday()
+                                    ? Colors.blue.shade600
+                                    : Colors.orange.shade600,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    checkedIn
+                                        ? 'Today\'s Session'
+                                        : 'Daily Status',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    checkedIn
+                                        ? 'You are currently working today'
+                                        : _hasCheckedInToday()
+                                        ? 'You have already completed today\'s session'
+                                        : 'You have not checked in today',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: checkedIn
+                                    ? Colors.green.shade100
+                                    : Colors.orange.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: checkedIn
+                                      ? Colors.green.shade300
+                                      : Colors.orange.shade300,
+                                ),
+                              ),
+                              child: Text(
+                                checkedIn
+                                    ? 'ACTIVE'
+                                    : _hasCheckedInToday()
+                                    ? 'COMPLETED'
+                                    : 'PENDING',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: checkedIn
+                                      ? Colors.green.shade700
+                                      : _hasCheckedInToday()
+                                      ? Colors.blue.shade700
+                                      : Colors.orange.shade700,
+                                ),
                               ),
                             ),
                           ],

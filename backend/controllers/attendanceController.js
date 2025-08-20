@@ -24,6 +24,23 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Device time seems incorrect. Please check your device clock.' });
     }
 
+    // Check if user has already checked in today
+    const today = new Date(deviceTime);
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayAttendance = await Attendance.findOne({
+      user: req.user.id,
+      checkIn: { $gte: today, $lt: tomorrow }
+    });
+
+    if (todayAttendance) {
+      return res.status(400).json({ 
+        msg: 'You have already checked in today. Only one check-in per day is allowed.' 
+      });
+    }
+
     const attendance = new Attendance({
       user: req.user.id,
       checkIn: deviceTime,
@@ -71,7 +88,28 @@ exports.checkOut = async (req, res) => {
     attendance.workingHours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
     
     await attendance.save();
-    res.json(attendance);
+
+    // Calculate working hours and provide feedback
+    const workingHours = attendance.workingHours;
+    let message = 'Check-out successful!';
+    let additionalInfo = '';
+
+    if (workingHours >= 8) {
+      additionalInfo = 'Great job! You have completed a full working day.';
+    } else if (workingHours >= 6) {
+      additionalInfo = 'Good work! You have put in substantial hours today.';
+    } else if (workingHours >= 4) {
+      additionalInfo = 'You have completed a half-day of work.';
+    } else {
+      additionalInfo = 'Short working session completed.';
+    }
+
+    res.json({
+      ...attendance.toObject(),
+      message: message,
+      additionalInfo: additionalInfo,
+      workingHoursFormatted: `${Math.floor(workingHours)}h ${Math.round((workingHours % 1) * 60)}m`
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
