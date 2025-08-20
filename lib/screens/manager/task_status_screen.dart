@@ -272,7 +272,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Task Status (Read-only)',
+                                'Task Status',
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -280,7 +280,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                                 ),
                               ),
                               Text(
-                                'View team task status (real-time updates)',
+                                'View team task status',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,

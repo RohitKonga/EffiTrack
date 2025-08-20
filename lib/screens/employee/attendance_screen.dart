@@ -48,13 +48,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   late Animation<double> _pulseAnimation;
   late Animation<Offset> _slideAnimation;
   String _currentTime = '';
+  String _workingHours = '00:00:00';
   Timer? _timeTimer;
+  Timer? _workingHoursTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchHistory();
     _updateCurrentTime();
+    _updateWorkingHours();
 
     // Initialize animations
     _pulseController = AnimationController(
@@ -81,6 +84,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateCurrentTime();
     });
+
+    // Start timer to update working hours every second when checked in
+    _workingHoursTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (checkedIn) {
+        _updateWorkingHours();
+      }
+    });
   }
 
   void _updateCurrentTime() {
@@ -89,11 +99,47 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
   }
 
+  void _updateWorkingHours() {
+    if (checkedIn && checkInTime != null) {
+      final now = DateTime.now();
+      final difference = now.difference(checkInTime!);
+
+      final hours = difference.inHours.toString().padLeft(2, '0');
+      final minutes = (difference.inMinutes % 60).toString().padLeft(2, '0');
+      final seconds = (difference.inSeconds % 60).toString().padLeft(2, '0');
+
+      setState(() {
+        _workingHours = '$hours:$minutes:$seconds';
+      });
+    } else {
+      setState(() {
+        _workingHours = '00:00:00';
+      });
+    }
+  }
+
+  String _formatWorkingHours(dynamic workingHours) {
+    if (workingHours == null) return '-';
+
+    try {
+      final hours = double.parse(workingHours.toString());
+      final totalMinutes = (hours * 60).round();
+
+      final h = (totalMinutes ~/ 60).toString().padLeft(2, '0');
+      final m = (totalMinutes % 60).toString().padLeft(2, '0');
+
+      return '${h}:${m}';
+    } catch (e) {
+      return '-';
+    }
+  }
+
   @override
   void dispose() {
     _pulseController.dispose();
     _slideController.dispose();
     _timeTimer?.cancel();
+    _workingHoursTimer?.cancel();
     super.dispose();
   }
 
@@ -120,12 +166,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             checkInTime = utcTime.toLocal();
             checkOutTime = null;
             _pulseController.repeat(reverse: true);
+            _updateWorkingHours(); // Update working hours when checked in
           } else {
             checkedIn = false;
             checkInTime = null;
             checkOutTime = null;
             _pulseController.stop();
             _pulseController.reset();
+            _updateWorkingHours(); // Reset working hours when not checked in
           }
         });
       } else {
@@ -419,16 +467,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Current Time: $_currentTime',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
                                     checkedIn
                                         ? 'Checked in at ${checkInTime != null ? _formatLocalTime(checkInTime!.toIso8601String()) : '-'}'
                                         : 'Ready to start your day',
@@ -439,6 +477,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                       ),
                                     ),
                                   ),
+                                  if (checkedIn) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Working: $_workingHours',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -475,43 +524,76 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           ],
                         ),
                       ),
+                      const SizedBox(height: 32),
 
-                      // Device Time Display (for debugging)
-                      Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              color: Colors.white,
-                              size: 20,
+                      // Working Hours Display (when checked in)
+                      if (checkedIn) ...[
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.blue.shade400,
+                                Colors.blue.shade600,
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Device Time: $_currentTime',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.white.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.access_time,
+                                  color: Colors.white,
+                                  size: 24,
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Working Hours',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _workingHours,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 24),
+                      ],
 
                       // History Section
                       Expanded(
@@ -737,7 +819,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     const Spacer(),
                     _buildTimeChip(
                       'Hours',
-                      '${record['workingHours'] != null ? record['workingHours'].toStringAsFixed(1) : '-'}h',
+                      _formatWorkingHours(record['workingHours']),
                       Colors.blue.shade600,
                     ),
                   ],
