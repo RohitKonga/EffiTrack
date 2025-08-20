@@ -237,14 +237,14 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Colors.indigo.shade400,
-                                Colors.indigo.shade600,
+                                Colors.blue.shade400,
+                                Colors.blue.shade600,
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.indigo.withValues(alpha: 0.3),
+                                color: Colors.blue.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -638,7 +638,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.indigo.shade700,
+                    color: Colors.blue.shade700,
                   ),
                   textAlign: TextAlign.center,
                 ),

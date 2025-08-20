@@ -90,19 +90,24 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
               'description': 'Medical and health-related leave',
             },
             {
+              'leaveType': 'Casual Leave',
+              'days': 15,
+              'description': 'Casual and informal leave',
+            },
+            {
               'leaveType': 'Annual Leave',
               'days': 20,
               'description': 'Regular vacation leave',
             },
             {
-              'leaveType': 'Personal Leave',
-              'days': 5,
-              'description': 'Personal and emergency leave',
-            },
-            {
               'leaveType': 'Maternity Leave',
               'days': 90,
               'description': 'Maternity and parental leave',
+            },
+            {
+              'leaveType': 'Personal Leave',
+              'days': 5,
+              'description': 'Personal and emergency leave',
             },
           ];
         } else {
@@ -112,8 +117,12 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
               'leaveType': type,
               'days': type == 'Sick Leave'
                   ? 10
+                  : type == 'Casual Leave'
+                  ? 15
                   : type == 'Annual Leave'
                   ? 20
+                  : type == 'Maternity Leave'
+                  ? 90
                   : type == 'Personal Leave'
                   ? 5
                   : 15,
@@ -135,19 +144,24 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
             'description': 'Medical and health-related leave',
           },
           {
+            'leaveType': 'Casual Leave',
+            'days': 15,
+            'description': 'Casual and informal leave',
+          },
+          {
             'leaveType': 'Annual Leave',
             'days': 20,
             'description': 'Regular vacation leave',
           },
           {
-            'leaveType': 'Personal Leave',
-            'days': 5,
-            'description': 'Personal and emergency leave',
-          },
-          {
             'leaveType': 'Maternity Leave',
             'days': 90,
             'description': 'Maternity and parental leave',
+          },
+          {
+            'leaveType': 'Personal Leave',
+            'days': 5,
+            'description': 'Personal and emergency leave',
           },
         ];
 
@@ -165,14 +179,14 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
           'description': 'Medical and health-related leave',
         },
         {
+          'leaveType': 'Casual Leave',
+          'days': 15,
+          'description': 'Casual and informal leave',
+        },
+        {
           'leaveType': 'Annual Leave',
           'days': 20,
           'description': 'Regular vacation leave',
-        },
-        {
-          'leaveType': 'Personal Leave',
-          'days': 5,
-          'description': 'Personal and emergency leave',
         },
         {
           'leaveType': 'Maternity Leave',
@@ -265,17 +279,15 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
       case 'Sick Leave':
         return Colors.red;
       case 'Casual Leave':
-        return Colors.orange;
-      case 'Earned Leave':
+        return Colors.blue;
+      case 'Annual Leave':
         return Colors.green;
       case 'Maternity Leave':
-        return Colors.pink;
-      case 'Paternity Leave':
-        return Colors.blue;
-      case 'Bereavement Leave':
-        return Colors.grey;
-      default:
         return Colors.purple;
+      case 'Personal Leave':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -285,14 +297,12 @@ class _LeavePoliciesScreenState extends State<LeavePoliciesScreen>
         return Icons.medical_services;
       case 'Casual Leave':
         return Icons.beach_access;
-      case 'Earned Leave':
+      case 'Annual Leave':
         return Icons.work_off;
       case 'Maternity Leave':
         return Icons.family_restroom;
-      case 'Paternity Leave':
-        return Icons.family_restroom;
-      case 'Bereavement Leave':
-        return Icons.favorite_border;
+      case 'Personal Leave':
+        return Icons.event_note;
       default:
         return Icons.event_note;
     }

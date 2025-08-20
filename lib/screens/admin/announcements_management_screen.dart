@@ -98,7 +98,6 @@ class _AnnouncementsManagementScreenState
         final res = await apiService.post('/announcements', {
           'title': _title,
           'message': _message,
-          'priority': 'Medium',
         });
 
         if (res.statusCode == 200 || res.statusCode == 201) {
@@ -316,16 +315,23 @@ class _AnnouncementsManagementScreenState
     }
   }
 
-  Color _getPriorityColor(String priority) {
-    switch (priority) {
-      case 'High':
-        return Colors.red;
-      case 'Medium':
-        return Colors.orange;
-      case 'Low':
-        return Colors.green;
-      default:
-        return Colors.grey;
+  String _formatDate(String? dateString) {
+    if (dateString == null) return 'No Date';
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return 'No Date';
+    }
+  }
+
+  String _formatTime(String? dateString) {
+    if (dateString == null) return 'No Time';
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'No Time';
     }
   }
 
@@ -711,9 +717,6 @@ class _AnnouncementsManagementScreenState
                                     itemCount: announcements.length,
                                     itemBuilder: (context, index) {
                                       final ann = announcements[index];
-                                      final priorityColor = _getPriorityColor(
-                                        ann['priority']?.toString() ?? 'Medium',
-                                      );
 
                                       return Container(
                                         margin: const EdgeInsets.only(
@@ -747,7 +750,7 @@ class _AnnouncementsManagementScreenState
                                                     padding:
                                                         const EdgeInsets.all(8),
                                                     decoration: BoxDecoration(
-                                                      color: priorityColor
+                                                      color: Colors.purple
                                                           .withValues(
                                                             alpha: 0.1,
                                                           ),
@@ -758,7 +761,9 @@ class _AnnouncementsManagementScreenState
                                                     ),
                                                     child: Icon(
                                                       Icons.announcement,
-                                                      color: priorityColor,
+                                                      color: Colors
+                                                          .purple
+                                                          .shade600,
                                                       size: 20,
                                                     ),
                                                   ),
@@ -787,60 +792,15 @@ class _AnnouncementsManagementScreenState
                                                         const SizedBox(
                                                           height: 4,
                                                         ),
-                                                        Row(
-                                                          children: [
-                                                            Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    horizontal:
-                                                                        8,
-                                                                    vertical: 4,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color: priorityColor
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.1,
-                                                                    ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      8,
-                                                                    ),
-                                                                border: Border.all(
-                                                                  color: priorityColor
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.3,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              child: Text(
-                                                                ann['priority']
-                                                                        ?.toString() ??
-                                                                    'Medium',
-                                                                style: GoogleFonts.poppins(
-                                                                  fontSize: 10,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color:
-                                                                      priorityColor,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 8,
-                                                            ),
-                                                            Text(
-                                                              '${ann['date']?.toString() ?? 'No Date'} • ${ann['time']?.toString() ?? 'No Time'}',
-                                                              style: GoogleFonts.poppins(
+                                                        Text(
+                                                          '${_formatDate(ann['createdAt']?.toString())} • ${_formatTime(ann['createdAt']?.toString())}',
+                                                          style:
+                                                              GoogleFonts.poppins(
                                                                 fontSize: 12,
                                                                 color: Colors
                                                                     .grey
                                                                     .shade600,
                                                               ),
-                                                            ),
-                                                          ],
                                                         ),
                                                       ],
                                                     ),

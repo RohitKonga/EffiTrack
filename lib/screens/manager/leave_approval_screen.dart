@@ -286,6 +286,8 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
         return Colors.green;
       case 'maternity leave':
         return Colors.purple;
+      case 'personal leave':
+        return Colors.orange;
       default:
         return Colors.grey;
     }

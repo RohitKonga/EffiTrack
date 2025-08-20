@@ -191,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                            children: [
                               Text(
                                 'My Profile',
                                 style: GoogleFonts.poppins(
@@ -386,9 +386,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         ),
                                         validator: (value) =>
                                             value == null || value.isEmpty
-                          ? 'Please select a department'
-                          : null,
-                    ),
+                                            ? 'Please select a department'
+                                            : null,
+                                      ),
                                     ],
                                   ),
 
@@ -474,7 +474,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   color: Colors.purple.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: Colors.purple.shade600, size: 20),
+                child: Icon(icon, color: Colors.blue.shade600, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
@@ -482,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.purple.shade700,
+                  color: Colors.blue.shade700,
                 ),
               ),
             ],
@@ -511,7 +511,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.purple.shade700,
+            color: Colors.blue.shade700,
           ),
         ),
         const SizedBox(height: 8),
@@ -522,7 +522,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           enabled: enabled,
           keyboardType: keyboardType,
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.purple.shade600),
+            prefixIcon: Icon(icon, color: Colors.blue.shade600),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -533,7 +533,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+              borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
             ),
             filled: true,
             fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade100,
@@ -564,7 +564,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.purple.shade700,
+            color: Colors.blue.shade700,
           ),
         ),
         const SizedBox(height: 8),
@@ -589,7 +589,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           validator: validator,
           menuMaxHeight: 320,
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.purple.shade600),
+            prefixIcon: Icon(icon, color: Colors.blue.shade600),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -600,7 +600,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+              borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
             ),
             filled: true,
             fillColor: Colors.grey.shade50,
@@ -609,7 +609,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               vertical: 16,
             ),
           ),
-          icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade600),
           dropdownColor: Colors.white,
           style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
         ),

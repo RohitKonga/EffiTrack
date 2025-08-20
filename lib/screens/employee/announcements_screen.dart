@@ -150,7 +150,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.blue.shade700,
                                 ),
                               ),
                               Text(
@@ -172,7 +172,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           child: IconButton(
                             icon: Icon(
                               Icons.refresh,
-                              color: Colors.purple.shade600,
+                              color: Colors.blue.shade600,
                               size: 20,
                             ),
                             onPressed: _fetchAnnouncements,
@@ -191,13 +191,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                               children: [
                                 CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.purple,
+                                    Colors.blue,
                                   ),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'Loading announcements...',
-                                  style: TextStyle(color: Colors.purple),
+                                  style: TextStyle(color: Colors.blue),
                                 ),
                               ],
                             ),
@@ -234,7 +234,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                                   icon: Icon(Icons.refresh),
                                   label: Text('Retry'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple.shade600,
+                                    backgroundColor: Colors.blue.shade600,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -250,7 +250,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           )
                         : RefreshIndicator(
                             onRefresh: _fetchAnnouncements,
-                            color: Colors.purple.shade600,
+                            color: Colors.blue.shade600,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -258,16 +258,6 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Recent Announcements',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.purple.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-
                                   if (announcements.isEmpty) ...[
                                     Expanded(
                                       child: Center(
@@ -382,12 +372,12 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
+                  color: Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.announcement,
-                  color: Colors.purple.shade600,
+                  color: Colors.blue.shade600,
                   size: 20,
                 ),
               ),
@@ -401,7 +391,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
+                        color: Colors.blue.shade700,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -506,43 +496,6 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                 ),
               ],
             ),
-          ),
-
-          // Footer
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.person, size: 14, color: Colors.grey.shade600),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Posted by Admin',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-              if (hasPriority) ...[
-                Row(
-                  children: [
-                    Icon(Icons.priority_high, size: 14, color: priorityColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Priority: ${ann['priority']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: priorityColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
           ),
         ],
       ),

@@ -239,14 +239,14 @@ class _LeaveScreenState extends State<LeaveScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                                                              Text(
-                                  'Leave Management',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade700,
-                                  ),
+                              Text(
+                                'Leave Management',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
                                 ),
+                              ),
                               Text(
                                 'Request and track your leave',
                                 style: GoogleFonts.poppins(
@@ -354,7 +354,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                                   ),
                                   child: Icon(
                                     Icons.add_circle,
-                                    color: Colors.purple.shade600,
+                                    color: Colors.blue.shade600,
                                     size: 20,
                                   ),
                                 ),
@@ -364,7 +364,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                                   style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.purple.shade700,
+                                    color: Colors.blue.shade700,
                                   ),
                                 ),
                               ],
@@ -429,13 +429,13 @@ class _LeaveScreenState extends State<LeaveScreen>
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple.shade600,
+                                  backgroundColor: Colors.blue.shade600,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   elevation: 4,
-                                  shadowColor: Colors.purple.shade300,
+                                  shadowColor: Colors.blue.shade300,
                                 ),
                               ),
                             ),
@@ -458,7 +458,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.purple.shade700,
+                              color: Colors.blue.shade700,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -632,7 +632,7 @@ class _LeaveScreenState extends State<LeaveScreen>
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.purple.shade700,
+            color: Colors.blue.shade700,
           ),
         ),
         const SizedBox(height: 8),
@@ -647,7 +647,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Select leave type',
-        prefixIcon: Icon(Icons.category, color: Colors.purple.shade600),
+        prefixIcon: Icon(Icons.category, color: Colors.blue.shade600),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -658,7 +658,7 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -680,7 +680,7 @@ class _LeaveScreenState extends State<LeaveScreen>
           .toList(),
       onChanged: (value) => setState(() => _leaveType = value),
       validator: (value) => value == null ? 'Please select a leave type' : null,
-      icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
+      icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
       style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
@@ -690,27 +690,27 @@ class _LeaveScreenState extends State<LeaveScreen>
   Widget _buildDateRangeField() {
     return InkWell(
       onTap: () async {
-                                final picked = await showDateRangePicker(
-                                  context: context,
+        final picked = await showDateRangePicker(
+          context: context,
           firstDate: DateTime.now(),
           lastDate: DateTime.now().add(const Duration(days: 365)),
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: ColorScheme.light(
-                  primary: Colors.purple.shade600,
+                  primary: Colors.blue.shade600,
                   onPrimary: Colors.white,
-                  onSurface: Colors.purple.shade700,
+                  onSurface: Colors.blue.shade700,
                 ),
               ),
               child: child!,
             );
           },
-                                );
-                                if (picked != null) {
-                                  setState(() => _dateRange = picked);
-                                }
-                              },
+        );
+        if (picked != null) {
+          setState(() => _dateRange = picked);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
@@ -720,7 +720,7 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, color: Colors.purple.shade600),
+            Icon(Icons.calendar_today, color: Colors.blue.shade600),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -731,7 +731,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                   fontSize: 16,
                   color: _dateRange == null
                       ? Colors.grey.shade500
-                      : Colors.purple.shade700,
+                      : Colors.blue.shade700,
                 ),
               ),
             ),
@@ -750,7 +750,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       maxLines: 3,
       decoration: InputDecoration(
         hintText: 'Enter reason for leave',
-        prefixIcon: Icon(Icons.note, color: Colors.purple.shade600),
+        prefixIcon: Icon(Icons.note, color: Colors.blue.shade600),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -761,7 +761,7 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -819,7 +819,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
+                        color: Colors.blue.shade700,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -837,7 +837,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             fontSize: 12,
                             color: Colors.grey.shade600,
                           ),
-                              ),
+                        ),
                       ],
                     ),
                   ],
@@ -895,7 +895,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey.shade700,
-                          ),
+                    ),
                   ),
                 ],
               ),
