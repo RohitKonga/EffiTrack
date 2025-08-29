@@ -24,7 +24,6 @@ exports.createAnnouncement = async (req, res) => {
         }
       } catch (e) {
         // If parsing fails, use server time
-        console.log('Failed to parse device time, using server time');
       }
     }
     

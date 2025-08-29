@@ -134,12 +134,7 @@ class _AnnouncementsManagementScreenState
             ),
           );
         } else {
-          // Log the actual response for debugging
-          print('Add announcement failed:');
-          print('Status Code: ${res.statusCode}');
-          print('Response Body: ${res.body}');
-          print('Request Data: {title: $_title, message: $_message}');
-
+          // Show failure via UI only
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(

@@ -179,9 +179,9 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
       if (assignedTo.containsKey('firstName')) {
         final firstName = assignedTo['firstName'] ?? '';
         final lastName = assignedTo['lastName'] ?? '';
-        return '${firstName} ${lastName}'.trim().isEmpty
+        return '$firstName $lastName'.trim().isEmpty
             ? 'Unknown User'
-            : '${firstName} ${lastName}'.trim();
+            : '$firstName $lastName'.trim();
       }
       // If it's a populated user object with email
       if (assignedTo.containsKey('email')) {

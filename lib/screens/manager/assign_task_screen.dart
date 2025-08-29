@@ -226,13 +226,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             _submitting = false;
           });
 
-          // Log error details for debugging
-          print('Task assignment failed:');
-          print('Status Code: ${res.statusCode}');
-          print('Response Body: ${res.body}');
-          print(
-            'Request Data: {title: $_title, description: $_desc, assignedTo: $_employee, dueDate: $_deadline, priority: $_priority}',
-          );
+          // Error details are surfaced via SnackBar below
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

@@ -73,7 +73,7 @@ class _AnnouncementsManagementScreenState
         });
       }
     } catch (e) {
-      print('Error fetching manager profile: $e');
+      // catch error
     }
   }
 

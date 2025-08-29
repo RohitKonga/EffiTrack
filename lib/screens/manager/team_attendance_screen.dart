@@ -454,7 +454,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                   const SizedBox(height: 24),
 
                                   // Statistics
-                                  if (teamData?['statistics'] != null) ...[
+                                  if (teamData != null) ...[
                                     Text(
                                       'Team Statistics',
                                       style: GoogleFonts.poppins(
@@ -486,7 +486,8 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                               Expanded(
                                                 child: _buildStatCard(
                                                   'Present',
-                                                  teamData!['statistics']['present']
+                                                  (teamData!['presentMembers'] ??
+                                                          0)
                                                       .toString(),
                                                   Colors.green,
                                                   Icons.check_circle,
@@ -496,7 +497,10 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                               Expanded(
                                                 child: _buildStatCard(
                                                   'Absent',
-                                                  teamData!['statistics']['absent']
+                                                  ((teamData!['totalMembers'] ??
+                                                              0) -
+                                                          (teamData!['presentMembers'] ??
+                                                              0))
                                                       .toString(),
                                                   Colors.red,
                                                   Icons.cancel,
@@ -506,7 +510,8 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                               Expanded(
                                                 child: _buildStatCard(
                                                   'Total',
-                                                  teamData!['statistics']['total']
+                                                  (teamData!['totalMembers'] ??
+                                                          0)
                                                       .toString(),
                                                   Colors.blue,
                                                   Icons.people,
@@ -535,7 +540,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                                 const SizedBox(width: 8),
                                                 Expanded(
                                                   child: Text(
-                                                    'Team Attendance Rate: ${teamData!['statistics']['attendanceRate']}%',
+                                                    'Team Attendance Rate: ${teamData!['totalMembers'] != null && teamData!['totalMembers'] > 0 ? ((teamData!['presentMembers'] ?? 0) / teamData!['totalMembers'] * 100).toStringAsFixed(1) : '0.0'}%',
                                                     style: GoogleFonts.poppins(
                                                       fontSize: 16,
                                                       fontWeight:
@@ -565,6 +570,68 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                     ),
                                   ),
                                   const SizedBox(height: 16),
+
+                                  // Debug Info (can be removed later)
+                                  if (teamData != null) ...[
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      margin: const EdgeInsets.only(bottom: 16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.blue.shade200,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Debug Info:',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.blue.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Total Members: ${teamData?['totalMembers'] ?? 'N/A'}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Present Members: ${teamData?['presentMembers'] ?? 'N/A'}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          if (teamData?['teamMembers'] !=
+                                              null) ...[
+                                            Text(
+                                              'Team Members Count: ${(teamData!['teamMembers'] as List).length}',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            if ((teamData!['teamMembers']
+                                                    as List)
+                                                .isNotEmpty) ...[
+                                              Text(
+                                                'First Member Data: ${jsonEncode(teamData!['teamMembers'][0])}',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 10,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ],
 
                                   if (teamData?['teamMembers'] != null &&
                                       (teamData!['teamMembers'] as List)
@@ -647,7 +714,9 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
   }
 
   Widget _buildMemberCard(Map<String, dynamic> member, int index) {
-    final isPresent = member['status'] == 'Present';
+    final hasCheckedIn = member['checkIn'] != null;
+    final hasCheckedOut = member['checkOut'] != null;
+    final isPresent = hasCheckedIn;
     final statusColor = isPresent ? Colors.green : Colors.red;
 
     return Container(
@@ -694,14 +763,18 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _buildTimeInfo(
-                      'Check In',
-                      _formatTime(member['checkInTime']),
-                    ),
+                    _buildTimeInfo('Check In', _formatTime(member['checkIn'])),
                     const SizedBox(width: 16),
                     _buildTimeInfo(
                       'Check Out',
-                      _formatTime(member['checkOutTime']),
+                      _formatTime(member['checkOut']),
+                    ),
+                    const SizedBox(width: 16),
+                    _buildTimeInfo(
+                      'Working Hours',
+                      member['workingHours'] != null
+                          ? '${member['workingHours']}h'
+                          : 'N/A',
                     ),
                   ],
                 ),
@@ -716,7 +789,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
               border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
             child: Text(
-              member['status'] ?? 'Unknown',
+              isPresent ? (hasCheckedOut ? 'Completed' : 'Present') : 'Absent',
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
