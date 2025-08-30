@@ -127,9 +127,9 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.purple.shade600,
+              primary: Colors.teal.shade600,
               onPrimary: Colors.white,
-              onSurface: Colors.purple.shade700,
+              onSurface: Colors.teal.shade700,
             ),
           ),
           child: child!,
@@ -153,9 +153,9 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
+              Colors.teal.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
               Colors.white,
             ],
           ),
@@ -183,7 +183,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                           ),
                           child: Icon(
                             Icons.group,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -197,7 +197,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                               Text(
@@ -212,30 +212,22 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.purple.shade600,
-                              size: 20,
-                            ),
-                            onPressed: _selectDate,
+                            border: Border.all(color: Colors.teal.shade200),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
+                            border: Border.all(color: Colors.teal.shade200),
                           ),
                           child: IconButton(
                             icon: Icon(
                               Icons.refresh,
-                              color: Colors.purple.shade600,
+                              color: Colors.teal.shade600,
                               size: 20,
                             ),
                             onPressed: _fetchTeamAttendance,
@@ -265,12 +257,12 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             Icons.calendar_month,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -291,7 +283,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                             ],
@@ -302,7 +294,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                           icon: Icon(Icons.edit_calendar),
                           label: Text('Change Date'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple.shade600,
+                            backgroundColor: Colors.teal.shade600,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -324,13 +316,13 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                               children: [
                                 CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.purple,
+                                    Colors.teal,
                                   ),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'Loading team attendance...',
-                                  style: TextStyle(color: Colors.purple),
+                                  style: TextStyle(color: Colors.teal),
                                 ),
                               ],
                             ),
@@ -367,7 +359,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                   icon: Icon(Icons.refresh),
                                   label: Text('Retry'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple.shade600,
+                                    backgroundColor: Colors.teal.shade600,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -383,7 +375,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                           )
                         : RefreshIndicator(
                             onRefresh: _fetchTeamAttendance,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             child: SingleChildScrollView(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -412,14 +404,14 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                         Container(
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: Colors.purple.shade50,
+                                            color: Colors.teal.shade50,
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
                                           ),
                                           child: Icon(
                                             Icons.business,
-                                            color: Colors.purple.shade600,
+                                            color: Colors.teal.shade600,
                                             size: 24,
                                           ),
                                         ),
@@ -434,7 +426,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.purple.shade700,
+                                                  color: Colors.teal.shade700,
                                                 ),
                                               ),
                                               Text(
@@ -460,7 +452,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                       style: GoogleFonts.poppins(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.purple.shade700,
+                                        color: Colors.teal.shade700,
                                       ),
                                     ),
                                     const SizedBox(height: 16),
@@ -524,18 +516,18 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                             width: double.infinity,
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: Colors.purple.shade50,
+                                              color: Colors.teal.shade50,
                                               borderRadius:
                                                   BorderRadius.circular(12),
                                               border: Border.all(
-                                                color: Colors.purple.shade200,
+                                                color: Colors.teal.shade200,
                                               ),
                                             ),
                                             child: Row(
                                               children: [
                                                 Icon(
                                                   Icons.trending_up,
-                                                  color: Colors.purple.shade600,
+                                                  color: Colors.teal.shade600,
                                                 ),
                                                 const SizedBox(width: 8),
                                                 Expanded(
@@ -545,9 +537,8 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                                       fontSize: 16,
                                                       fontWeight:
                                                           FontWeight.w600,
-                                                      color: Colors
-                                                          .purple
-                                                          .shade700,
+                                                      color:
+                                                          Colors.teal.shade700,
                                                     ),
                                                   ),
                                                 ),
@@ -566,72 +557,10 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                     style: GoogleFonts.poppins(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.purple.shade700,
+                                      color: Colors.teal.shade700,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-
-                                  // Debug Info (can be removed later)
-                                  if (teamData != null) ...[
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      margin: const EdgeInsets.only(bottom: 16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.blue.shade200,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Debug Info:',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.blue.shade700,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Total Members: ${teamData?['totalMembers'] ?? 'N/A'}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Present Members: ${teamData?['presentMembers'] ?? 'N/A'}',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          if (teamData?['teamMembers'] !=
-                                              null) ...[
-                                            Text(
-                                              'Team Members Count: ${(teamData!['teamMembers'] as List).length}',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            if ((teamData!['teamMembers']
-                                                    as List)
-                                                .isNotEmpty) ...[
-                                              Text(
-                                                'First Member Data: ${jsonEncode(teamData!['teamMembers'][0])}',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 10,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  ],
 
                                   if (teamData?['teamMembers'] != null &&
                                       (teamData!['teamMembers'] as List)
@@ -757,7 +686,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.purple.shade700,
+                    color: Colors.teal.shade700,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -815,7 +744,7 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.purple.shade700,
+            color: Colors.teal.shade700,
           ),
         ),
       ],
