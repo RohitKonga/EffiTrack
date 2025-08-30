@@ -232,9 +232,9 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
+              Colors.teal.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
               Colors.white,
             ],
           ),
@@ -262,7 +262,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                           ),
                           child: Icon(
                             Icons.task_alt,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -276,7 +276,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                               Text(
@@ -342,7 +342,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.purple.shade700,
+                              color: Colors.teal.shade700,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -351,7 +351,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             Expanded(
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  color: Colors.purple.shade600,
+                                  color: Colors.teal.shade600,
                                 ),
                               ),
                             ),
@@ -431,7 +431,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                             Expanded(
                               child: RefreshIndicator(
                                 onRefresh: _fetchTasks,
-                                color: Colors.purple.shade600,
+                                color: Colors.teal.shade600,
                                 child: ListView.builder(
                                   itemCount: tasks.length,
                                   itemBuilder: (context, index) {
@@ -553,7 +553,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
+                        color: Colors.teal.shade700,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -570,7 +570,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: Colors.purple.shade700,
+                            color: Colors.teal.shade700,
                           ),
                         ),
                       ],

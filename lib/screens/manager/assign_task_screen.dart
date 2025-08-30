@@ -290,9 +290,9 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.purple.shade600,
+              primary: Colors.teal.shade600,
               onPrimary: Colors.white,
-              onSurface: Colors.purple.shade700,
+              onSurface: Colors.teal.shade700,
             ),
           ),
           child: child!,
@@ -316,9 +316,9 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
+              Colors.teal.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
               Colors.white,
             ],
           ),
@@ -346,7 +346,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                           ),
                           child: Icon(
                             Icons.assignment_add,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -360,7 +360,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                               Text(
@@ -379,14 +379,14 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
+                            border: Border.all(color: Colors.teal.shade200),
                           ),
                           child: IconButton(
                             icon: Icon(
                               Icons.refresh,
-                              color: Colors.purple.shade600,
+                              color: Colors.teal.shade600,
                               size: 20,
                             ),
                             onPressed: _refreshEmployees,
@@ -497,7 +497,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                             width: 20,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: Colors.purple.shade600,
+                                              color: Colors.teal.shade600,
                                             ),
                                           ),
                                           const SizedBox(width: 12),
@@ -584,7 +584,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                   backgroundColor:
                                       (_submitting || _employees.isEmpty)
                                       ? Colors.grey.shade400
-                                      : Colors.purple.shade600,
+                                      : Colors.teal.shade600,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
@@ -595,7 +595,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                                   shadowColor:
                                       (_submitting || _employees.isEmpty)
                                       ? Colors.transparent
-                                      : Colors.purple.shade300,
+                                      : Colors.teal.shade300,
                                 ),
                               ),
                             ),
@@ -637,10 +637,10 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
+                  color: Colors.teal.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: Colors.purple.shade600, size: 20),
+                child: Icon(icon, color: Colors.teal.shade600, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
@@ -648,7 +648,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.purple.shade700,
+                  color: Colors.teal.shade700,
                 ),
               ),
             ],
@@ -858,7 +858,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
           value == null || value.isEmpty ? 'Please select a deadline' : null,
       decoration: InputDecoration(
         hintText: 'Select deadline',
-        suffixIcon: Icon(Icons.calendar_today, color: Colors.purple.shade600),
+        suffixIcon: Icon(Icons.calendar_today, color: Colors.teal.shade600),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),

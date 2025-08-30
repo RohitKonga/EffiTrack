@@ -304,9 +304,9 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.purple.shade50,
-              Colors.indigo.shade50,
+              Colors.teal.shade50,
               Colors.blue.shade50,
+              Colors.indigo.shade50,
               Colors.white,
             ],
           ),
@@ -334,7 +334,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                           ),
                           child: Icon(
                             Icons.approval,
-                            color: Colors.purple.shade600,
+                            color: Colors.teal.shade600,
                             size: 24,
                           ),
                         ),
@@ -348,7 +348,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
+                                  color: Colors.teal.shade700,
                                 ),
                               ),
                               Text(
@@ -363,14 +363,14 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
+                            color: Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
+                            border: Border.all(color: Colors.teal.shade200),
                           ),
                           child: IconButton(
                             icon: Icon(
                               Icons.refresh,
-                              color: Colors.purple.shade600,
+                              color: Colors.teal.shade600,
                               size: 20,
                             ),
                             onPressed: _fetchLeaveRequests,
@@ -430,7 +430,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.purple.shade700,
+                              color: Colors.teal.shade700,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -439,7 +439,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                             Expanded(
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  color: Colors.purple.shade600,
+                                  color: Colors.teal.shade600,
                                 ),
                               ),
                             ),
