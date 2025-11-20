@@ -1,5 +1,4 @@
-const fetch = require('node-fetch');
-
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const FCM_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
 const MAX_BATCH_SIZE = 950; // stay below FCM limit of 1000
 
