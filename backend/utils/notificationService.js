@@ -1,53 +1,102 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const FCM_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
-const MAX_BATCH_SIZE = 950; // stay below FCM limit of 1000
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const { GoogleAuth } = require('google-auth-library');
 
-const chunkArray = (items, chunkSize) => {
-  const chunks = [];
-  for (let i = 0; i < items.length; i += chunkSize) {
-    chunks.push(items.slice(i, i + chunkSize));
+const FCM_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
+const MAX_CONCURRENT_REQUESTS = 20;
+
+let authClient;
+let warnedMissingCredentials = false;
+
+const getAuthClient = async () => {
+  if (authClient) return authClient;
+
+  const { FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY } = process.env;
+  if (!FCM_PROJECT_ID || !FCM_CLIENT_EMAIL || !FCM_PRIVATE_KEY) {
+    if (!warnedMissingCredentials && process.env.NODE_ENV !== 'test') {
+      console.warn(
+        '[NotificationService] Missing FCM credentials. Set FCM_PROJECT_ID, FCM_CLIENT_EMAIL, and FCM_PRIVATE_KEY.',
+      );
+      warnedMissingCredentials = true;
+    }
+    return null;
   }
-  return chunks;
+
+  const normalizedKey = FCM_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const googleAuth = new GoogleAuth({
+    credentials: {
+      client_email: FCM_CLIENT_EMAIL,
+      private_key: normalizedKey,
+    },
+    projectId: FCM_PROJECT_ID,
+    scopes: [FCM_SCOPE],
+  });
+
+  authClient = await googleAuth.getClient();
+  return authClient;
 };
 
-const sendBatch = async (tokens, notification, data) => {
-  const serverKey = process.env.FCM_SERVER_KEY;
-  if (!serverKey) {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('[NotificationService] FCM_SERVER_KEY is not configured.');
-    }
+const getAccessToken = async () => {
+  const client = await getAuthClient();
+  if (!client) return null;
+
+  const tokenResponse = await client.getAccessToken();
+  if (typeof tokenResponse === 'string') {
+    return tokenResponse;
+  }
+  return tokenResponse?.token ?? null;
+};
+
+const sendToTokens = async (tokens, notification, data) => {
+  const { FCM_PROJECT_ID } = process.env;
+  const accessToken = await getAccessToken();
+
+  if (!FCM_PROJECT_ID || !accessToken) {
     return;
   }
 
-  try {
-    const response = await fetch(FCM_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `key=${serverKey}`,
-      },
-      body: JSON.stringify({
-        registration_ids: tokens,
-        notification,
-        data,
-        priority: 'high',
-      }),
-    });
+  const endpoint = `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`;
+  const queue = [...tokens];
+  const workerCount = Math.min(MAX_CONCURRENT_REQUESTS, queue.length || 1);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[NotificationService] Failed to send FCM message:', errorText);
+  const workers = Array.from({ length: workerCount }).map(async () => {
+    while (queue.length) {
+      const token = queue.shift();
+      if (!token) continue;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            message: {
+              token,
+              notification,
+              data,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const body = await response.text();
+          console.error('[NotificationService] Failed to send FCM message:', body);
+        }
+      } catch (error) {
+        console.error('[NotificationService] FCM request error:', error.message);
+      }
     }
-  } catch (error) {
-    console.error('[NotificationService] FCM request error:', error.message);
-  }
+  });
+
+  await Promise.all(workers);
 };
 
 exports.sendAnnouncementNotification = async (tokens = [], payload = {}) => {
   if (!Array.isArray(tokens) || tokens.length === 0) return;
 
   const uniqueTokens = [...new Set(tokens.filter(Boolean))];
-  if (uniqueTokens.length === 0) return;
+  if (!uniqueTokens.length) return;
 
   const notification = {
     title: payload.title || 'New Announcement',
@@ -65,7 +114,6 @@ exports.sendAnnouncementNotification = async (tokens = [], payload = {}) => {
     createdAt: payload.createdAt ?? new Date().toISOString(),
   };
 
-  const batches = chunkArray(uniqueTokens, MAX_BATCH_SIZE);
-  await Promise.all(batches.map(batch => sendBatch(batch, notification, data)));
+  await sendToTokens(uniqueTokens, notification, data);
 };
 
