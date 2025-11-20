@@ -518,7 +518,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                             Expanded(
                               child: RefreshIndicator(
                                 onRefresh: _fetchLeaveRequests,
-                                color: Colors.purple.shade600,
+                                color: Colors.teal.shade600,
                                 child: ListView.builder(
                                   itemCount: leaveRequests.length,
                                   itemBuilder: (context, index) {
@@ -635,7 +635,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
+                        color: Colors.teal.shade700,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -866,7 +866,7 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.purple.shade700,
+                  color: Colors.teal.shade700,
                 ),
               ),
             ],

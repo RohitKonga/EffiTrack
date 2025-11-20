@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1084733881810",
+    "project_id": "effitrack-d8644",
+    "storage_bucket": "effitrack-d8644.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084733881810:android:1017a0b76b202525fb9c0b",
+        "android_client_info": {
+          "package_name": "com.example.effitrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFjdDGN6BB9DE2KiiaCNwz2dHh3_WdqZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

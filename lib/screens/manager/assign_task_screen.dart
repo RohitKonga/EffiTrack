@@ -717,7 +717,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -739,7 +739,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
           .toList(),
       onChanged: (value) => setState(() => _employee = value),
       validator: (value) => value == null ? 'Please select an employee' : null,
-      icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
+      icon: Icon(Icons.keyboard_arrow_down, color: Colors.teal.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
       style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
@@ -763,7 +763,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -795,7 +795,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -825,7 +825,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
@@ -842,7 +842,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
       ],
       onChanged: (value) => setState(() => _priority = value),
       validator: (value) => value == null ? 'Please select a priority' : null,
-      icon: Icon(Icons.keyboard_arrow_down, color: Colors.purple.shade600),
+      icon: Icon(Icons.keyboard_arrow_down, color: Colors.teal.shade600),
       dropdownColor: Colors.white,
       menuMaxHeight: 320,
       style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
@@ -869,7 +869,7 @@ class _AssignTaskScreenState extends State<AssignTaskScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+          borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
         ),
         filled: true,
         fillColor: Colors.grey.shade50,

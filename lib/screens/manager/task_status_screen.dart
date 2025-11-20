@@ -693,7 +693,7 @@ class _TaskStatusScreenState extends State<TaskStatusScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.purple.shade700,
+                  color: Colors.teal.shade700,
                 ),
               ),
             ],

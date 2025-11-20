@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -117,6 +118,8 @@ class _RegisterScreenState extends State<RegisterScreen>
       if (res.statusCode == 200 && data['token'] != null) {
         apiService.setToken(data['token']);
         final role = data['user']['role'];
+        await NotificationService().syncDeviceTokenIfNeeded();
+        if (!mounted) return;
         if (role == 'Employee') {
           Navigator.pushReplacementNamed(context, '/employee');
         } else if (role == 'Manager') {

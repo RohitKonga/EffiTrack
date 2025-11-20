@@ -5,6 +5,7 @@ import 'leave_screen.dart';
 import 'profile_screen.dart';
 import 'announcements_screen.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 
@@ -221,7 +222,11 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                                   size: 20,
                                 ),
                                 tooltip: 'Logout',
-                                onPressed: () => ApiService.logout(context),
+                                onPressed: () async {
+                                  await NotificationService().clearTokenOnServer();
+                                  if (!context.mounted) return;
+                                  await ApiService.logout(context);
+                                },
                               ),
                             ),
                           ],

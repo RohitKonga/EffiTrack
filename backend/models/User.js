@@ -6,11 +6,12 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['Admin', 'Manager', 'Employee'], required: true },
   phone: { type: String },
-  department: { 
-    type: String, 
+  department: {
+    type: String,
     enum: ['Design', 'Development', 'Marketing', 'Sales', 'HR'],
-    required: true 
+    required: true
   },
+  fcmToken: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema); 

@@ -1,4 +1,6 @@
 const Announcement = require('../models/Announcement');
+const User = require('../models/User');
+const notificationService = require('../utils/notificationService');
 
 // Create an announcement (Admin/Manager)
 exports.createAnnouncement = async (req, res) => {
@@ -27,17 +29,57 @@ exports.createAnnouncement = async (req, res) => {
       }
     }
     
-    const announcement = new Announcement({ 
-      title, 
-      message, 
-      createdBy, 
+    const announcement = new Announcement({
+      title,
+      message,
+      createdBy,
       targetRoles,
       targetDepartment: isGlobal ? undefined : targetDepartment,
       isGlobal,
-      createdAt
+      createdAt,
     });
     
     await announcement.save();
+
+    // Dispatch push notifications (best effort, non-blocking)
+    try {
+      const sender = await User.findById(createdBy).select('name role department');
+      let recipientsQuery;
+
+      if (isGlobal) {
+        recipientsQuery = {
+          role: { $in: ['Manager', 'Employee'] },
+          fcmToken: { $exists: true, $ne: null },
+        };
+      } else {
+        const targetRoleList = Array.isArray(targetRoles) && targetRoles.length
+          ? targetRoles
+          : ['Employee'];
+        recipientsQuery = {
+          role: { $in: targetRoleList },
+          fcmToken: { $exists: true, $ne: null },
+        };
+        if (targetDepartment) {
+          recipientsQuery.department = targetDepartment;
+        } else if (sender?.department) {
+          recipientsQuery.department = sender.department;
+        }
+      }
+
+      const recipientUsers = await User.find(recipientsQuery).select('fcmToken');
+      const tokens = recipientUsers.map(user => user.fcmToken);
+
+      await notificationService.sendAnnouncementNotification(tokens, {
+        title,
+        message,
+        senderName: sender?.name || (isGlobal ? 'Admin' : 'Manager'),
+        department: isGlobal ? 'All' : (targetDepartment || sender?.department || ''),
+        createdAt: createdAt.toISOString(),
+      });
+    } catch (notificationError) {
+      console.error('Failed to dispatch announcement notifications:', notificationError.message);
+    }
+
     res.json(announcement);
   } catch (err) {
     res.status(500).send('Server error');

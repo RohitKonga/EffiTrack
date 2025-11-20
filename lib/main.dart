@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'dart:convert';
@@ -8,7 +9,9 @@ import 'screens/employee/employee_dashboard.dart';
 import 'screens/manager/manager_dashboard.dart';
 import 'screens/admin/admin_dashboard.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().initialize();
   runApp(const EffiTrackApp());
 }
 
@@ -53,6 +56,7 @@ class _EffiTrackAppState extends State<EffiTrackApp> {
               _home = const LoginScreen();
             });
           }
+          await NotificationService().syncDeviceTokenIfNeeded();
         } else {
           setState(() {
             _home = const LoginScreen();

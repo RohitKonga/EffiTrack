@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -100,6 +101,8 @@ class _LoginScreenState extends State<LoginScreen>
 
         // Validate that the selected role matches the user's actual role
         if (role == _selectedRole) {
+          await NotificationService().syncDeviceTokenIfNeeded();
+          if (!mounted) return;
           if (role == 'Employee') {
             Navigator.pushReplacementNamed(context, '/employee');
           } else if (role == 'Manager') {

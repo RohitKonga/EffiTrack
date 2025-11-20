@@ -5,6 +5,7 @@ import 'task_status_screen.dart';
 import 'leave_approval_screen.dart';
 import 'announcements_management_screen.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import '../employee/attendance_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -267,7 +268,11 @@ class _ManagerDashboardState extends State<ManagerDashboard>
                                   size: 20,
                                 ),
                                 tooltip: 'Logout',
-                                onPressed: () => ApiService.logout(context),
+                                onPressed: () async {
+                                  await NotificationService().clearTokenOnServer();
+                                  if (!context.mounted) return;
+                                  await ApiService.logout(context);
+                                },
                               ),
                             ),
                           ],
