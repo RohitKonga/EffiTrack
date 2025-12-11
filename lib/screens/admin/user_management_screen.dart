@@ -56,6 +56,46 @@ class _UserManagementScreenState extends State<UserManagementScreen>
     super.dispose();
   }
 
+  List<dynamic> _sortUsers(List<dynamic> userList) {
+    // Sort users in the following order:
+    // 1. Admins
+    // 2. Pending users (new signups)
+    // 3. Managers (approved/rejected)
+    // 4. Employees (approved/rejected)
+
+    final sorted = List<dynamic>.from(userList);
+    sorted.sort((a, b) {
+      final roleA = a['role'] ?? '';
+      final roleB = b['role'] ?? '';
+      final statusA = a['status'] ?? 'Approved';
+      final statusB = b['status'] ?? 'Approved';
+
+      // Admins first
+      if (roleA == 'Admin' && roleB != 'Admin') return -1;
+      if (roleA != 'Admin' && roleB == 'Admin') return 1;
+
+      // If both are admins, keep original order
+      if (roleA == 'Admin' && roleB == 'Admin') return 0;
+
+      // Pending users (new signups) come after admins
+      final isPendingA = statusA == 'Pending';
+      final isPendingB = statusB == 'Pending';
+
+      if (isPendingA && !isPendingB) return -1;
+      if (!isPendingA && isPendingB) return 1;
+
+      // If both are pending or both are not pending, sort by role
+      // Managers before Employees
+      if (roleA == 'Manager' && roleB == 'Employee') return -1;
+      if (roleA == 'Employee' && roleB == 'Manager') return 1;
+
+      // If same role, keep original order
+      return 0;
+    });
+
+    return sorted;
+  }
+
   Future<void> _fetchUsers() async {
     setState(() {
       _loading = true;
@@ -64,8 +104,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
     try {
       final res = await apiService.get('/profile/all');
       if (res.statusCode == 200) {
+        final fetchedUsers = jsonDecode(res.body);
         setState(() {
-          users = jsonDecode(res.body);
+          users = _sortUsers(fetchedUsers);
         });
       } else {
         setState(() {
@@ -80,6 +121,79 @@ class _UserManagementScreenState extends State<UserManagementScreen>
       setState(() {
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _updateUserStatus(String userId, String status) async {
+    try {
+      final res = await apiService.put('/profile/status/$userId', {
+        'status': status,
+      });
+
+      if (res.statusCode == 200) {
+        _fetchUsers();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(
+                  status == 'Approved'
+                      ? 'User approved successfully'
+                      : 'User rejected',
+                  style: GoogleFonts.poppins(),
+                ),
+              ],
+            ),
+            backgroundColor: status == 'Approved'
+                ? Colors.green.shade600
+                : Colors.orange.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        final data = jsonDecode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(
+                  data['msg'] ?? 'Failed to update user status',
+                  style: GoogleFonts.poppins(),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Text('Network error: $e', style: GoogleFonts.poppins()),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
     }
   }
 
@@ -847,6 +961,9 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                           user['_id'] ?? user['id'] ?? '';
                                       final role = user['role'] ?? 'Unknown';
                                       final roleColor = _getRoleColor(role);
+                                      final status =
+                                          user['status'] ?? 'Approved';
+                                      final isPending = status == 'Pending';
 
                                       return Container(
                                         margin: const EdgeInsets.only(
@@ -867,133 +984,400 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                                             ),
                                           ],
                                         ),
-                                        child: ListTile(
-                                          contentPadding: const EdgeInsets.all(
-                                            20,
-                                          ),
-                                          leading: Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: roleColor.withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(20),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: roleColor
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
+                                                    child: Icon(
+                                                      _getRoleIcon(role),
+                                                      color: roleColor,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          user['name'] ??
+                                                              'Unknown',
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade800,
+                                                              ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        8,
+                                                                    vertical: 4,
+                                                                  ),
+                                                              decoration: BoxDecoration(
+                                                                color: roleColor
+                                                                    .withOpacity(
+                                                                      0.1,
+                                                                    ),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      8,
+                                                                    ),
+                                                                border: Border.all(
+                                                                  color: roleColor
+                                                                      .withOpacity(
+                                                                        0.3,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                role,
+                                                                style: GoogleFonts.poppins(
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color:
+                                                                      roleColor,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            if (role !=
+                                                                'Admin') ...[
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Container(
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          8,
+                                                                      vertical:
+                                                                          4,
+                                                                    ),
+                                                                decoration: BoxDecoration(
+                                                                  color:
+                                                                      status ==
+                                                                          'Pending'
+                                                                      ? Colors
+                                                                            .orange
+                                                                            .shade50
+                                                                      : status ==
+                                                                            'Approved'
+                                                                      ? Colors
+                                                                            .green
+                                                                            .shade50
+                                                                      : Colors
+                                                                            .red
+                                                                            .shade50,
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        8,
+                                                                      ),
+                                                                  border: Border.all(
+                                                                    color:
+                                                                        status ==
+                                                                            'Pending'
+                                                                        ? Colors
+                                                                              .orange
+                                                                              .shade300
+                                                                        : status ==
+                                                                              'Approved'
+                                                                        ? Colors
+                                                                              .green
+                                                                              .shade300
+                                                                        : Colors
+                                                                              .red
+                                                                              .shade300,
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                  status,
+                                                                  style: GoogleFonts.poppins(
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    color:
+                                                                        status ==
+                                                                            'Pending'
+                                                                        ? Colors
+                                                                              .orange
+                                                                              .shade700
+                                                                        : status ==
+                                                                              'Approved'
+                                                                        ? Colors
+                                                                              .green
+                                                                              .shade700
+                                                                        : Colors
+                                                                              .red
+                                                                              .shade700,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        if (user['email'] !=
+                                                            null)
+                                                          Text(
+                                                            '📧 ${user['email']}',
+                                                            style:
+                                                                GoogleFonts.poppins(
+                                                                  fontSize: 12,
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade600,
+                                                                ),
+                                                          ),
+                                                        if (user['department'] !=
+                                                            null)
+                                                          Text(
+                                                            '🏢 ${user['department']}',
+                                                            style:
+                                                                GoogleFonts.poppins(
+                                                                  fontSize: 12,
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade600,
+                                                                ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (role == 'Admin')
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .grey
+                                                            .shade100,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: Colors
+                                                              .grey
+                                                              .shade300,
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'Protected',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                              color: Colors
+                                                                  .grey
+                                                                  .shade600,
+                                                            ),
+                                                      ),
+                                                    )
+                                                  else if (!isPending)
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Colors.red.shade50,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: Colors
+                                                              .red
+                                                              .shade200,
+                                                        ),
+                                                      ),
+                                                      child: IconButton(
+                                                        icon: Icon(
+                                                          Icons.delete_outline,
+                                                          color: Colors
+                                                              .red
+                                                              .shade600,
+                                                          size: 20,
+                                                        ),
+                                                        onPressed: () =>
+                                                            _deleteUser(userId),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
                                             ),
-                                            child: Icon(
-                                              _getRoleIcon(role),
-                                              color: roleColor,
-                                              size: 24,
-                                            ),
-                                          ),
-                                          title: Text(
-                                            user['name'] ?? 'Unknown',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade800,
-                                            ),
-                                          ),
-                                          subtitle: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 8),
+                                            if (isPending && role != 'Admin')
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4,
+                                                      horizontal: 20,
+                                                      vertical: 12,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: roleColor.withOpacity(
-                                                    0.1,
-                                                  ),
+                                                  color: Colors.grey.shade50,
                                                   borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: roleColor
-                                                        .withOpacity(0.3),
-                                                  ),
+                                                      const BorderRadius.only(
+                                                        bottomLeft:
+                                                            Radius.circular(20),
+                                                        bottomRight:
+                                                            Radius.circular(20),
+                                                      ),
                                                 ),
-                                                child: Text(
-                                                  role,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: roleColor,
-                                                  ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Expanded(
+                                                      child: ElevatedButton.icon(
+                                                        onPressed: () =>
+                                                            _updateUserStatus(
+                                                              userId,
+                                                              'Approved',
+                                                            ),
+                                                        icon: Icon(
+                                                          Icons.check_circle,
+                                                          color: Colors.white,
+                                                          size: 18,
+                                                        ),
+                                                        label: Text(
+                                                          'Approve',
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                        ),
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .green
+                                                                  .shade600,
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                vertical: 12,
+                                                              ),
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: ElevatedButton.icon(
+                                                        onPressed: () =>
+                                                            _updateUserStatus(
+                                                              userId,
+                                                              'Rejected',
+                                                            ),
+                                                        icon: Icon(
+                                                          Icons.cancel_outlined,
+                                                          color: Colors.white,
+                                                          size: 18,
+                                                        ),
+                                                        label: Text(
+                                                          'Reject',
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                        ),
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .orange
+                                                                  .shade600,
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                vertical: 12,
+                                                              ),
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Colors.red.shade50,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: Colors
+                                                              .red
+                                                              .shade200,
+                                                        ),
+                                                      ),
+                                                      child: IconButton(
+                                                        icon: Icon(
+                                                          Icons.delete_outline,
+                                                          color: Colors
+                                                              .red
+                                                              .shade600,
+                                                          size: 20,
+                                                        ),
+                                                        onPressed: () =>
+                                                            _deleteUser(userId),
+                                                        tooltip: 'Delete',
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                              const SizedBox(height: 4),
-                                              if (user['email'] != null)
-                                                Text(
-                                                  '📧 ${user['email']}',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              if (user['department'] != null)
-                                                Text(
-                                                  '🏢 ${user['department']}',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                          trailing: role == 'Admin'
-                                              ? Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade100,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          Colors.grey.shade300,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    'Protected',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color:
-                                                          Colors.grey.shade600,
-                                                    ),
-                                                  ),
-                                                )
-                                              : Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.red.shade50,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    border: Border.all(
-                                                      color:
-                                                          Colors.red.shade200,
-                                                    ),
-                                                  ),
-                                                  child: IconButton(
-                                                    icon: Icon(
-                                                      Icons.delete_outline,
-                                                      color:
-                                                          Colors.red.shade600,
-                                                      size: 20,
-                                                    ),
-                                                    onPressed: () =>
-                                                        _deleteUser(userId),
-                                                  ),
-                                                ),
+                                          ],
                                         ),
                                       );
                                     },

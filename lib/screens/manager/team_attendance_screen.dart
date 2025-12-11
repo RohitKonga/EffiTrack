@@ -565,14 +565,31 @@ class _TeamAttendanceScreenState extends State<TeamAttendanceScreen>
                                   if (teamData?['teamMembers'] != null &&
                                       (teamData!['teamMembers'] as List)
                                           .isNotEmpty) ...[
-                                    ...List.generate(
-                                      (teamData!['teamMembers'] as List).length,
-                                      (index) {
-                                        final member =
-                                            teamData!['teamMembers'][index];
-                                        return _buildMemberCard(member, index);
-                                      },
-                                    ),
+                                    ...() {
+                                      // Sort team members: present first, then absent
+                                      final members = List<Map<String, dynamic>>.from(
+                                        teamData!['teamMembers'] as List,
+                                      );
+                                      members.sort((a, b) {
+                                        final aPresent = a['checkIn'] != null;
+                                        final bPresent = b['checkIn'] != null;
+                                        
+                                        // Present members come first
+                                        if (aPresent && !bPresent) return -1;
+                                        if (!aPresent && bPresent) return 1;
+                                        
+                                        // If both have same status, maintain original order
+                                        return 0;
+                                      });
+                                      
+                                      return List.generate(
+                                        members.length,
+                                        (index) {
+                                          final member = members[index];
+                                          return _buildMemberCard(member, index);
+                                        },
+                                      );
+                                    }(),
                                   ] else ...[
                                     Container(
                                       padding: const EdgeInsets.all(40),

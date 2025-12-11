@@ -218,418 +218,360 @@ class _TaskReportsScreenState extends State<TaskReportsScreen>
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Column(
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
                             ),
-                          ),
-                          child: Icon(
-                            Icons.assessment,
-                            color: Colors.purple.shade600,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Task Reports',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
-                                ),
-                              ),
-                              Text(
-                                'Track team performance and productivity',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.purple.shade200),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.refresh,
+                            child: Icon(
+                              Icons.assessment,
                               color: Colors.purple.shade600,
-                              size: 20,
+                              size: 24,
                             ),
-                            onPressed: _fetchTaskReports,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Summary Cards
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildSummaryCard(
-                            title: 'Total Tasks',
-                            value: _summary['total'],
-                            icon: Icons.assignment,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildSummaryCard(
-                            title: 'Completed',
-                            value: _summary['completed'],
-                            icon: Icons.check_circle,
-                            color: Colors.green,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildSummaryCard(
-                            title: 'Pending',
-                            value: _summary['pending'],
-                            icon: Icons.pending,
-                            color: Colors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Content
-                  Expanded(
-                    child: _loading
-                        ? const Center(
+                          const SizedBox(width: 16),
+                          Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.purple,
+                                Text(
+                                  'Task Reports',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple.shade700,
                                   ),
                                 ),
-                                SizedBox(height: 16),
                                 Text(
-                                  'Loading task reports...',
-                                  style: TextStyle(color: Colors.purple),
+                                  'Track team performance and productivity',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                               ],
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.purple.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.purple.shade200),
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.refresh,
+                                color: Colors.purple.shade600,
+                                size: 20,
+                              ),
+                              onPressed: _fetchTaskReports,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Summary Cards
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildSummaryCard(
+                              title: 'Total Tasks',
+                              value: _summary['total'],
+                              icon: Icons.assignment,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildSummaryCard(
+                              title: 'Completed',
+                              value: _summary['completed'],
+                              icon: Icons.check_circle,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildSummaryCard(
+                              title: 'Pending',
+                              value: _summary['pending'],
+                              icon: Icons.pending,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Content
+                    _loading
+                        ? Container(
+                            height: 400,
+                            child: const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.purple,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Loading task reports...',
+                                    style: TextStyle(color: Colors.purple),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         : _error != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Icon(
-                                    Icons.error_outline,
-                                    size: 48,
-                                    color: Colors.red.shade400,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  _error!,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.red.shade700,
-                                    fontSize: 16,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: _fetchTaskReports,
-                                  icon: Icon(Icons.refresh),
-                                  label: Text('Retry'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
+                        ? Container(
+                            padding: const EdgeInsets.all(40),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                    child: Icon(
+                                      Icons.error_outline,
+                                      size: 48,
+                                      color: Colors.red.shade400,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _error!,
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.red.shade700,
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ElevatedButton.icon(
+                                    onPressed: _fetchTaskReports,
+                                    icon: Icon(Icons.refresh),
+                                    label: Text('Retry'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.purple.shade600,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
-                        : RefreshIndicator(
-                            onRefresh: _fetchTaskReports,
-                            color: Colors.purple.shade600,
-                            child: tasks.isEmpty
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade100,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.assessment_outlined,
-                                            size: 48,
-                                            color: Colors.grey.shade400,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'No task reports available',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Task reports will appear here once tasks are assigned',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade500,
-                                          ),
+                        : tasks.isEmpty
+                        ? Container(
+                            padding: const EdgeInsets.all(40),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Icon(
+                                      Icons.assessment_outlined,
+                                      size: 48,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No task reports available',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Task reports will appear here once tasks are assigned',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Column(
+                            children: List.generate(
+                              tasks.length,
+                              (index) {
+                                final task = tasks[index];
+                                final status = task['status'] ?? 'Unknown';
+                                final statusColor = _getStatusColor(status);
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.05),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
                                         ),
                                       ],
                                     ),
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                    ),
-                                    itemCount: tasks.length,
-                                    itemBuilder: (context, index) {
-                                      final task = tasks[index];
-                                      final status =
-                                          task['status'] ?? 'Unknown';
-                                      final statusColor = _getStatusColor(
-                                        status,
-                                      );
-
-                                      return Container(
-                                        margin: const EdgeInsets.only(
-                                          bottom: 16,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.05,
-                                              ),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: Column(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        children: [
+                                          // Task Info
+                                          Row(
                                             children: [
-                                              // Task Info
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          12,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: statusColor
-                                                          .withValues(
-                                                            alpha: 0.1,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                    ),
-                                                    child: Icon(
-                                                      _getStatusIcon(status),
-                                                      color: statusColor,
-                                                      size: 24,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          task['title'] ??
-                                                              'Untitled Task',
-                                                          style:
-                                                              GoogleFonts.poppins(
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color: Colors
-                                                                    .purple
-                                                                    .shade700,
-                                                              ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 8,
-                                                                vertical: 4,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors
-                                                                .purple
-                                                                .shade50,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  8,
-                                                                ),
-                                                          ),
-                                                          child: Text(
-                                                            _getAssignedToText(
-                                                              task['assignedTo'],
-                                                            ),
-                                                            style:
-                                                                GoogleFonts.poppins(
-                                                                  fontSize: 12,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                  color: Colors
-                                                                      .purple
-                                                                      .shade700,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-
-                                              const SizedBox(height: 20),
-
-                                              // Task Details
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: _buildStatCard(
-                                                      title: 'Status',
-                                                      value: status,
-                                                      icon: _getStatusIcon(
-                                                        status,
-                                                      ),
-                                                      color: statusColor,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: _buildStatCard(
-                                                      title: 'Priority',
-                                                      value:
-                                                          task['priority'] ??
-                                                          'Medium',
-                                                      icon: Icons.priority_high,
-                                                      color: _getPriorityColor(
-                                                        task['priority'] ?? '',
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: _buildStatCard(
-                                                      title: 'Due Date',
-                                                      value: _formatDate(
-                                                        task['deadline'],
-                                                      ),
-                                                      icon:
-                                                          Icons.calendar_today,
-                                                      color: Colors.orange,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-
-                                              if (task['description'] != null &&
-                                                  task['description']
-                                                      .toString()
-                                                      .isNotEmpty) ...[
-                                                const SizedBox(height: 20),
-                                                Container(
-                                                  width: double.infinity,
-                                                  padding: const EdgeInsets.all(
-                                                    16,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade50,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    task['description']
-                                                            ?.toString() ??
-                                                        '',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 14,
-                                                      color:
-                                                          Colors.grey.shade700,
-                                                    ),
-                                                  ),
+                                              Container(
+                                                padding: const EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                  color: statusColor.withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(12),
                                                 ),
-                                              ],
+                                                child: Icon(
+                                                  _getStatusIcon(status),
+                                                  color: statusColor,
+                                                  size: 24,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      task['title'] ?? 'Untitled Task',
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: Colors.purple.shade700,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.purple.shade50,
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: Text(
+                                                        _getAssignedToText(task['assignedTo']),
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w500,
+                                                          color: Colors.purple.shade700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                      );
-                                    },
+                                          const SizedBox(height: 20),
+                                          // Task Details
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  title: 'Status',
+                                                  value: status,
+                                                  icon: _getStatusIcon(status),
+                                                  color: statusColor,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  title: 'Priority',
+                                                  value: task['priority'] ?? 'Medium',
+                                                  icon: Icons.priority_high,
+                                                  color: _getPriorityColor(task['priority'] ?? ''),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: _buildStatCard(
+                                                  title: 'Due Date',
+                                                  value: _formatDate(task['deadline']),
+                                                  icon: Icons.calendar_today,
+                                                  color: Colors.orange,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (task['description'] != null &&
+                                              task['description'].toString().isNotEmpty) ...[
+                                            const SizedBox(height: 20),
+                                            Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade50,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                task['description']?.toString() ?? '',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 14,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
                                   ),
+                                );
+                              },
+                            ),
                           ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),

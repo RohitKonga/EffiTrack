@@ -161,297 +161,307 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Column(
-                children: [
-                  // Header Section
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        // Top Bar with Logout
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Header Section
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          // Top Bar with Logout
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.indigo.shade600,
+                                  size: 24,
                                 ),
                               ),
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.indigo.shade600,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Welcome Back!',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.indigo.shade700,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Employee Dashboard',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.red.shade200),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.logout,
-                                  color: Colors.red.shade600,
-                                  size: 20,
-                                ),
-                                tooltip: 'Logout',
-                                onPressed: () async {
-                                  await NotificationService().clearTokenOnServer();
-                                  if (!context.mounted) return;
-                                  await ApiService.logout(context);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Quick Stats Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.blue.shade400,
-                                Colors.blue.shade600,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blue.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: _loading
-                              ? Row(
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                                    Text(
+                                      'Welcome Back!',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.indigo.shade700,
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        'Loading workspace stats...',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
+                                    Text(
+                                      'Employee Dashboard',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
                                       ),
                                     ),
                                   ],
-                                )
-                              : _error != null
-                              ? Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.red.shade200,
+                                  ),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.logout,
+                                    color: Colors.red.shade600,
+                                    size: 20,
+                                  ),
+                                  tooltip: 'Logout',
+                                  onPressed: () async {
+                                    await NotificationService()
+                                        .clearTokenOnServer();
+                                    if (!context.mounted) return;
+                                    await ApiService.logout(context);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Quick Stats Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.blue.shade400,
+                                  Colors.blue.shade600,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.withValues(alpha: 0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: _loading
+                                ? Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        child: const CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
                                       ),
-                                      child: Icon(
-                                        Icons.error_outline,
-                                        color: Colors.white,
-                                        size: 24,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Text(
+                                          'Loading workspace stats...',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                    ],
+                                  )
+                                : _error != null
+                                ? Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.error_outline,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Error Loading Stats',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _error!,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.9,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.refresh,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        onPressed: _fetchEmployeeStats,
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    children: [
+                                      Row(
                                         children: [
-                                          Text(
-                                            'Error Loading Stats',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Icon(
+                                              Icons.work,
                                               color: Colors.white,
+                                              size: 24,
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            _error!,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              color: Colors.white.withValues(
-                                                alpha: 0.9,
-                                              ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Your Workspace',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'Manage your daily tasks and activities',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.9),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.refresh,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            onPressed: _fetchEmployeeStats,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildStatItem(
+                                              'Total Tasks',
+                                              _stats['totalTasks'].toString(),
+                                              Icons.assignment,
+                                              Colors.blue.shade300,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: _buildStatItem(
+                                              'Completed',
+                                              _stats['completedTasks']
+                                                  .toString(),
+                                              Icons.check_circle,
+                                              Colors.green,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: _buildStatItem(
+                                              'Pending Leaves',
+                                              _stats['pendingLeaves']
+                                                  .toString(),
+                                              Icons.event_busy,
+                                              Colors.orange,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: _buildStatItem(
+                                              'Status',
+                                              _stats['attendanceToday']
+                                                  ? 'Checked In'
+                                                  : 'Not Checked In',
+                                              _stats['attendanceToday']
+                                                  ? Icons.check_circle
+                                                  : Icons.schedule,
+                                              _stats['attendanceToday']
+                                                  ? Colors.green
+                                                  : Colors.red,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.refresh,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                      onPressed: _fetchEmployeeStats,
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.work,
-                                            color: Colors.white,
-                                            size: 24,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Your Workspace',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'Manage your daily tasks and activities',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 12,
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.9),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(
-                                            Icons.refresh,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          onPressed: _fetchEmployeeStats,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildStatItem(
-                                            'Total Tasks',
-                                            _stats['totalTasks'].toString(),
-                                            Icons.assignment,
-                                            Colors.blue.shade100,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildStatItem(
-                                            'Completed',
-                                            _stats['completedTasks'].toString(),
-                                            Icons.check_circle,
-                                            Colors.green.shade100,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildStatItem(
-                                            'Pending Leaves',
-                                            _stats['pendingLeaves'].toString(),
-                                            Icons.event_busy,
-                                            Colors.orange.shade100,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildStatItem(
-                                            'Status',
-                                            _stats['attendanceToday']
-                                                ? 'Checked In'
-                                                : 'Not Checked In',
-                                            _stats['attendanceToday']
-                                                ? Icons.check_circle
-                                                : Icons.schedule,
-                                            _stats['attendanceToday']
-                                                ? Colors.green.shade100
-                                                : Colors.red.shade100,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ],
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Menu Grid
-                  Expanded(
-                    child: Container(
+                    // Menu Grid
+                    Container(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
@@ -545,8 +555,9 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),

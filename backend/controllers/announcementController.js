@@ -29,10 +29,10 @@ exports.createAnnouncement = async (req, res) => {
       }
     }
     
-    const announcement = new Announcement({
-      title,
-      message,
-      createdBy,
+    const announcement = new Announcement({ 
+      title, 
+      message, 
+      createdBy, 
       targetRoles,
       targetDepartment: isGlobal ? undefined : targetDepartment,
       isGlobal,

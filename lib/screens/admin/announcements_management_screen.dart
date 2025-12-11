@@ -354,8 +354,9 @@ class _AnnouncementsManagementScreenState
             opacity: _fadeAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Column(
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
                   // Header
                   Container(
                     padding: const EdgeInsets.all(24),
@@ -600,9 +601,10 @@ class _AnnouncementsManagementScreenState
                   if (_showForm) const SizedBox(height: 24),
 
                   // Content
-                  Expanded(
-                    child: _loading
-                        ? const Center(
+                  _loading
+                      ? Container(
+                          height: 400,
+                          child: const Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -618,9 +620,12 @@ class _AnnouncementsManagementScreenState
                                 ),
                               ],
                             ),
-                          )
-                        : _error != null
-                        ? Center(
+                          ),
+                        )
+                      : _error != null
+                      ? Container(
+                          padding: const EdgeInsets.all(40),
+                          child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -664,8 +669,9 @@ class _AnnouncementsManagementScreenState
                                 ),
                               ],
                             ),
-                          )
-                        : RefreshIndicator(
+                          ),
+                        )
+                      : RefreshIndicator(
                             onRefresh: _fetchAnnouncements,
                             color: Colors.purple.shade600,
                             child: announcements.isEmpty
@@ -709,6 +715,8 @@ class _AnnouncementsManagementScreenState
                                     ),
                                   )
                                 : ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
                                     ),
@@ -838,9 +846,10 @@ class _AnnouncementsManagementScreenState
                                       );
                                     },
                                   ),
-                          ),
-                  ),
-                ],
+                        ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
