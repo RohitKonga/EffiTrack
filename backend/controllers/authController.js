@@ -10,27 +10,29 @@ exports.register = async (req, res) => {
     if (role === 'Admin') {
       return res.status(403).json({ msg: 'Admin accounts cannot be created through registration' });
     }
+
+    // Only allow Employee or Manager
+    if (!['Employee', 'Manager'].includes(role)) {
+      return res.status(400).json({ msg: 'Invalid role' });
+    }
     
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: 'User already exists' });
 
-    const status = role === 'Employee' || role === 'Manager' ? 'Pending' : 'Approved';
+    // All non-admin registrations must start as Pending
+    const status = 'Pending';
 
     user = new User({ name, email, password, role, phone, department, status });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
 
-    const payload = { user: { id: user.id, role: user.role } };
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
-      }
-    );
+    // If user is pending, do NOT log them in; require admin approval first.
+    return res.status(201).json({
+      msg: 'Account created and pending admin approval.',
+      status: user.status,
+    });
+
   } catch (err) {
     res.status(500).send('Server error');
   }
