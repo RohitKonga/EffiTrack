@@ -41,13 +41,33 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    
+    // Get raw document to check if status field actually exists in DB
+    // .lean() returns plain object without Mongoose defaults
+    const userRaw = await User.findOne({ email }).lean();
+    if (!userRaw) return res.status(400).json({ msg: 'Invalid credentials' });
 
-    // For existing users without status, default to Approved
-    if (!user.status) {
+    // Get full user document for operations
+    const user = await User.findOne({ email });
+    
+    // If status field doesn't exist in DB (undefined), it's an existing user - auto-approve
+    // Also auto-approve if user has 'Pending' status but was created before today
+    if (userRaw.status === undefined) {
+      // Status field doesn't exist - existing user, auto-approve
       user.status = 'Approved';
       await user.save();
+    } else if (userRaw.status === 'Pending' && userRaw.createdAt) {
+      // Check if user was created before today (existing user with Pending status)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const userCreatedDate = new Date(userRaw.createdAt);
+      userCreatedDate.setHours(0, 0, 0, 0);
+      
+      if (userCreatedDate < today) {
+        // Existing user created before today - auto-approve
+        user.status = 'Approved';
+        await user.save();
+      }
     }
 
     // Block login unless approved, except Admins can always log in
