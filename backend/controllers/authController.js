@@ -44,7 +44,14 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
 
-    if (user.status !== 'Approved') {
+    // For existing users without status, default to Approved
+    if (!user.status) {
+      user.status = 'Approved';
+      await user.save();
+    }
+
+    // Block login unless approved, except Admins can always log in
+    if (user.role !== 'Admin' && user.status !== 'Approved') {
       return res.status(403).json({ msg: 'Account pending approval. Please contact admin.' });
     }
 
