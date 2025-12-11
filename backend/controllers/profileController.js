@@ -107,3 +107,27 @@ exports.getUsersByDepartment = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// Update user status (admin only)
+exports.updateUserStatus = async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ msg: 'Not authorized' });
+    }
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!['Pending', 'Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ msg: 'Invalid status value' });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    user.status = status;
+    await user.save();
+
+    res.json({ msg: 'User status updated', user });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+};

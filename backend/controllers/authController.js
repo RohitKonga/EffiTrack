@@ -14,7 +14,9 @@ exports.register = async (req, res) => {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: 'User already exists' });
 
-    user = new User({ name, email, password, role, phone, department });
+    const status = role === 'Employee' || role === 'Manager' ? 'Pending' : 'Approved';
+
+    user = new User({ name, email, password, role, phone, department, status });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
@@ -39,6 +41,10 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+
+    if (user.status !== 'Approved') {
+      return res.status(403).json({ msg: 'Account pending approval. Please contact admin.' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });

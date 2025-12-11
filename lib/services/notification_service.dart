@@ -50,11 +50,12 @@ class NotificationService {
       provisional: false,
     );
 
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 
   Future<void> _configureLocalNotifications() async {
@@ -65,7 +66,9 @@ class NotificationService {
       importance: Importance.high,
     );
 
-    const androidInitialization = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInitialization = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosInitialization = DarwinInitializationSettings();
 
     await _localNotificationsPlugin.initialize(
@@ -77,7 +80,8 @@ class NotificationService {
 
     await _localNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_androidChannel!);
   }
 
@@ -139,4 +143,3 @@ class NotificationService {
     }
   }
 }
-

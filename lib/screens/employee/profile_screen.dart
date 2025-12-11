@@ -381,13 +381,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         Icons.business_outlined,
                                         _department,
                                         _departments,
-                                        (value) => setState(
-                                          () => _department = value ?? '',
-                                        ),
-                                        validator: (value) =>
-                                            value == null || value.isEmpty
-                                            ? 'Please select a department'
-                                            : null,
+                                        onChanged: null, // disabled
+                                        enabled: false,
                                       ),
                                     ],
                                   ),
@@ -552,9 +547,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     String label,
     IconData icon,
     String value,
-    List<String> items,
-    Function(String?) onChanged, {
+    List<String> items, {
+    ValueChanged<String?>? onChanged,
     String? Function(String?)? validator,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,8 +581,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               )
               .toList(),
-          onChanged: onChanged,
-          validator: validator,
+          onChanged: enabled ? onChanged : null,
+          validator: enabled ? validator : null,
           menuMaxHeight: 320,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.blue.shade600),
@@ -603,13 +599,16 @@ class _ProfileScreenState extends State<ProfileScreen>
               borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade100,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
             ),
           ),
-          icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade600),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: enabled ? Colors.blue.shade600 : Colors.grey,
+          ),
           dropdownColor: Colors.white,
           style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
         ),

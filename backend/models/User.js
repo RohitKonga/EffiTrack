@@ -12,6 +12,11 @@ const UserSchema = new mongoose.Schema({
     required: true
   },
   fcmToken: { type: String },
+  status: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected'],
+    default: 'Approved',
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema); 
