@@ -232,10 +232,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.purple.shade400,
-                                  Colors.purple.shade600,
-                                ],
+                                colors: [Colors.purple.shade300, Colors.purple],
                               ),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [

@@ -243,10 +243,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.blue.shade400,
-                                  Colors.blue.shade600,
-                                ],
+                                colors: [Colors.blue.shade300, Colors.blue],
                               ),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
@@ -435,8 +432,8 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                                             child: _buildStatItem(
                                               'Status',
                                               _stats['attendanceToday']
-                                                  ? 'Checked In'
-                                                  : 'Not Checked In',
+                                                  ? 'In'
+                                                  : 'Out',
                                               _stats['attendanceToday']
                                                   ? Icons.check_circle
                                                   : Icons.schedule,

@@ -291,10 +291,7 @@ class _ManagerDashboardState extends State<ManagerDashboard>
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.teal.shade400,
-                                  Colors.teal.shade600,
-                                ],
+                                colors: [Colors.teal.shade300, Colors.teal],
                               ),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
