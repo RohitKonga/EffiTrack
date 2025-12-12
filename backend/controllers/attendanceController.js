@@ -8,23 +8,20 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ msg: 'Already checked in. Please check out first.' });
     }
 
-    // Always use client-provided time, never fallback to server time
     if (!req.body.checkIn) {
       return res.status(400).json({ msg: 'Device time is required for check-in' });
     }
 
     const deviceTime = new Date(req.body.checkIn);
     
-    // Validate that the time is reasonable (not too far in past/future)
     const now = new Date();
     const timeDiff = Math.abs(now - deviceTime);
-    const maxDiff = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const maxDiff = 24 * 60 * 60 * 1000; 
     
     if (timeDiff > maxDiff) {
       return res.status(400).json({ msg: 'Device time seems incorrect. Please check your device clock.' });
     }
 
-    // Check if user has already checked in today
     const today = new Date(deviceTime);
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -62,23 +59,20 @@ exports.checkOut = async (req, res) => {
       return res.status(400).json({ msg: 'No active check-in found.' });
     }
 
-    // Always use client-provided time, never fallback to server time
     if (!req.body.checkOut) {
       return res.status(400).json({ msg: 'Device time is required for check-out' });
     }
 
     const deviceTime = new Date(req.body.checkOut);
     
-    // Validate that the time is reasonable (not too far in past/future)
     const now = new Date();
     const timeDiff = Math.abs(now - deviceTime);
-    const maxDiff = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const maxDiff = 24 * 60 * 60 * 1000; 
     
     if (timeDiff > maxDiff) {
       return res.status(400).json({ msg: 'Device time seems incorrect. Please check your device clock.' });
     }
 
-    // Ensure check-out time is after check-in time
     if (deviceTime <= attendance.checkIn) {
       return res.status(400).json({ msg: 'Check-out time must be after check-in time' });
     }
@@ -89,7 +83,6 @@ exports.checkOut = async (req, res) => {
     
     await attendance.save();
 
-    // Calculate working hours and provide feedback
     const workingHours = attendance.workingHours;
     let message = 'Check-out successful!';
     let additionalInfo = '';
@@ -125,10 +118,8 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// Get attendance reports (admin only)
 exports.getAttendanceReports = async (req, res) => {
   try {
-    // Get date from query parameter or use today
     let targetDate;
     if (req.query.date) {
       targetDate = new Date(req.query.date);
@@ -141,27 +132,21 @@ exports.getAttendanceReports = async (req, res) => {
     const nextDay = new Date(targetDate);
     nextDay.setDate(nextDay.getDate() + 1);
     
-    // Get all users with their departments
     const users = await User.find().select('name department role');
     
-    // Get attendance records for the selected date
     const attendanceRecords = await Attendance.find({
       checkIn: { $gte: targetDate, $lt: nextDay }
     }).populate('user', 'name department role');
     
-    // Separate users by role
     const employees = users.filter(user => user.role === 'Employee');
     const managers = users.filter(user => user.role === 'Manager');
     
-    // Group by department for employees
     const employeeDepartmentStats = {};
     const employeeTotalStats = { present: 0, absent: 0, total: employees.length };
     
-    // Group by department for managers
     const managerDepartmentStats = {};
     const managerTotalStats = { present: 0, absent: 0, total: managers.length };
     
-    // Initialize employee department stats
     employees.forEach(user => {
       if (user.department) {
         if (!employeeDepartmentStats[user.department]) {
@@ -171,7 +156,6 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
-    // Initialize manager department stats
     managers.forEach(user => {
       if (user.department) {
         if (!managerDepartmentStats[user.department]) {
@@ -181,7 +165,6 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
-    // Count present users by role for the selected date
     attendanceRecords.forEach(attendance => {
       if (attendance.user && attendance.user.department) {
         if (attendance.user.role === 'Employee') {
@@ -200,19 +183,16 @@ exports.getAttendanceReports = async (req, res) => {
       }
     });
     
-    // Calculate absent users for employees
     Object.keys(employeeDepartmentStats).forEach(dept => {
       employeeDepartmentStats[dept].absent = employeeDepartmentStats[dept].total - employeeDepartmentStats[dept].present;
     });
     employeeTotalStats.absent = employeeTotalStats.total - employeeTotalStats.present;
     
-    // Calculate absent users for managers
     Object.keys(managerDepartmentStats).forEach(dept => {
       managerDepartmentStats[dept].absent = managerDepartmentStats[dept].total - managerDepartmentStats[dept].present;
     });
     managerTotalStats.absent = managerTotalStats.total - managerTotalStats.present;
     
-    // Convert to array format for employees
     const employeeReports = Object.keys(employeeDepartmentStats).map(dept => ({
       department: dept,
       present: employeeDepartmentStats[dept].present.toString(),
@@ -223,7 +203,6 @@ exports.getAttendanceReports = async (req, res) => {
         : '0.0'
     }));
     
-    // Convert to array format for managers
     const managerReports = Object.keys(managerDepartmentStats).map(dept => ({
       department: dept,
       present: managerDepartmentStats[dept].present.toString(),

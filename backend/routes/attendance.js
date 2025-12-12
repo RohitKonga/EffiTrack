@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const { checkIn, checkOut, getHistory, getAttendanceReports, getTeamAttendance } = require('../controllers/attendanceController');
 const User = require('../models/User');
-const Attendance = require('../models/Attendance'); // Added missing import for Attendance
+const Attendance = require('../models/Attendance'); 
 
 router.post('/checkin', auth, checkIn);
 router.post('/checkout', auth, checkOut);

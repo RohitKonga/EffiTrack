@@ -5,8 +5,8 @@ const AnnouncementSchema = new mongoose.Schema({
   message: { type: String, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   targetRoles: [{ type: String, enum: ['Admin', 'Manager', 'Employee'] }],
-  targetDepartment: { type: String }, // For department-specific announcements
-  isGlobal: { type: Boolean, default: false }, // true for admin announcements, false for department-specific
+  targetDepartment: { type: String }, 
+  isGlobal: { type: Boolean, default: false }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model('Announcement', AnnouncementSchema); 
