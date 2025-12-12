@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const {
   getProfile,
   updateProfile,
+  changePassword,
   updateFcmToken,
   getAllProfiles,
   deleteUser,
@@ -13,6 +14,7 @@ const {
 
 router.get('/', auth, getProfile);
 router.put('/', auth, updateProfile);
+router.put('/password', auth, changePassword);
 router.post('/fcm-token', auth, updateFcmToken);
 router.get('/all', auth, getAllProfiles);
 router.get('/department/:department', auth, getUsersByDepartment);

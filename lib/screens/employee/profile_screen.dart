@@ -21,6 +21,17 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _loading = true;
   bool _saving = false;
   String? _error;
+  
+  // Password change fields
+  final _passwordFormKey = GlobalKey<FormState>();
+  String _currentPassword = '';
+  String _newPassword = '';
+  String _confirmPassword = '';
+  bool _obscureCurrentPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _changingPassword = false;
+  bool _showPasswordSection = false;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -89,6 +100,67 @@ class _ProfileScreenState extends State<ProfileScreen>
     } finally {
       setState(() {
         _loading = false;
+      });
+    }
+  }
+
+  Future<void> _changePassword() async {
+    if (!_passwordFormKey.currentState!.validate()) return;
+    _passwordFormKey.currentState!.save();
+    
+    setState(() {
+      _changingPassword = true;
+      _error = null;
+    });
+    
+    try {
+      final res = await apiService.put('/profile/password', {
+        'currentPassword': _currentPassword,
+        'newPassword': _newPassword,
+      });
+      
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    data['msg'] ?? 'Password changed successfully',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+        setState(() {
+          _showPasswordSection = false;
+          _currentPassword = '';
+          _newPassword = '';
+          _confirmPassword = '';
+          _passwordFormKey.currentState?.reset();
+        });
+      } else {
+        final data = jsonDecode(res.body);
+        setState(() {
+          _error = data['msg'] ?? 'Failed to change password';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Network error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _changingPassword = false;
       });
     }
   }
@@ -389,6 +461,180 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                                   const SizedBox(height: 32),
 
+                                  // Password Change Section
+                                  _buildFormSection(
+                                    'Change Password',
+                                    Icons.lock_outline,
+                                    [
+                                      if (!_showPasswordSection) ...[
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: OutlinedButton.icon(
+                                            onPressed: () {
+                                              setState(() {
+                                                _showPasswordSection = true;
+                                                _currentPassword = '';
+                                                _newPassword = '';
+                                                _confirmPassword = '';
+                                              });
+                                            },
+                                            icon: Icon(Icons.edit, color: Colors.blue.shade600),
+                                            label: Text(
+                                              'Change Password',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.blue.shade600,
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(color: Colors.blue.shade300),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                            ),
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Form(
+                                          key: _passwordFormKey,
+                                          child: Column(
+                                            children: [
+                                              _buildPasswordField(
+                                                'Current Password',
+                                                Icons.lock_outline,
+                                                _currentPassword,
+                                                (value) => _currentPassword = value ?? '',
+                                                _obscureCurrentPassword,
+                                                () {
+                                                  setState(() {
+                                                    _obscureCurrentPassword = !_obscureCurrentPassword;
+                                                  });
+                                                },
+                                                validator: (value) =>
+                                                    value == null || value.isEmpty
+                                                        ? 'Please enter your current password'
+                                                        : null,
+                                              ),
+                                              const SizedBox(height: 20),
+                                              _buildPasswordField(
+                                                'New Password',
+                                                Icons.lock,
+                                                _newPassword,
+                                                (value) => _newPassword = value ?? '',
+                                                _obscureNewPassword,
+                                                () {
+                                                  setState(() {
+                                                    _obscureNewPassword = !_obscureNewPassword;
+                                                  });
+                                                },
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return 'Please enter a new password';
+                                                  }
+                                                  if (value.length < 6) {
+                                                    return 'Password must be at least 6 characters';
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                              const SizedBox(height: 20),
+                                              _buildPasswordField(
+                                                'Confirm New Password',
+                                                Icons.lock,
+                                                _confirmPassword,
+                                                (value) => _confirmPassword = value ?? '',
+                                                _obscureConfirmPassword,
+                                                () {
+                                                  setState(() {
+                                                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                                                  });
+                                                },
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return 'Please confirm your new password';
+                                                  }
+                                                  if (value != _newPassword) {
+                                                    return 'Passwords do not match';
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                              const SizedBox(height: 20),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: OutlinedButton(
+                                                      onPressed: _changingPassword
+                                                          ? null
+                                                          : () {
+                                                              setState(() {
+                                                                _showPasswordSection = false;
+                                                                _currentPassword = '';
+                                                                _newPassword = '';
+                                                                _confirmPassword = '';
+                                                                _passwordFormKey.currentState?.reset();
+                                                              });
+                                                            },
+                                                      style: OutlinedButton.styleFrom(
+                                                        side: BorderSide(color: Colors.grey.shade300),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                                      ),
+                                                      child: Text(
+                                                        'Cancel',
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.grey.shade700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: ElevatedButton(
+                                                      onPressed: _changingPassword ? null : _changePassword,
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.blue.shade600,
+                                                        foregroundColor: Colors.white,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                                      ),
+                                                      child: _changingPassword
+                                                          ? SizedBox(
+                                                              width: 20,
+                                                              height: 20,
+                                                              child: CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                              ),
+                                                            )
+                                                          : Text(
+                                                              'Change Password',
+                                                              style: GoogleFonts.poppins(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 32),
+
                                   // Save Button
                                   SizedBox(
                                     width: double.infinity,
@@ -611,6 +857,65 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           dropdownColor: Colors.white,
           style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField(
+    String label,
+    IconData icon,
+    String value,
+    Function(String?) onSaved,
+    bool obscureText,
+    VoidCallback onToggleVisibility, {
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.blue.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: value,
+          obscureText: obscureText,
+          onSaved: onSaved,
+          validator: validator,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.blue.shade600),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.grey.shade600,
+              ),
+              onPressed: onToggleVisibility,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
         ),
       ],
     );

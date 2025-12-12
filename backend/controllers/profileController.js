@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 // Get current user's profile
 exports.getProfile = async (req, res) => {
@@ -26,6 +27,40 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// Change password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ msg: 'Current password and new password are required' });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ msg: 'New password must be at least 6 characters long' });
+    }
+    
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Current password is incorrect' });
+    }
+    
+    // Hash and update password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+    
+    res.json({ msg: 'Password changed successfully' });
+  } catch (err) {
+    console.error('[profileController.changePassword] Error:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
 // Update / clear device push token
 exports.updateFcmToken = async (req, res) => {
   try {
@@ -40,7 +75,7 @@ exports.updateFcmToken = async (req, res) => {
       msg: token ? 'Notification token updated' : 'Notification token removed',
     });
   } catch (err) {
-    res.status(500).send('Server error');
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
 
