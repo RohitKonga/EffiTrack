@@ -34,7 +34,8 @@ exports.register = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).send('Server error');
+    console.error('[authController.register] Error:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
 
@@ -84,11 +85,15 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' },
       (err, token) => {
-        if (err) throw err;
+        if (err) {
+          console.error('[authController.login] JWT Error:', err);
+          return res.status(500).json({ msg: 'Server error', error: err.message });
+        }
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
       }
     );
   } catch (err) {
-    res.status(500).send('Server error');
+    console.error('[authController.login] Error:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 }; 

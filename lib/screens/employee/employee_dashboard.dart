@@ -164,12 +164,10 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Header Section
                     Container(
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          // Top Bar with Logout
                           Row(
                             children: [
                               Container(
@@ -540,7 +538,6 @@ class _EmployeeDashboardState extends State<EmployeeDashboard>
                             Colors.grey,
                             'Get help & support',
                             () {
-                              // TODO: Add support screen
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(

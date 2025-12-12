@@ -94,7 +94,19 @@ class _LoginScreenState extends State<LoginScreen>
         'email': _email,
         'password': _password,
       });
-      final data = jsonDecode(res.body);
+      
+      // Try to parse JSON response
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(res.body);
+      } catch (e) {
+        // If response is not JSON, show the raw response or a generic error
+        setState(() {
+          _error = 'Server error: Invalid response format';
+        });
+        return;
+      }
+      
       if (res.statusCode == 200 && data['token'] != null) {
         apiService.setToken(data['token']);
         final role = data['user']['role'];
@@ -123,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } catch (e) {
       setState(() {
-        _error = 'Network error: $e';
+        _error = 'Network error: ${e.toString()}';
       });
     } finally {
       setState(() {
