@@ -9,7 +9,16 @@ const UserSchema = new mongoose.Schema({
   department: {
     type: String,
     enum: ['Design', 'Development', 'Marketing', 'Sales', 'HR'],
-    required: true
+    required: false, 
+    validate: {
+      validator: function(value) {
+        if (this.role === 'Admin') {
+          return true; 
+        }
+        return value != null && value.trim() !== '';
+      },
+      message: 'Department is required for non-Admin users'
+    }
   },
   fcmToken: { type: String },
   status: {

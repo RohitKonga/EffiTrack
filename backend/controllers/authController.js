@@ -55,8 +55,9 @@ exports.login = async (req, res) => {
     // Also auto-approve if user has 'Pending' status but was created before today
     if (userRaw.status === undefined) {
       // Status field doesn't exist - existing user, auto-approve
+      // Use updateOne to avoid triggering full document validation
+      await User.updateOne({ _id: user.id }, { status: 'Approved' });
       user.status = 'Approved';
-      await user.save();
     } else if (userRaw.status === 'Pending' && userRaw.createdAt) {
       // Check if user was created before today (existing user with Pending status)
       const today = new Date();
@@ -66,8 +67,9 @@ exports.login = async (req, res) => {
       
       if (userCreatedDate < today) {
         // Existing user created before today - auto-approve
+        // Use updateOne to avoid triggering full document validation
+        await User.updateOne({ _id: user.id }, { status: 'Approved' });
         user.status = 'Approved';
-        await user.save();
       }
     }
 
